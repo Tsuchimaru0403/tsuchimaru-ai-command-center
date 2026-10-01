@@ -311,12 +311,24 @@ jobs:
             echo "encoded package filename forbidden in OCI build context" >&2
             exit 64
           fi
-          APT_CONFIG=/opt/gateq/apt-offline.conf apt-get \
-            --no-download \
-            --no-install-recommends \
-            --allow-downgrades \
-            --yes \
-            install /opt/gateq/debs/*.deb
+          # dpkg enforces Pre-Depends at unpack time. Resolve the ordering with
+          # bounded deterministic passes over the exact same frozen local set.
+          # Intermediate failures are allowed only to expose ordering; the final
+          # unpack and configure passes are strict and must both succeed.
+          pass=1
+          while [ "$pass" -le 4 ]; do
+            echo "frozen-deb ordering pass $pass" >&2
+            unpack_ok=0
+            configure_ok=0
+            if dpkg --unpack /opt/gateq/debs/*.deb; then unpack_ok=1; fi
+            if dpkg --configure -a; then configure_ok=1; fi
+            if [ "$unpack_ok" -eq 1 ] && [ "$configure_ok" -eq 1 ]; then
+              break
+            fi
+            pass=$((pass + 1))
+          done
+          dpkg --unpack /opt/gateq/debs/*.deb
+          dpkg --configure -a
           python3 /opt/gateq/verify_installed_lock.py
           if command -v ccache >/dev/null 2>&1; then
             echo ccache-unexpected >&2
