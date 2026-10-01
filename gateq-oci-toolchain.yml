@@ -1,0 +1,705 @@
+name: Gate Q OCI Toolchain Qualification
+
+on:
+  push:
+    branches:
+      - gateq-oci-toolchain-20261002
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      SNAPSHOT_ID: "20260911T000000Z"
+      SOURCE_DATE_EPOCH: "1789084800"
+      ENGINE_RUN_ID: "36893916456"
+      ENGINE_ARTIFACT_NAME: "gateq-engine-qualification-evidence"
+      ENGINE_EVIDENCE_DIR: "/tmp/engine-evidence"
+      TOOLCHAIN_APT_ROOT: "/tmp/toolchain-apt"
+      TOOLCHAIN_INPUT: "/tmp/toolchain-input"
+      RECIPE_DIR: "/tmp/gateq-recipe"
+      EVIDENCE_DIR: "/tmp/gateq-oci-evidence"
+      BASE_DIGEST: "sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4"
+      IMAGE_NAME: "localhost/tsuchimaru-gateq-toolchain:v0.1"
+    steps:
+      - name: Download exact Engine Qualification Evidence v0.2 source artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gateq-engine-qualification-evidence
+          path: /tmp/engine-evidence
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 36893916456
+
+      - name: Verify engine evidence and install exact Buildah engine bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = "ubuntu"
+          case "$VERSION_ID" in 24.04*) ;; *) exit 64 ;; esac
+          test "$(dpkg --print-architecture)" = "amd64"
+
+          cd "$ENGINE_EVIDENCE_DIR"
+          sha256sum -c FILES.sha256
+
+          python3 - <<'PY'
+          import csv, hashlib, json, pathlib, subprocess
+          root = pathlib.Path('/tmp/engine-evidence')
+          meta = json.loads((root/'ENGINE_QUALIFICATION_EVIDENCE_V1.json').read_text())
+          assert meta['snapshot_id'] == '20260911T000000Z'
+          auth = meta['authorization']
+          for key in ('oci_image_build','kernel_ab','wsl_change','gate_a','runtime'):
+              assert auth[key] is False
+          rows = list(csv.DictReader((root/'TOOLCHAIN_PACKAGE_LOCK.tsv').open(), delimiter='\t'))
+          assert len(rows) == 79
+          for row in rows:
+              p = root/'package-debs'/row['filename']
+              data = p.read_bytes()
+              assert hashlib.sha256(data).hexdigest() == row['sha256']
+              assert len(data) == int(row['bytes'])
+              for field in ('Package','Version','Architecture'):
+                  got = subprocess.check_output(['dpkg-deb','-f',str(p),field], text=True).strip()
+                  assert got == row[field.lower()]
+          PY
+
+          INSTALL_ROOT=/tmp/gateq-engine-install
+          sudo rm -rf "$INSTALL_ROOT"
+          sudo mkdir -p \
+            "$INSTALL_ROOT/etc/apt.conf.d" \
+            "$INSTALL_ROOT/etc/sources.list.d" \
+            "$INSTALL_ROOT/etc/preferences.d" \
+            "$INSTALL_ROOT/etc/auth.conf.d"
+          sudo touch "$INSTALL_ROOT/etc/apt.conf" "$INSTALL_ROOT/etc/sources.list" "$INSTALL_ROOT/etc/preferences" "$INSTALL_ROOT/etc/auth.conf"
+          sudo chmod 600 "$INSTALL_ROOT/etc/auth.conf"
+          cat > /tmp/engine-install.conf <<EOF
+          Dir::Etc "$INSTALL_ROOT/etc";
+          Dir::Etc::main "apt.conf";
+          Dir::Etc::parts "apt.conf.d";
+          Dir::Etc::sourcelist "sources.list";
+          Dir::Etc::sourceparts "sources.list.d";
+          Dir::Etc::preferences "preferences";
+          Dir::Etc::preferencesparts "preferences.d";
+          Dir::Etc::netrc "auth.conf";
+          Dir::Etc::netrcparts "auth.conf.d";
+          Acquire::Retries "0";
+          EOF
+
+          mapfile -t ENGINE_DEBS < <(find "$ENGINE_EVIDENCE_DIR/package-debs" -maxdepth 1 -type f -name '*.deb' -print | LC_ALL=C sort)
+          # Install only the exact frozen local package bytes. No network resolver is used.
+          sudo dpkg --unpack "${ENGINE_DEBS[@]}"
+          sudo dpkg --configure -a
+
+          python3 - <<'PY'
+          import csv, pathlib, subprocess
+          root=pathlib.Path('/tmp/engine-evidence')
+          rows=list(csv.DictReader((root/'TOOLCHAIN_PACKAGE_LOCK.tsv').open(), delimiter='\t'))
+          for row in rows:
+              name=row['package']
+              got_ver=subprocess.check_output(['dpkg-query','-W','-f=${Version}',name],text=True).strip()
+              got_arch=subprocess.check_output(['dpkg-query','-W','-f=${Architecture}',name],text=True).strip()
+              if got_ver != row['version'] or got_arch != row['architecture']:
+                  raise SystemExit(f'installed package mismatch: {name} {got_ver}/{got_arch}')
+          PY
+
+          test "$(sha256sum /usr/bin/buildah | awk '{print $1}')" = "303c9b0918e6dc071cee05e1c6ee7be14841176a5958aff7d2f92121603f9a0c"
+          buildah version --json > /tmp/buildah-version.json
+          mkdir -p "$EVIDENCE_DIR"
+          cp /tmp/buildah-version.json "$EVIDENCE_DIR/BUILDAH_VERSION.json"
+          sha256sum /usr/bin/buildah > "$EVIDENCE_DIR/BUILDAH_BINARY.sha256"
+
+      - name: Generate frozen OCI recipe and resolver policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$RECIPE_DIR" "$TOOLCHAIN_APT_ROOT" "$TOOLCHAIN_INPUT"
+          mkdir -p "$RECIPE_DIR" "$TOOLCHAIN_INPUT/toolchain-debs" \
+            "$TOOLCHAIN_APT_ROOT/etc/apt.conf.d" \
+            "$TOOLCHAIN_APT_ROOT/etc/sources.list.d" \
+            "$TOOLCHAIN_APT_ROOT/etc/preferences.d" \
+            "$TOOLCHAIN_APT_ROOT/etc/auth.conf.d" \
+            "$TOOLCHAIN_APT_ROOT/etc/trusted.gpg.d" \
+            "$TOOLCHAIN_APT_ROOT/state/lists/partial" \
+            "$TOOLCHAIN_APT_ROOT/cache/archives/partial"
+          : > "$TOOLCHAIN_APT_ROOT/etc/apt.conf"
+          : > "$TOOLCHAIN_APT_ROOT/etc/preferences"
+          : > "$TOOLCHAIN_APT_ROOT/etc/auth.conf"
+          : > "$TOOLCHAIN_APT_ROOT/etc/trusted.gpg"
+          : > "$TOOLCHAIN_APT_ROOT/state/status-empty"
+          chmod 600 "$TOOLCHAIN_APT_ROOT/etc/auth.conf"
+
+          cat > "$RECIPE_DIR/TOOLCHAIN_ROOT_PACKAGES.txt" <<'EOF'
+          bc
+          bison
+          build-essential
+          ca-certificates
+          cpio
+          dwarves
+          file
+          flex
+          gcc
+          git
+          kmod
+          libelf-dev
+          libssl-dev
+          make
+          openssl
+          perl
+          pkg-config
+          python3
+          rsync
+          xz-utils
+          EOF
+          sed -i 's/^          //' "$RECIPE_DIR/TOOLCHAIN_ROOT_PACKAGES.txt"
+
+          cat > "$TOOLCHAIN_APT_ROOT/etc/ubuntu.sources" <<EOF
+          Types: deb
+          URIs: https://snapshot.ubuntu.com/ubuntu/$SNAPSHOT_ID
+          Suites: noble noble-updates noble-security
+          Components: main universe
+          Architectures: amd64
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          EOF
+
+          cat > "$TOOLCHAIN_APT_ROOT/bootstrap.conf" <<EOF
+          Dir::Etc "$TOOLCHAIN_APT_ROOT/etc";
+          Dir::Etc::main "apt.conf";
+          Dir::Etc::parts "apt.conf.d";
+          Dir::Etc::sourcelist "ubuntu.sources";
+          Dir::Etc::sourceparts "sources.list.d";
+          Dir::Etc::preferences "preferences";
+          Dir::Etc::preferencesparts "preferences.d";
+          Dir::Etc::netrc "auth.conf";
+          Dir::Etc::netrcparts "auth.conf.d";
+          Dir::Etc::trusted "trusted.gpg";
+          Dir::Etc::trustedparts "trusted.gpg.d";
+          Dir::State "$TOOLCHAIN_APT_ROOT/state";
+          Dir::State::status "status-empty";
+          Dir::State::lists "lists";
+          Dir::Cache "$TOOLCHAIN_APT_ROOT/cache";
+          Dir::Cache::archives "archives";
+          Acquire::https::Verify-Peer "true";
+          Acquire::https::Verify-Host "true";
+          Acquire::https::AllowRedirect "false";
+          Acquire::http::AllowRedirect "false";
+          Acquire::AllowInsecureRepositories "false";
+          Acquire::AllowDowngradeToInsecureRepositories "false";
+          EOF
+
+          cat > "$RECIPE_DIR/apt-offline.conf" <<'EOF'
+          Dir::Etc "/opt/gateq/apt-etc";
+          Dir::Etc::main "apt.conf";
+          Dir::Etc::parts "apt.conf.d";
+          Dir::Etc::sourcelist "sources.list";
+          Dir::Etc::sourceparts "sources.list.d";
+          Dir::Etc::preferences "preferences";
+          Dir::Etc::preferencesparts "preferences.d";
+          Dir::Etc::netrc "auth.conf";
+          Dir::Etc::netrcparts "auth.conf.d";
+          Acquire::AllowInsecureRepositories "false";
+          Acquire::AllowDowngradeToInsecureRepositories "false";
+          Acquire::Retries "0";
+          EOF
+          sed -i 's/^          //' "$RECIPE_DIR/apt-offline.conf"
+
+          cat > "$RECIPE_DIR/REPRODUCIBILITY_POLICY.json" <<'EOF'
+          {
+            "schema": "TSUCHIMARU_OCI_TOOLCHAIN_REPRODUCIBILITY_POLICY_V1",
+            "source_date_epoch": 1789084800,
+            "kbuild_build_timestamp": "2026-09-11 00:00:00 UTC",
+            "kbuild_build_user": "tsuchimaru",
+            "kbuild_build_host": "gateq-builder",
+            "kbuild_build_version": "1",
+            "lang": "C",
+            "lc_all": "C",
+            "tz": "UTC",
+            "ccache_disabled": true,
+            "source_mount_path": "/workspace/linux",
+            "canonical_source_prefix": "/usr/src/linux",
+            "path_prefix_flags": {
+              "KCFLAGS": "-fdebug-prefix-map=/workspace/linux=/usr/src/linux -fmacro-prefix-map=/workspace/linux=/usr/src/linux",
+              "KCPPFLAGS": "-fmacro-prefix-map=/workspace/linux=/usr/src/linux",
+              "HOSTCFLAGS": "-fdebug-prefix-map=/workspace/linux=/usr/src/linux -fmacro-prefix-map=/workspace/linux=/usr/src/linux",
+              "HOSTCXXFLAGS": "-fdebug-prefix-map=/workspace/linux=/usr/src/linux -fmacro-prefix-map=/workspace/linux=/usr/src/linux"
+            },
+            "kbuild_abs_srctree": "0",
+            "no_shared_build_tree": true,
+            "independent_fresh_source_extractions_required": true,
+            "independent_ephemeral_toolchain_containers_required": true,
+            "authorization": {
+              "kernel_ab": false,
+              "wsl_change": false,
+              "gate_a": false,
+              "runtime": false
+            }
+          }
+          EOF
+          sed -i 's/^          //' "$RECIPE_DIR/REPRODUCIBILITY_POLICY.json"
+
+          cat > "$RECIPE_DIR/capture_tool_identity.py" <<'PY'
+          #!/usr/bin/env python3
+          import json, os, pathlib, subprocess
+          out = pathlib.Path('/usr/local/share/gateq')
+          out.mkdir(parents=True, exist_ok=True)
+          def full(args):
+              return subprocess.check_output(args, text=True, stderr=subprocess.STDOUT).strip()
+          def first(args):
+              text = full(args)
+              return text.splitlines()[0] if text else ''
+          tools = {
+              'gcc_dumpfullversion_dumpversion': full(['gcc','-dumpfullversion','-dumpversion']),
+              'gcc_first_line': first(['gcc','--version']),
+              'ld_first_line': first(['ld','--version']),
+              'as_first_line': first(['as','--version']),
+              'ar_first_line': first(['ar','--version']),
+              'objcopy_first_line': first(['objcopy','--version']),
+              'strip_first_line': first(['strip','--version']),
+              'make_first_line': first(['make','--version']),
+              'bison_first_line': first(['bison','--version']),
+              'flex_first_line': first(['flex','--version']),
+              'pahole_first_line': first(['pahole','--version']),
+              'openssl': full(['openssl','version']),
+              'python3': full(['python3','--version']),
+              'perl_first_line': first(['perl','-v']),
+              'git': full(['git','--version']),
+              'rsync_first_line': first(['rsync','--version']),
+              'cpio_first_line': first(['cpio','--version']),
+              'xz_first_line': first(['xz','--version']),
+          }
+          keys = ['SOURCE_DATE_EPOCH','KBUILD_BUILD_TIMESTAMP','KBUILD_BUILD_USER','KBUILD_BUILD_HOST','KBUILD_BUILD_VERSION','KBUILD_ABS_SRCTREE','CCACHE_DISABLE','KCFLAGS','KCPPFLAGS','HOSTCFLAGS','HOSTCXXFLAGS','LANG','LC_ALL','TZ']
+          env = {k: os.environ.get(k) for k in keys}
+          (out/'TOOL_VERSIONS.json').write_text(json.dumps(tools, indent=2, sort_keys=True)+'\n')
+          (out/'BUILD_ENV.json').write_text(json.dumps(env, indent=2, sort_keys=True)+'\n')
+          PY
+          sed -i 's/^          //' "$RECIPE_DIR/capture_tool_identity.py"
+          chmod 755 "$RECIPE_DIR/capture_tool_identity.py"
+
+          cat > "$RECIPE_DIR/Containerfile" <<'EOF'
+          FROM docker.io/library/ubuntu@__BASE_DIGEST__
+          ARG SOURCE_DATE_EPOCH=1789084800
+          ENV DEBIAN_FRONTEND=noninteractive
+          ENV TZ=UTC
+          ENV LANG=C
+          ENV LC_ALL=C
+          ENV SOURCE_DATE_EPOCH=1789084800
+          ENV KBUILD_BUILD_TIMESTAMP="2026-09-11 00:00:00 UTC"
+          ENV KBUILD_BUILD_USER=tsuchimaru
+          ENV KBUILD_BUILD_HOST=gateq-builder
+          ENV KBUILD_BUILD_VERSION=1
+          ENV KBUILD_ABS_SRCTREE=0
+          ENV CCACHE_DISABLE=1
+          ENV KCFLAGS="-fdebug-prefix-map=/workspace/linux=/usr/src/linux -fmacro-prefix-map=/workspace/linux=/usr/src/linux"
+          ENV KCPPFLAGS="-fmacro-prefix-map=/workspace/linux=/usr/src/linux"
+          ENV HOSTCFLAGS="-fdebug-prefix-map=/workspace/linux=/usr/src/linux -fmacro-prefix-map=/workspace/linux=/usr/src/linux"
+          ENV HOSTCXXFLAGS="-fdebug-prefix-map=/workspace/linux=/usr/src/linux -fmacro-prefix-map=/workspace/linux=/usr/src/linux"
+          COPY apt-offline.conf /opt/gateq/apt-offline.conf
+          COPY capture_tool_identity.py /opt/gateq/capture_tool_identity.py
+          COPY REPRODUCIBILITY_POLICY.json /usr/local/share/gateq/REPRODUCIBILITY_POLICY.json
+          COPY TOOLCHAIN_PACKAGE_LOCK.tsv /usr/local/share/gateq/TOOLCHAIN_PACKAGE_LOCK.tsv
+          COPY toolchain-debs/ /opt/gateq/debs/
+          RUN set -eux; \\
+              mkdir -p /opt/gateq/apt-etc/apt.conf.d /opt/gateq/apt-etc/sources.list.d /opt/gateq/apt-etc/preferences.d /opt/gateq/apt-etc/auth.conf.d; \\
+              : > /opt/gateq/apt-etc/apt.conf; : > /opt/gateq/apt-etc/sources.list; : > /opt/gateq/apt-etc/preferences; : > /opt/gateq/apt-etc/auth.conf; chmod 600 /opt/gateq/apt-etc/auth.conf; \\
+              APT_CONFIG=/opt/gateq/apt-offline.conf apt-get --no-download --no-install-recommends --allow-downgrades --yes install /opt/gateq/debs/*.deb; \\
+              if command -v ccache >/dev/null 2>&1; then echo ccache-unexpected >&2; exit 64; fi; \\
+              python3 /opt/gateq/capture_tool_identity.py; \\
+              dpkg-query -W -f='${Package}\\t${Version}\\t${Architecture}\\n' | LC_ALL=C sort > /usr/local/share/gateq/DPKG_MANIFEST.tsv; \\
+              sha256sum /usr/local/share/gateq/DPKG_MANIFEST.tsv > /usr/local/share/gateq/DPKG_MANIFEST.tsv.sha256; \\
+              sha256sum /usr/local/share/gateq/TOOL_VERSIONS.json > /usr/local/share/gateq/TOOL_VERSIONS.json.sha256; \\
+              sha256sum /usr/local/share/gateq/BUILD_ENV.json > /usr/local/share/gateq/BUILD_ENV.json.sha256; \\
+              rm -rf /opt/gateq/debs /var/log/apt/* /var/lib/apt/lists/*; rm -f /var/log/dpkg.log /var/log/alternatives.log; \\
+              find /etc /usr /var/lib/dpkg /var/cache /opt/gateq /root -xdev ! -type s -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
+          LABEL org.opencontainers.image.title="TSUCHIMARU Gate Q Kernel Toolchain"
+          LABEL org.opencontainers.image.version="gateq-v0.1"
+          LABEL org.opencontainers.image.base.digest="__BASE_DIGEST__"
+          LABEL org.tsuchimaru.gateq.snapshot="__SNAPSHOT_ID__"
+          LABEL org.tsuchimaru.gateq.qualification="A_B_REQUIRED_NOT_RUNTIME_AUTHORIZATION"
+          EOF
+          sed -i 's/^          //' "$RECIPE_DIR/Containerfile"
+          sed -i "s|__BASE_DIGEST__|$BASE_DIGEST|g; s|__SNAPSHOT_ID__|$SNAPSHOT_ID|g" "$RECIPE_DIR/Containerfile"
+
+          cp "$RECIPE_DIR"/* "$EVIDENCE_DIR/"
+
+      - name: Resolve exact toolchain package closure from the frozen snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          APT_CONFIG="$TOOLCHAIN_APT_ROOT/bootstrap.conf" apt-get update 2>&1 | tee "$EVIDENCE_DIR/TOOLCHAIN_APT_UPDATE_LOG.txt"
+          APT_CONFIG="$TOOLCHAIN_APT_ROOT/bootstrap.conf" apt-config dump > "$EVIDENCE_DIR/TOOLCHAIN_APT_EFFECTIVE_CONFIG.txt"
+          cp "$TOOLCHAIN_APT_ROOT/bootstrap.conf" "$EVIDENCE_DIR/TOOLCHAIN_APT_BOOTSTRAP_CONFIG.txt"
+          cp "$TOOLCHAIN_APT_ROOT/etc/ubuntu.sources" "$EVIDENCE_DIR/TOOLCHAIN_UBUNTU_SOURCES.txt"
+
+          python3 - <<'PY'
+          import json, pathlib, re
+          ev=pathlib.Path('/tmp/gateq-oci-evidence')
+          text=(ev/'TOOLCHAIN_APT_EFFECTIVE_CONFIG.txt').read_text(encoding='utf-8')
+          forbidden=(
+              '/etc/apt/apt.conf.d',
+              '/etc/apt/preferences',
+              '/etc/apt/auth.conf',
+              '/etc/apt/sources.list',
+          )
+          path_hits=[x for x in forbidden if x in text]
+          hook_lines=[
+              line for line in text.splitlines()
+              if re.search(r'(APT::Update::.*Invoke|DPkg::.*Invoke)', line)
+          ]
+          required=(
+              'Dir::Etc "/tmp/toolchain-apt/etc";',
+              'Dir::Etc::main "apt.conf";',
+              'Dir::Etc::parts "apt.conf.d";',
+              'Dir::Etc::sourcelist "ubuntu.sources";',
+              'Dir::Etc::sourceparts "sources.list.d";',
+              'Dir::Etc::preferences "preferences";',
+              'Dir::Etc::preferencesparts "preferences.d";',
+              'Dir::Etc::netrc "auth.conf";',
+              'Dir::Etc::netrcparts "auth.conf.d";',
+              'Dir::State "/tmp/toolchain-apt/state";',
+              'Dir::Cache "/tmp/toolchain-apt/cache";',
+          )
+          missing=[x for x in required if x not in text]
+          result={
+              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_APT_ISOLATION_V1',
+              'status':'PASS' if not path_hits and not hook_lines and not missing else 'FAIL',
+              'forbidden_system_path_hits':path_hits,
+              'system_hook_lines':hook_lines,
+              'missing_required_entries':missing,
+          }
+          (ev/'TOOLCHAIN_APT_ISOLATION_CHECK.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          if result['status'] != 'PASS':
+              raise SystemExit('toolchain APT isolation failed')
+          PY
+
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re
+          engine = pathlib.Path('/tmp/engine-evidence')
+          lists = pathlib.Path('/tmp/toolchain-apt/state/lists')
+          lock = json.loads((engine/'SNAPSHOT_RELEASE_LOCK.json').read_text())
+          for suite in ('noble','noble-updates','noble-security'):
+              matches=[]
+              for p in sorted(lists.glob('*_InRelease')):
+                  text=p.read_text(encoding='utf-8')
+                  if re.search(rf'(?m)^Suite: {re.escape(suite)}$', text):
+                      matches.append(p)
+              if len(matches) != 1:
+                  raise SystemExit(f'{suite}: expected exactly one InRelease')
+              got=hashlib.sha256(matches[0].read_bytes()).hexdigest()
+              exp=lock['suites'][suite]['inrelease_sha256']
+              if got != exp:
+                  raise SystemExit(f'{suite}: InRelease differs from Engine Evidence v0.2')
+          PY
+
+          ROOTS="$(tr '\n' ' ' < "$RECIPE_DIR/TOOLCHAIN_ROOT_PACKAGES.txt")"
+          APT_CONFIG="$TOOLCHAIN_APT_ROOT/bootstrap.conf" apt-get \
+            --download-only \
+            --no-install-recommends \
+            --yes \
+            install $ROOTS \
+            | tee "$EVIDENCE_DIR/TOOLCHAIN_APT_DOWNLOAD_LOG.txt"
+
+          find "$TOOLCHAIN_APT_ROOT/cache/archives" -maxdepth 1 -type f -name '*.deb' -exec cp -- {} "$TOOLCHAIN_INPUT/toolchain-debs/" \;
+          test -n "$(find "$TOOLCHAIN_INPUT/toolchain-debs" -maxdepth 1 -type f -name '*.deb' -print -quit)"
+
+      - name: Bind toolchain package bytes to signed snapshot indexes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          engine=pathlib.Path('/tmp/engine-evidence')
+          inp=pathlib.Path('/tmp/toolchain-input')
+          ev=pathlib.Path('/tmp/gateq-oci-evidence')
+          index={}
+          for pf in sorted((engine/'apt-indexes').glob('*.decoded')):
+              stanza={}
+              for line in pf.read_text(encoding='utf-8').splitlines()+['']:
+                  if not line:
+                      if stanza:
+                          key=(stanza.get('Package'),stanza.get('Version'),stanza.get('Architecture'))
+                          if all(key):
+                              index.setdefault(key,[]).append({
+                                  'sha256':stanza.get('SHA256'),
+                                  'size':stanza.get('Size'),
+                                  'filename':stanza.get('Filename'),
+                                  'index_file':'apt-indexes/'+pf.name,
+                              })
+                          stanza={}
+                      continue
+                  if line.startswith(' ') or ':' not in line:
+                      continue
+                  k,v=line.split(':',1); stanza[k]=v.strip()
+          rows=[]; prov=[]; seen=set()
+          for deb in sorted((inp/'toolchain-debs').glob('*.deb')):
+              def field(name):
+                  return subprocess.check_output(['dpkg-deb','-f',str(deb),name], text=True).strip()
+              pkg,ver,arch=field('Package'),field('Version'),field('Architecture')
+              sha=hashlib.sha256(deb.read_bytes()).hexdigest(); size=deb.stat().st_size
+              key=(pkg,ver,arch)
+              if (pkg,arch) in seen:
+                  raise SystemExit(f'duplicate package/arch: {pkg}/{arch}')
+              seen.add((pkg,arch))
+              matches=[m for m in index.get(key,[]) if m['sha256']==sha and int(m['size'])==size]
+              if not matches:
+                  raise SystemExit(f'{deb.name}: no exact signed Packages match')
+              rows.append((pkg,ver,arch,sha,deb.name,str(size)))
+              prov.append({
+                  'package':pkg,'version':ver,'architecture':arch,'sha256':sha,
+                  'filename':deb.name,'bytes':size,
+                  'signed_packages_matches':sorted({(m['index_file'],m['filename']) for m in matches}),
+              })
+          lock=ev/'TOOLCHAIN_PACKAGE_LOCK.tsv'
+          lock.write_text('package\tversion\tarchitecture\tsha256\tfilename\tbytes\n'+''.join('\t'.join(r)+'\n' for r in rows))
+          (ev/'TOOLCHAIN_PACKAGE_PROVENANCE.json').write_text(json.dumps({
+              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_PACKAGE_PROVENANCE_V1',
+              'snapshot_id':'20260911T000000Z','packages':prov
+          },indent=2,sort_keys=True)+'\n')
+          PY
+
+          cp -a "$TOOLCHAIN_INPUT/toolchain-debs" "$EVIDENCE_DIR/toolchain-debs"
+          cp "$EVIDENCE_DIR/TOOLCHAIN_PACKAGE_LOCK.tsv" "$TOOLCHAIN_INPUT/TOOLCHAIN_PACKAGE_LOCK.tsv"
+          cp "$RECIPE_DIR/apt-offline.conf" "$RECIPE_DIR/capture_tool_identity.py" "$RECIPE_DIR/REPRODUCIBILITY_POLICY.json" "$RECIPE_DIR/Containerfile" "$TOOLCHAIN_INPUT/"
+
+      - name: Prepare independent normalized build contexts A and B
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/context-A /tmp/context-B
+          cp -a "$TOOLCHAIN_INPUT" /tmp/context-A
+          cp -a "$TOOLCHAIN_INPUT" /tmp/context-B
+          find /tmp/context-A /tmp/context-B -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
+          (cd /tmp/context-A && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) > "$EVIDENCE_DIR/CONTEXT_A.sha256"
+          (cd /tmp/context-B && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) > "$EVIDENCE_DIR/CONTEXT_B.sha256"
+          cmp "$EVIDENCE_DIR/CONTEXT_A.sha256" "$EVIDENCE_DIR/CONTEXT_B.sha256"
+
+      - name: Build independent OCI image A
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo rm -rf /tmp/store-A /tmp/oci-A
+          sudo mkdir -p /tmp/store-A/root /tmp/store-A/runroot
+          sudo buildah \
+            --root /tmp/store-A/root \
+            --runroot /tmp/store-A/runroot \
+            --storage-driver vfs \
+            bud \
+            --platform linux/amd64 \
+            --isolation chroot \
+            --pull=always \
+            --tls-verify=true \
+            --timestamp "$SOURCE_DATE_EPOCH" \
+            --identity-label=false \
+            --layers=false \
+            --no-cache \
+            --format oci \
+            --iidfile /tmp/image-A.iid \
+            --tag "$IMAGE_NAME" \
+            --file /tmp/context-A/Containerfile \
+            /tmp/context-A \
+            2>&1 | tee "$EVIDENCE_DIR/BUILD_A.log"
+          sudo buildah --root /tmp/store-A/root --runroot /tmp/store-A/runroot --storage-driver vfs \
+            push "$IMAGE_NAME" "oci:/tmp/oci-A:gateq"
+          sudo chown -R "$USER:$USER" /tmp/oci-A
+          cp /tmp/image-A.iid "$EVIDENCE_DIR/IMAGE_A.iid"
+
+      - name: Build independent OCI image B
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo rm -rf /tmp/store-B /tmp/oci-B
+          sudo mkdir -p /tmp/store-B/root /tmp/store-B/runroot
+          sudo buildah \
+            --root /tmp/store-B/root \
+            --runroot /tmp/store-B/runroot \
+            --storage-driver vfs \
+            bud \
+            --platform linux/amd64 \
+            --isolation chroot \
+            --pull=always \
+            --tls-verify=true \
+            --timestamp "$SOURCE_DATE_EPOCH" \
+            --identity-label=false \
+            --layers=false \
+            --no-cache \
+            --format oci \
+            --iidfile /tmp/image-B.iid \
+            --tag "$IMAGE_NAME" \
+            --file /tmp/context-B/Containerfile \
+            /tmp/context-B \
+            2>&1 | tee "$EVIDENCE_DIR/BUILD_B.log"
+          sudo buildah --root /tmp/store-B/root --runroot /tmp/store-B/runroot --storage-driver vfs \
+            push "$IMAGE_NAME" "oci:/tmp/oci-B:gateq"
+          sudo chown -R "$USER:$USER" /tmp/oci-B
+          cp /tmp/image-B.iid "$EVIDENCE_DIR/IMAGE_B.iid"
+
+      - name: Extract static image identity files from A and B
+        shell: bash
+        run: |
+          set -euo pipefail
+          for lane in A B; do
+            root="/tmp/store-$lane/root"; runroot="/tmp/store-$lane/runroot"
+            ctr="$(sudo buildah --root "$root" --runroot "$runroot" --storage-driver vfs from "$IMAGE_NAME")"
+            mnt="$(sudo buildah --root "$root" --runroot "$runroot" --storage-driver vfs mount "$ctr")"
+            mkdir -p "$EVIDENCE_DIR/image-$lane-identity"
+            sudo cp "$mnt/usr/local/share/gateq/TOOL_VERSIONS.json" "$EVIDENCE_DIR/image-$lane-identity/"
+            sudo cp "$mnt/usr/local/share/gateq/BUILD_ENV.json" "$EVIDENCE_DIR/image-$lane-identity/"
+            sudo cp "$mnt/usr/local/share/gateq/DPKG_MANIFEST.tsv" "$EVIDENCE_DIR/image-$lane-identity/"
+            sudo cp "$mnt/usr/local/share/gateq/REPRODUCIBILITY_POLICY.json" "$EVIDENCE_DIR/image-$lane-identity/"
+            sudo cp "$mnt/usr/local/share/gateq/TOOLCHAIN_PACKAGE_LOCK.tsv" "$EVIDENCE_DIR/image-$lane-identity/"
+            sudo chown -R "$USER:$USER" "$EVIDENCE_DIR/image-$lane-identity"
+            sudo buildah --root "$root" --runroot "$runroot" --storage-driver vfs unmount "$ctr"
+            sudo buildah --root "$root" --runroot "$runroot" --storage-driver vfs rm "$ctr"
+          done
+
+      - name: Compare OCI A/B and freeze final digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          ev=pathlib.Path('/tmp/gateq-oci-evidence')
+          def sha(data): return 'sha256:'+hashlib.sha256(data).hexdigest()
+          def load_layout(root):
+              root=pathlib.Path(root)
+              idx_bytes=(root/'index.json').read_bytes(); idx=json.loads(idx_bytes)
+              if len(idx.get('manifests',[])) != 1:
+                  raise SystemExit('OCI layout must contain exactly one manifest descriptor')
+              desc=idx['manifests'][0]; digest=desc['digest']
+              alg,hexv=digest.split(':',1)
+              if alg!='sha256': raise SystemExit('non-sha256 manifest')
+              mbytes=(root/'blobs'/alg/hexv).read_bytes()
+              if sha(mbytes)!=digest: raise SystemExit('manifest descriptor hash mismatch')
+              manifest=json.loads(mbytes)
+              cdesc=manifest['config']; calg,chex=cdesc['digest'].split(':',1)
+              cbytes=(root/'blobs'/calg/chex).read_bytes()
+              if sha(cbytes)!=cdesc['digest']: raise SystemExit('config hash mismatch')
+              layers=[]
+              for ld in manifest['layers']:
+                  lalg,lhex=ld['digest'].split(':',1)
+                  lbytes=(root/'blobs'/lalg/lhex).read_bytes()
+                  if sha(lbytes)!=ld['digest']: raise SystemExit('layer hash mismatch')
+                  layers.append(ld['digest'])
+              return {
+                  'index_sha256':sha(idx_bytes),
+                  'manifest_digest':digest,
+                  'config_digest':cdesc['digest'],
+                  'layer_digests':layers,
+              }
+          a=load_layout('/tmp/oci-A'); b=load_layout('/tmp/oci-B')
+          id_files=['TOOL_VERSIONS.json','BUILD_ENV.json','DPKG_MANIFEST.tsv','REPRODUCIBILITY_POLICY.json','TOOLCHAIN_PACKAGE_LOCK.tsv']
+          identity={}
+          mismatches=[]
+          for name in id_files:
+              ba=(ev/'image-A-identity'/name).read_bytes(); bb=(ev/'image-B-identity'/name).read_bytes()
+              ha=hashlib.sha256(ba).hexdigest(); hb=hashlib.sha256(bb).hexdigest()
+              identity[name]={'A':ha,'B':hb,'equal':ha==hb}
+              if ha!=hb: mismatches.append(name)
+
+          def validate_installed_lock(lane):
+              import csv, io
+              lock_text=(ev/f'image-{lane}-identity/TOOLCHAIN_PACKAGE_LOCK.tsv').read_text(encoding='utf-8')
+              rows=list(csv.DictReader(io.StringIO(lock_text), delimiter='\t'))
+              manifest={}
+              for line in (ev/f'image-{lane}-identity/DPKG_MANIFEST.tsv').read_text(encoding='utf-8').splitlines():
+                  if not line: continue
+                  parts=line.split('\t')
+                  if len(parts) != 3:
+                      raise SystemExit(f'{lane}: malformed DPKG_MANIFEST row: {line!r}')
+                  pkg,ver,arch=parts
+                  if pkg in manifest:
+                      raise SystemExit(f'{lane}: duplicate installed package: {pkg}')
+                  manifest[pkg]=(ver,arch)
+              errors=[]
+              for row in rows:
+                  got=manifest.get(row['package'])
+                  exp=(row['version'],row['architecture'])
+                  if got != exp:
+                      errors.append({'package':row['package'],'expected':exp,'actual':got})
+              return errors
+
+          installed_lock_errors={
+              'A': validate_installed_lock('A'),
+              'B': validate_installed_lock('B'),
+          }
+          if installed_lock_errors['A'] or installed_lock_errors['B']:
+              mismatches.append('installed_package_lock_binding')
+
+          for key in ('manifest_digest','config_digest','layer_digests'):
+              if a[key]!=b[key]: mismatches.append(key)
+          result={
+              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_AB_QUALIFICATION_V1',
+              'result':'PASS' if not mismatches else 'FAIL',
+              'A':a,'B':b,'identity_files':identity,'installed_package_lock_errors':installed_lock_errors,'mismatches':mismatches,
+              'final_oci_manifest_digest':a['manifest_digest'] if not mismatches else None,
+              'kernel_ab_authorized':False,
+              'wsl_change_authorized':False,
+              'gate_a_authorized':False,
+              'runtime_authorized':False,
+          }
+          (ev/'OCI_A_B_COMPARISON.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          if mismatches:
+              raise SystemExit('OCI A/B mismatch: '+', '.join(mismatches))
+          (ev/'FINAL_OCI_DIGEST.txt').write_text(a['manifest_digest']+'\n')
+          PY
+
+          cp -a /tmp/oci-A "$EVIDENCE_DIR/oci-A"
+          cp -a /tmp/oci-B "$EVIDENCE_DIR/oci-B"
+
+      - name: Freeze OCI qualification attestation and evidence manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          ev=pathlib.Path('/tmp/gateq-oci-evidence')
+          def h(name): return hashlib.sha256((ev/name).read_bytes()).hexdigest()
+          ab=json.loads((ev/'OCI_A_B_COMPARISON.json').read_text())
+          tool=json.loads((ev/'image-A-identity/TOOL_VERSIONS.json').read_text())
+          att={
+              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_ATTESTATION_V1',
+              'status':'QUALIFIED_CANDIDATE_PENDING_FRESH_AUDIT',
+              'snapshot_id':'20260911T000000Z',
+              'base_manifest_digest':'sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4',
+              'engine_evidence_run_id':36893916456,
+              'engine_buildah_binary_sha256':'303c9b0918e6dc071cee05e1c6ee7be14841176a5958aff7d2f92121603f9a0c',
+              'recipe':{
+                  'containerfile_sha256':h('Containerfile'),
+                  'apt_offline_sha256':h('apt-offline.conf'),
+                  'capture_tool_identity_sha256':h('capture_tool_identity.py'),
+                  'reproducibility_policy_sha256':h('REPRODUCIBILITY_POLICY.json'),
+                  'toolchain_root_packages_sha256':h('TOOLCHAIN_ROOT_PACKAGES.txt'),
+                  'toolchain_package_lock_sha256':h('TOOLCHAIN_PACKAGE_LOCK.tsv'),
+                  'source_date_epoch':1789084800,
+              },
+              'tool_identity':tool,
+              'build_a':ab['A'],
+              'build_b':ab['B'],
+              'final_oci_manifest_digest':ab['final_oci_manifest_digest'],
+              'authorization':{
+                  'oci_toolchain_qualification':True,
+                  'kernel_ab':False,
+                  'wsl_change':False,
+                  'gate_a':False,
+                  'runtime':False,
+              },
+          }
+          (ev/'OCI_TOOLCHAIN_ATTESTATION_V1.json').write_text(json.dumps(att,indent=2,sort_keys=True)+'\n')
+          PY
+
+          (
+            cd "$EVIDENCE_DIR"
+            find . -type f ! -name FILES.sha256 -printf '%P\n' | LC_ALL=C sort \
+              | while read -r f; do sha256sum "$f"; done \
+              > FILES.sha256
+          )
+
+      - name: Upload OCI qualification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-oci-toolchain-qualification-v01
+          path: /tmp/gateq-oci-evidence
+          if-no-files-found: error
+          retention-days: 7
