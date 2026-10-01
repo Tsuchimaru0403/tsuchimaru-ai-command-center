@@ -302,12 +302,12 @@ jobs:
           COPY TOOLCHAIN_PACKAGE_LOCK.tsv /usr/local/share/gateq/TOOLCHAIN_PACKAGE_LOCK.tsv
           COPY toolchain-debs/ /opt/gateq/debs/
           RUN set -eux; \
-              mkdir -p /opt/gateq/apt-etc/apt.conf.d /opt/gateq/apt-etc/sources.list.d /opt/gateq/apt-etc/preferences.d /opt/gateq/apt-etc/auth.conf.d; \\
-              : > /opt/gateq/apt-etc/apt.conf; : > /opt/gateq/apt-etc/sources.list; : > /opt/gateq/apt-etc/preferences; : > /opt/gateq/apt-etc/auth.conf; chmod 600 /opt/gateq/apt-etc/auth.conf; \\
-              APT_CONFIG=/opt/gateq/apt-offline.conf apt-get --no-download --no-install-recommends --allow-downgrades --yes install /opt/gateq/debs/*.deb; \\
+              mkdir -p /opt/gateq/apt-etc/apt.conf.d /opt/gateq/apt-etc/sources.list.d /opt/gateq/apt-etc/preferences.d /opt/gateq/apt-etc/auth.conf.d; \
+              : > /opt/gateq/apt-etc/apt.conf; : > /opt/gateq/apt-etc/sources.list; : > /opt/gateq/apt-etc/preferences; : > /opt/gateq/apt-etc/auth.conf; chmod 600 /opt/gateq/apt-etc/auth.conf; \
+              APT_CONFIG=/opt/gateq/apt-offline.conf apt-get --no-download --no-install-recommends --allow-downgrades --yes install /opt/gateq/debs/*.deb; \
               if command -v ccache >/dev/null 2>&1; then echo ccache-unexpected >&2; exit 64; fi; \
               python3 /opt/gateq/capture_tool_identity.py; \
-              dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' | LC_ALL=C sort > /usr/local/share/gateq/DPKG_MANIFEST.tsv; \\
+              dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' | LC_ALL=C sort > /usr/local/share/gateq/DPKG_MANIFEST.tsv; \
               sha256sum /usr/local/share/gateq/DPKG_MANIFEST.tsv > /usr/local/share/gateq/DPKG_MANIFEST.tsv.sha256; \
               sha256sum /usr/local/share/gateq/TOOL_VERSIONS.json > /usr/local/share/gateq/TOOL_VERSIONS.json.sha256; \
               sha256sum /usr/local/share/gateq/BUILD_ENV.json > /usr/local/share/gateq/BUILD_ENV.json.sha256; \
