@@ -341,6 +341,11 @@ jobs:
           sha256sum /usr/local/share/gateq/BUILD_ENV.json > /usr/local/share/gateq/BUILD_ENV.json.sha256
           rm -rf /opt/gateq/debs /var/log/apt/* /var/lib/apt/lists/*
           rm -f /var/log/dpkg.log /var/log/alternatives.log
+          # ldconfig's auxiliary cache is a performance-only cache whose file
+          # content contains run-dependent ordering/state. It was the sole
+          # A/B filesystem-content difference in diagnostic run 36928841944.
+          # Remove it before final normalization; /etc/ld.so.cache remains.
+          rm -f /var/cache/ldconfig/aux-cache
           find /etc /usr /var/lib/dpkg /var/cache /opt/gateq /root -xdev ! -type s -exec touch -h -d "@${SOURCE_DATE_EPOCH}" {} +
           SH
           sed -i 's/^          //' "$RECIPE_DIR/configure_toolchain.sh"
