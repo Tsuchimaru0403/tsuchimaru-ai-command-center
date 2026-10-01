@@ -1,6 +1,9 @@
 name: Gate Q Engine Evidence Prep
 
 on:
+  push:
+    branches:
+      - gateq-evidence-prep-20261002
   pull_request:
     branches:
       - main
@@ -10,7 +13,7 @@ permissions:
 
 jobs:
   evidence:
-    if: github.head_ref == 'gateq-evidence-prep-20261002'
+    if: github.ref == 'refs/heads/gateq-evidence-prep-20261002' || github.head_ref == 'gateq-evidence-prep-20261002'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
