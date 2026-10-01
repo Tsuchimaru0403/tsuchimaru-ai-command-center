@@ -652,64 +652,278 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import hashlib, json, pathlib
+          import gzip
+          import hashlib
+          import io
+          import json
+          import pathlib
+          import tarfile
+
           ev=pathlib.Path('/tmp/gateq-oci-evidence')
-          def sha(data): return 'sha256:'+hashlib.sha256(data).hexdigest()
-          def load_layout(root):
+
+          def sha_bytes(data):
+              return 'sha256:'+hashlib.sha256(data).hexdigest()
+
+          def sha_file(path):
+              h=hashlib.sha256()
+              with open(path,'rb') as f:
+                  while True:
+                      b=f.read(1024*1024)
+                      if not b: break
+                      h.update(b)
+              return 'sha256:'+h.hexdigest()
+
+          def blob_path(root,digest):
+              alg,hexv=digest.split(':',1)
+              if alg!='sha256':
+                  raise SystemExit('non-sha256 OCI blob')
+              return pathlib.Path(root)/'blobs'/alg/hexv
+
+          def load_layout(root,lane):
               root=pathlib.Path(root)
-              idx_bytes=(root/'index.json').read_bytes(); idx=json.loads(idx_bytes)
+              idx_bytes=(root/'index.json').read_bytes()
+              idx=json.loads(idx_bytes)
               if len(idx.get('manifests',[])) != 1:
                   raise SystemExit('OCI layout must contain exactly one manifest descriptor')
-              desc=idx['manifests'][0]; digest=desc['digest']
-              alg,hexv=digest.split(':',1)
-              if alg!='sha256': raise SystemExit('non-sha256 manifest')
-              mbytes=(root/'blobs'/alg/hexv).read_bytes()
-              if sha(mbytes)!=digest: raise SystemExit('manifest descriptor hash mismatch')
+              desc=idx['manifests'][0]
+              digest=desc['digest']
+              mpath=blob_path(root,digest)
+              mbytes=mpath.read_bytes()
+              if sha_bytes(mbytes)!=digest:
+                  raise SystemExit('manifest descriptor hash mismatch')
               manifest=json.loads(mbytes)
-              cdesc=manifest['config']; calg,chex=cdesc['digest'].split(':',1)
-              cbytes=(root/'blobs'/calg/chex).read_bytes()
-              if sha(cbytes)!=cdesc['digest']: raise SystemExit('config hash mismatch')
+
+              cdesc=manifest['config']
+              cpath=blob_path(root,cdesc['digest'])
+              cbytes=cpath.read_bytes()
+              if sha_bytes(cbytes)!=cdesc['digest']:
+                  raise SystemExit('config hash mismatch')
+              config=json.loads(cbytes)
+
               layers=[]
-              for ld in manifest['layers']:
-                  lalg,lhex=ld['digest'].split(':',1)
-                  lbytes=(root/'blobs'/lalg/lhex).read_bytes()
-                  if sha(lbytes)!=ld['digest']: raise SystemExit('layer hash mismatch')
-                  layers.append(ld['digest'])
+              for pos,ld in enumerate(manifest['layers']):
+                  lpath=blob_path(root,ld['digest'])
+                  if sha_file(lpath)!=ld['digest']:
+                      raise SystemExit('layer hash mismatch')
+                  layers.append({
+                      'position':pos,
+                      'digest':ld['digest'],
+                      'mediaType':ld.get('mediaType'),
+                      'size':ld.get('size'),
+                      'path':str(lpath),
+                  })
+
+              (ev/f'OCI_{lane}_INDEX.json').write_text(
+                  json.dumps(idx,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+              (ev/f'OCI_{lane}_MANIFEST.json').write_text(
+                  json.dumps(manifest,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+              (ev/f'OCI_{lane}_CONFIG.json').write_text(
+                  json.dumps(config,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+
               return {
-                  'index_sha256':sha(idx_bytes),
+                  'index_sha256':sha_bytes(idx_bytes),
                   'manifest_digest':digest,
                   'config_digest':cdesc['digest'],
-                  'layer_digests':layers,
+                  'layer_digests':[x['digest'] for x in layers],
+                  'manifest':manifest,
+                  'config':config,
+                  'layers':layers,
               }
-          a=load_layout('/tmp/oci-A'); b=load_layout('/tmp/oci-B')
-          id_files=['TOOL_VERSIONS.json','BUILD_ENV.json','DPKG_MANIFEST.tsv','REPRODUCIBILITY_POLICY.json','TOOLCHAIN_PACKAGE_LOCK.tsv']
+
+          def json_diff(a,b,path='$',out=None,limit=500):
+              if out is None: out=[]
+              if len(out)>=limit: return out
+              if type(a) is not type(b):
+                  out.append({'path':path,'A':a,'B':b,'kind':'type'})
+                  return out
+              if isinstance(a,dict):
+                  for k in sorted(set(a)|set(b)):
+                      p=f'{path}.{k}'
+                      if k not in a:
+                          out.append({'path':p,'A':'<MISSING>','B':b[k],'kind':'missing-A'})
+                      elif k not in b:
+                          out.append({'path':p,'A':a[k],'B':'<MISSING>','kind':'missing-B'})
+                      else:
+                          json_diff(a[k],b[k],p,out,limit)
+                      if len(out)>=limit: break
+              elif isinstance(a,list):
+                  if len(a)!=len(b):
+                      out.append({'path':path+'.length','A':len(a),'B':len(b),'kind':'length'})
+                  for i,(x,y) in enumerate(zip(a,b)):
+                      json_diff(x,y,f'{path}[{i}]',out,limit)
+                      if len(out)>=limit: break
+              elif a!=b:
+                  out.append({'path':path,'A':a,'B':b,'kind':'value'})
+              return out
+
+          def tar_inventory(blob,media_type):
+              blob=pathlib.Path(blob)
+              raw_sha=sha_file(blob)
+              uncompressed_sha=None
+              if media_type and media_type.endswith('+gzip'):
+                  h=hashlib.sha256()
+                  with gzip.open(blob,'rb') as g:
+                      while True:
+                          chunk=g.read(1024*1024)
+                          if not chunk: break
+                          h.update(chunk)
+                  uncompressed_sha='sha256:'+h.hexdigest()
+
+              entries=[]
+              with tarfile.open(blob,'r:*') as tf:
+                  for order,m in enumerate(tf):
+                      content_sha=None
+                      if m.isfile():
+                          fh=tf.extractfile(m)
+                          h=hashlib.sha256()
+                          if fh is not None:
+                              while True:
+                                  chunk=fh.read(1024*1024)
+                                  if not chunk: break
+                                  h.update(chunk)
+                              content_sha=h.hexdigest()
+                      entries.append({
+                          'order':order,
+                          'name':m.name,
+                          'type':m.type.decode('latin1') if isinstance(m.type,bytes) else str(m.type),
+                          'mode':m.mode,'uid':m.uid,'gid':m.gid,
+                          'uname':m.uname,'gname':m.gname,
+                          'mtime':m.mtime,'size':m.size,
+                          'linkname':m.linkname,
+                          'pax_headers':dict(sorted((m.pax_headers or {}).items())),
+                          'content_sha256':content_sha,
+                      })
+              canonical=json.dumps(entries,sort_keys=True,separators=(',',':')).encode()
+              return {
+                  'raw_sha256':raw_sha,
+                  'uncompressed_tar_sha256':uncompressed_sha,
+                  'entry_count':len(entries),
+                  'inventory_sha256':'sha256:'+hashlib.sha256(canonical).hexdigest(),
+                  'entries':entries,
+              }
+
+          def inventory_diff(ia,ib,limit=500):
+              diffs=[]
+              ea=ia['entries']; eb=ib['entries']
+              names_a=[x['name'] for x in ea]; names_b=[x['name'] for x in eb]
+              if names_a!=names_b:
+                  diffs.append({
+                      'kind':'tar-order-or-name-list',
+                      'A_count':len(names_a),'B_count':len(names_b),
+                      'same_name_set':set(names_a)==set(names_b),
+                      'first_order_mismatches':[
+                          {'position':i,'A':a,'B':b}
+                          for i,(a,b) in enumerate(zip(names_a,names_b)) if a!=b
+                      ][:50],
+                  })
+              by_a={x['name']:x for x in ea}
+              by_b={x['name']:x for x in eb}
+              for name in sorted(set(by_a)|set(by_b)):
+                  if len(diffs)>=limit: break
+                  if name not in by_a:
+                      diffs.append({'kind':'missing-A','name':name}); continue
+                  if name not in by_b:
+                      diffs.append({'kind':'missing-B','name':name}); continue
+                  aa={k:v for k,v in by_a[name].items() if k!='order'}
+                  bb={k:v for k,v in by_b[name].items() if k!='order'}
+                  if aa!=bb:
+                      fields={k:{'A':aa.get(k),'B':bb.get(k)}
+                              for k in sorted(set(aa)|set(bb)) if aa.get(k)!=bb.get(k)}
+                      diffs.append({'kind':'member-metadata-or-content','name':name,'fields':fields})
+              return diffs
+
+          a=load_layout('/tmp/oci-A','A')
+          b=load_layout('/tmp/oci-B','B')
+
+          id_files=[
+              'TOOL_VERSIONS.json','BUILD_ENV.json','DPKG_MANIFEST.tsv',
+              'REPRODUCIBILITY_POLICY.json','TOOLCHAIN_PACKAGE_LOCK.tsv'
+          ]
           identity={}
           mismatches=[]
           for name in id_files:
-              ba=(ev/'image-A-identity'/name).read_bytes(); bb=(ev/'image-B-identity'/name).read_bytes()
-              ha=hashlib.sha256(ba).hexdigest(); hb=hashlib.sha256(bb).hexdigest()
+              ba=(ev/'image-A-identity'/name).read_bytes()
+              bb=(ev/'image-B-identity'/name).read_bytes()
+              ha=hashlib.sha256(ba).hexdigest()
+              hb=hashlib.sha256(bb).hexdigest()
               identity[name]={'A':ha,'B':hb,'equal':ha==hb}
               if ha!=hb: mismatches.append(name)
+
           for key in ('manifest_digest','config_digest','layer_digests'):
               if a[key]!=b[key]: mismatches.append(key)
+
+          diagnostics={
+              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_AB_DIAGNOSTICS_V1',
+              'config_diff':json_diff(a['config'],b['config']),
+              'manifest_diff':json_diff(a['manifest'],b['manifest']),
+              'layers':[],
+          }
+
+          for pos,(la,lb) in enumerate(zip(a['layers'],b['layers'])):
+              if la['digest']==lb['digest']:
+                  diagnostics['layers'].append({
+                      'position':pos,'equal':True,'digest':la['digest']
+                  })
+                  continue
+              ia=tar_inventory(la['path'],la['mediaType'])
+              ib=tar_inventory(lb['path'],lb['mediaType'])
+              da={k:v for k,v in ia.items() if k!='entries'}
+              db={k:v for k,v in ib.items() if k!='entries'}
+              member_diffs=inventory_diff(ia,ib)
+              diagnostics['layers'].append({
+                  'position':pos,'equal':False,
+                  'A_digest':la['digest'],'B_digest':lb['digest'],
+                  'A_mediaType':la['mediaType'],'B_mediaType':lb['mediaType'],
+                  'A':da,'B':db,
+                  'member_differences':member_diffs,
+              })
+
           result={
               'schema':'TSUCHIMARU_OCI_TOOLCHAIN_AB_QUALIFICATION_V1',
               'result':'PASS' if not mismatches else 'FAIL',
-              'A':a,'B':b,'identity_files':identity,'mismatches':mismatches,
+              'A':{k:a[k] for k in ('index_sha256','manifest_digest','config_digest','layer_digests')},
+              'B':{k:b[k] for k in ('index_sha256','manifest_digest','config_digest','layer_digests')},
+              'identity_files':identity,
+              'mismatches':mismatches,
               'final_oci_manifest_digest':a['manifest_digest'] if not mismatches else None,
               'kernel_ab_authorized':False,
               'wsl_change_authorized':False,
               'gate_a_authorized':False,
               'runtime_authorized':False,
           }
-          (ev/'OCI_A_B_COMPARISON.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          (ev/'OCI_A_B_COMPARISON.json').write_text(
+              json.dumps(result,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+          (ev/'OCI_A_B_DIAGNOSTICS.json').write_text(
+              json.dumps(diagnostics,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+
           if mismatches:
               raise SystemExit('OCI A/B mismatch: '+', '.join(mismatches))
-          (ev/'FINAL_OCI_DIGEST.txt').write_text(a['manifest_digest']+'\n')
+
+          (ev/'FINAL_OCI_DIGEST.txt').write_text(
+              a['manifest_digest']+'\n',encoding='utf-8')
           PY
 
           cp -a /tmp/oci-A "$EVIDENCE_DIR/oci-A"
           cp -a /tmp/oci-B "$EVIDENCE_DIR/oci-B"
+
+      - name: Upload OCI A/B diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-oci-toolchain-ab-diagnostics
+          path: |
+            /tmp/gateq-oci-evidence/OCI_A_B_COMPARISON.json
+            /tmp/gateq-oci-evidence/OCI_A_B_DIAGNOSTICS.json
+            /tmp/gateq-oci-evidence/OCI_A_INDEX.json
+            /tmp/gateq-oci-evidence/OCI_B_INDEX.json
+            /tmp/gateq-oci-evidence/OCI_A_MANIFEST.json
+            /tmp/gateq-oci-evidence/OCI_B_MANIFEST.json
+            /tmp/gateq-oci-evidence/OCI_A_CONFIG.json
+            /tmp/gateq-oci-evidence/OCI_B_CONFIG.json
+            /tmp/gateq-oci-evidence/image-A-identity
+            /tmp/gateq-oci-evidence/image-B-identity
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Freeze OCI qualification attestation and evidence manifest
         shell: bash
