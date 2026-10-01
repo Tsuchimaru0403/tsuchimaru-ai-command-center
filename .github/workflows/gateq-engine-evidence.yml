@@ -278,6 +278,49 @@ jobs:
           sed -i 's/^          //' "$RECIPE_DIR/capture_tool_identity.py"
           chmod 755 "$RECIPE_DIR/capture_tool_identity.py"
 
+          cat > "$RECIPE_DIR/verify_installed_lock.py" <<'PY'
+          #!/usr/bin/env python3
+          import csv, pathlib, subprocess
+          lock=pathlib.Path('/usr/local/share/gateq/TOOLCHAIN_PACKAGE_LOCK.tsv')
+          rows=list(csv.DictReader(lock.open(encoding='utf-8'), delimiter='\t'))
+          if not rows:
+              raise SystemExit('empty toolchain package lock')
+          seen=set()
+          for row in rows:
+              key=(row['package'],row['architecture'])
+              if key in seen:
+                  raise SystemExit(f'duplicate package/architecture in lock: {key}')
+              seen.add(key)
+              got_ver=subprocess.check_output(['dpkg-query','-W','-f=${Version}',row['package']],text=True).strip()
+              got_arch=subprocess.check_output(['dpkg-query','-W','-f=${Architecture}',row['package']],text=True).strip()
+              if got_ver != row['version'] or got_arch != row['architecture']:
+                  raise SystemExit(f"installed identity mismatch: {row['package']} {got_ver}/{got_arch}")
+          PY
+          sed -i 's/^          //' "$RECIPE_DIR/verify_installed_lock.py"
+          chmod 755 "$RECIPE_DIR/verify_installed_lock.py"
+
+          cat > "$RECIPE_DIR/configure_toolchain.sh" <<'SH'
+          #!/bin/sh
+          set -eux
+          dpkg --unpack /opt/gateq/debs/*.deb
+          dpkg --configure -a
+          python3 /opt/gateq/verify_installed_lock.py
+          if command -v ccache >/dev/null 2>&1; then
+            echo ccache-unexpected >&2
+            exit 64
+          fi
+          python3 /opt/gateq/capture_tool_identity.py
+          dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' | LC_ALL=C sort > /usr/local/share/gateq/DPKG_MANIFEST.tsv
+          sha256sum /usr/local/share/gateq/DPKG_MANIFEST.tsv > /usr/local/share/gateq/DPKG_MANIFEST.tsv.sha256
+          sha256sum /usr/local/share/gateq/TOOL_VERSIONS.json > /usr/local/share/gateq/TOOL_VERSIONS.json.sha256
+          sha256sum /usr/local/share/gateq/BUILD_ENV.json > /usr/local/share/gateq/BUILD_ENV.json.sha256
+          rm -rf /opt/gateq/debs /var/log/apt/* /var/lib/apt/lists/*
+          rm -f /var/log/dpkg.log /var/log/alternatives.log
+          find /etc /usr /var/lib/dpkg /var/cache /opt/gateq /root -xdev ! -type s -exec touch -h -d "@${SOURCE_DATE_EPOCH}" {} +
+          SH
+          sed -i 's/^          //' "$RECIPE_DIR/configure_toolchain.sh"
+          chmod 755 "$RECIPE_DIR/configure_toolchain.sh"
+
           cat > "$RECIPE_DIR/Containerfile" <<'EOF'
           FROM docker.io/library/ubuntu@__BASE_DIGEST__
           ARG SOURCE_DATE_EPOCH=1789084800
@@ -298,21 +341,12 @@ jobs:
           ENV HOSTCXXFLAGS="-fdebug-prefix-map=/workspace/linux=/usr/src/linux -fmacro-prefix-map=/workspace/linux=/usr/src/linux"
           COPY apt-offline.conf /opt/gateq/apt-offline.conf
           COPY capture_tool_identity.py /opt/gateq/capture_tool_identity.py
+          COPY verify_installed_lock.py /opt/gateq/verify_installed_lock.py
+          COPY configure_toolchain.sh /opt/gateq/configure_toolchain.sh
           COPY REPRODUCIBILITY_POLICY.json /usr/local/share/gateq/REPRODUCIBILITY_POLICY.json
           COPY TOOLCHAIN_PACKAGE_LOCK.tsv /usr/local/share/gateq/TOOLCHAIN_PACKAGE_LOCK.tsv
           COPY toolchain-debs/ /opt/gateq/debs/
-          RUN set -eux; \\
-              mkdir -p /opt/gateq/apt-etc/apt.conf.d /opt/gateq/apt-etc/sources.list.d /opt/gateq/apt-etc/preferences.d /opt/gateq/apt-etc/auth.conf.d; \\
-              : > /opt/gateq/apt-etc/apt.conf; : > /opt/gateq/apt-etc/sources.list; : > /opt/gateq/apt-etc/preferences; : > /opt/gateq/apt-etc/auth.conf; chmod 600 /opt/gateq/apt-etc/auth.conf; \\
-              APT_CONFIG=/opt/gateq/apt-offline.conf apt-get --no-download --no-install-recommends --allow-downgrades --yes install /opt/gateq/debs/*.deb; \\
-              if command -v ccache >/dev/null 2>&1; then echo ccache-unexpected >&2; exit 64; fi; \\
-              python3 /opt/gateq/capture_tool_identity.py; \\
-              dpkg-query -W -f='${Package}\\t${Version}\\t${Architecture}\\n' | LC_ALL=C sort > /usr/local/share/gateq/DPKG_MANIFEST.tsv; \\
-              sha256sum /usr/local/share/gateq/DPKG_MANIFEST.tsv > /usr/local/share/gateq/DPKG_MANIFEST.tsv.sha256; \\
-              sha256sum /usr/local/share/gateq/TOOL_VERSIONS.json > /usr/local/share/gateq/TOOL_VERSIONS.json.sha256; \\
-              sha256sum /usr/local/share/gateq/BUILD_ENV.json > /usr/local/share/gateq/BUILD_ENV.json.sha256; \\
-              rm -rf /opt/gateq/debs /var/log/apt/* /var/lib/apt/lists/*; rm -f /var/log/dpkg.log /var/log/alternatives.log; \\
-              find /etc /usr /var/lib/dpkg /var/cache /opt/gateq /root -xdev ! -type s -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
+          RUN /opt/gateq/configure_toolchain.sh
           LABEL org.opencontainers.image.title="TSUCHIMARU Gate Q Kernel Toolchain"
           LABEL org.opencontainers.image.version="gateq-v0.1"
           LABEL org.opencontainers.image.base.digest="__BASE_DIGEST__"
@@ -417,7 +451,7 @@ jobs:
 
           cp -a "$TOOLCHAIN_INPUT/toolchain-debs" "$EVIDENCE_DIR/toolchain-debs"
           cp "$EVIDENCE_DIR/TOOLCHAIN_PACKAGE_LOCK.tsv" "$TOOLCHAIN_INPUT/TOOLCHAIN_PACKAGE_LOCK.tsv"
-          cp "$RECIPE_DIR/apt-offline.conf" "$RECIPE_DIR/capture_tool_identity.py" "$RECIPE_DIR/REPRODUCIBILITY_POLICY.json" "$RECIPE_DIR/Containerfile" "$TOOLCHAIN_INPUT/"
+          cp "$RECIPE_DIR/apt-offline.conf" "$RECIPE_DIR/capture_tool_identity.py" "$RECIPE_DIR/verify_installed_lock.py" "$RECIPE_DIR/configure_toolchain.sh" "$RECIPE_DIR/REPRODUCIBILITY_POLICY.json" "$RECIPE_DIR/Containerfile" "$TOOLCHAIN_INPUT/"
 
       - name: Prepare independent normalized build contexts A and B
         shell: bash
