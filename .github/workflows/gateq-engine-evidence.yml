@@ -34,14 +34,26 @@ jobs:
           for v in http_proxy https_proxy HTTP_PROXY HTTPS_PROXY all_proxy ALL_PROXY no_proxy NO_PROXY APT_CONFIG; do
             test -z "${!v:-}" || { echo "forbidden environment override: $v" >&2; exit 64; }
           done
-          mkdir -p "$EVIDENCE_DIR" "$APT_ROOT/state/lists/partial" "$APT_ROOT/cache/archives/partial"
-          : > "$APT_ROOT/status-empty"
+          mkdir -p "$EVIDENCE_DIR" \
+            "$APT_ROOT/etc/apt.conf.d" \
+            "$APT_ROOT/etc/sources.list.d" \
+            "$APT_ROOT/etc/preferences.d" \
+            "$APT_ROOT/etc/auth.conf.d" \
+            "$APT_ROOT/etc/trusted.gpg.d" \
+            "$APT_ROOT/state/lists/partial" \
+            "$APT_ROOT/cache/archives/partial"
+          : > "$APT_ROOT/etc/apt.conf"
+          : > "$APT_ROOT/etc/preferences"
+          : > "$APT_ROOT/etc/auth.conf"
+          chmod 600 "$APT_ROOT/etc/auth.conf"
+          : > "$APT_ROOT/etc/trusted.gpg"
+          : > "$APT_ROOT/state/status-empty"
 
       - name: Configure isolated Ubuntu snapshot APT
         shell: bash
         run: |
           set -euo pipefail
-          cat > "$APT_ROOT/ubuntu.sources" <<EOF
+          cat > "$APT_ROOT/etc/ubuntu.sources" <<EOF
           Types: deb
           URIs: https://snapshot.ubuntu.com/ubuntu/$SNAPSHOT_ID
           Suites: noble noble-updates noble-security
@@ -49,31 +61,87 @@ jobs:
           Architectures: amd64
           Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
           EOF
-          cp "$APT_ROOT/ubuntu.sources" "$EVIDENCE_DIR/ubuntu.sources"
+
+          cat > "$APT_ROOT/bootstrap.conf" <<EOF
+          Dir::Etc "$APT_ROOT/etc";
+          Dir::Etc::main "apt.conf";
+          Dir::Etc::parts "apt.conf.d";
+          Dir::Etc::sourcelist "ubuntu.sources";
+          Dir::Etc::sourceparts "sources.list.d";
+          Dir::Etc::preferences "preferences";
+          Dir::Etc::preferencesparts "preferences.d";
+          Dir::Etc::netrc "auth.conf";
+          Dir::Etc::netrcparts "auth.conf.d";
+          Dir::Etc::trusted "trusted.gpg";
+          Dir::Etc::trustedparts "trusted.gpg.d";
+          Dir::State "$APT_ROOT/state";
+          Dir::State::status "status-empty";
+          Dir::State::lists "lists";
+          Dir::Cache "$APT_ROOT/cache";
+          Dir::Cache::archives "archives";
+          Acquire::https::Verify-Peer "true";
+          Acquire::https::Verify-Host "true";
+          Acquire::https::AllowRedirect "false";
+          Acquire::http::AllowRedirect "false";
+          Acquire::AllowInsecureRepositories "false";
+          Acquire::AllowDowngradeToInsecureRepositories "false";
+          EOF
+
+          cp "$APT_ROOT/etc/ubuntu.sources" "$EVIDENCE_DIR/ubuntu.sources"
+          cp "$APT_ROOT/bootstrap.conf" "$EVIDENCE_DIR/APT_BOOTSTRAP_CONFIG.txt"
 
       - name: Snapshot update and Release evidence
         shell: bash
         run: |
           set -euo pipefail
-          APT_OPTS=(
-            -o "Dir::Etc::sourcelist=$APT_ROOT/ubuntu.sources"
-            -o "Dir::Etc::sourceparts=-"
-            -o "Dir::Etc::main=-"
-            -o "Dir::Etc::parts=-"
-            -o "Dir::State=$APT_ROOT/state"
-            -o "Dir::State::status=$APT_ROOT/status-empty"
-            -o "Dir::State::lists=$APT_ROOT/state/lists"
-            -o "Dir::Cache=$APT_ROOT/cache"
-            -o "Dir::Cache::archives=$APT_ROOT/cache/archives"
-            -o "Acquire::https::Verify-Peer=true"
-            -o "Acquire::https::Verify-Host=true"
-            -o "Acquire::https::AllowRedirect=false"
-            -o "Acquire::http::AllowRedirect=false"
-            -o "Acquire::AllowInsecureRepositories=false"
-            -o "Acquire::AllowDowngradeToInsecureRepositories=false"
+          APT_CONFIG="$APT_ROOT/bootstrap.conf" apt-get update 2>&1 | tee "$EVIDENCE_DIR/APT_UPDATE_LOG.txt"
+          APT_CONFIG="$APT_ROOT/bootstrap.conf" apt-config dump > "$EVIDENCE_DIR/APT_EFFECTIVE_CONFIG.txt"
+
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          cfg = pathlib.Path(os.environ["EVIDENCE_DIR"]) / "APT_EFFECTIVE_CONFIG.txt"
+          text = cfg.read_text(encoding="utf-8")
+          forbidden = {
+              "system_apt_conf_d": "/etc/apt/apt.conf.d",
+              "system_preferences": "/etc/apt/preferences",
+              "system_auth": "/etc/apt/auth.conf",
+              "system_sources": "/etc/apt/sources.list",
+          }
+          hits = {k: v for k, v in forbidden.items() if v in text}
+          hook_lines = [
+              line for line in text.splitlines()
+              if re.search(r"(APT::Update::.*Invoke|DPkg::.*Invoke)", line)
+          ]
+          if hits or hook_lines:
+              raise SystemExit(
+                  "APT isolation failure: "
+                  + json.dumps({"path_hits": hits, "hook_lines": hook_lines}, sort_keys=True)
+              )
+          required = {
+              'Dir::Etc "/tmp/gateq-apt/etc";',
+              'Dir::Etc::main "apt.conf";',
+              'Dir::Etc::parts "apt.conf.d";',
+              'Dir::Etc::preferences "preferences";',
+              'Dir::Etc::preferencesparts "preferences.d";',
+              'Dir::Etc::netrc "auth.conf";',
+              'Dir::Etc::netrcparts "auth.conf.d";',
+              'Dir::State "/tmp/gateq-apt/state";',
+              'Dir::Cache "/tmp/gateq-apt/cache";',
+          }
+          missing = sorted(x for x in required if x not in text)
+          if missing:
+              raise SystemExit("APT isolation failure: missing expected config: " + repr(missing))
+          (pathlib.Path(os.environ["EVIDENCE_DIR"]) / "APT_CONFIG_ISOLATION_CHECK.json").write_text(
+              json.dumps({
+                  "schema": "TSUCHIMARU_APT_CONFIG_ISOLATION_CHECK_V1",
+                  "status": "PASS",
+                  "system_path_hits": {},
+                  "system_hook_lines": [],
+                  "required_config_entries_present": True,
+              }, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
           )
-          apt-get "${APT_OPTS[@]}" update 2>&1 | tee "$EVIDENCE_DIR/APT_UPDATE_LOG.txt"
-          apt-config "${APT_OPTS[@]}" dump > "$EVIDENCE_DIR/APT_EFFECTIVE_CONFIG.txt"
+          PY
           cp /usr/share/keyrings/ubuntu-archive-keyring.gpg "$EVIDENCE_DIR/ubuntu-archive-keyring.gpg"
           sha256sum "$EVIDENCE_DIR/ubuntu-archive-keyring.gpg" > "$EVIDENCE_DIR/UBUNTU_ARCHIVE_KEYRING.sha256"
 
@@ -112,25 +180,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          APT_OPTS=(
-            -o "Dir::Etc::sourcelist=$APT_ROOT/ubuntu.sources"
-            -o "Dir::Etc::sourceparts=-"
-            -o "Dir::Etc::main=-"
-            -o "Dir::Etc::parts=-"
-            -o "Dir::State=$APT_ROOT/state"
-            -o "Dir::State::status=$APT_ROOT/status-empty"
-            -o "Dir::State::lists=$APT_ROOT/state/lists"
-            -o "Dir::Cache=$APT_ROOT/cache"
-            -o "Dir::Cache::archives=$APT_ROOT/cache/archives"
-            -o "Acquire::https::Verify-Peer=true"
-            -o "Acquire::https::Verify-Host=true"
-            -o "Acquire::https::AllowRedirect=false"
-            -o "Acquire::http::AllowRedirect=false"
-            -o "Acquire::AllowInsecureRepositories=false"
-            -o "Acquire::AllowDowngradeToInsecureRepositories=false"
-          )
-          apt-cache "${APT_OPTS[@]}" policy buildah | tee "$EVIDENCE_DIR/BUILDAH_POLICY.txt"
-          apt-get "${APT_OPTS[@]}"             --download-only             --no-install-recommends             --yes             install "buildah=$BUILDAH_VERSION"             | tee "$EVIDENCE_DIR/APT_DOWNLOAD_LOG.txt"
+          APT_CONFIG="$APT_ROOT/bootstrap.conf" apt-cache policy buildah | tee "$EVIDENCE_DIR/BUILDAH_POLICY.txt"
+          APT_CONFIG="$APT_ROOT/bootstrap.conf" apt-get \
+            --download-only \
+            --no-install-recommends \
+            --yes \
+            install "buildah=$BUILDAH_VERSION" \
+            | tee "$EVIDENCE_DIR/APT_DOWNLOAD_LOG.txt"
 
           mkdir -p "$EVIDENCE_DIR/package-debs"
           find "$APT_ROOT/cache/archives" -maxdepth 1 -type f -name '*.deb' -exec cp -- {} "$EVIDENCE_DIR/package-debs/" \;
