@@ -186,8 +186,8 @@ jobs:
                   raise SystemExit(f"duplicate package/arch in downloaded set: {key}")
               seen.add(key)
               matches = [m for m in index.get(key, []) if m["sha256"] == sha]
-              if len(matches) != 1:
-                  raise SystemExit(f"{deb.name}: expected exactly one signed Packages match, got {len(matches)}")
+              if not matches:
+                  raise SystemExit(f"{deb.name}: no signed Packages entry matches the exact downloaded bytes")
               rows.append((pkg, ver, arch, sha, deb.name, str(size)))
               provenance.append({
                   "package": pkg,
@@ -196,8 +196,12 @@ jobs:
                   "sha256": sha,
                   "filename": deb.name,
                   "bytes": size,
-                  "packages_index_file": matches[0]["index_file"],
-                  "archive_filename": matches[0]["filename"],
+                  "signed_packages_matches": sorted(
+                      {
+                          (m["index_file"], m["filename"])
+                          for m in matches
+                      }
+                  ),
               })
 
           lock = evidence / "TOOLCHAIN_PACKAGE_LOCK.tsv"
