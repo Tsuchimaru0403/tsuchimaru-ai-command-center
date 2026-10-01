@@ -302,7 +302,10 @@ jobs:
           cat > "$RECIPE_DIR/configure_toolchain.sh" <<'SH'
           #!/bin/sh
           set -eux
-          dpkg --unpack /opt/gateq/debs/*.deb
+          if ! dpkg --unpack /opt/gateq/debs/*.deb; then
+            echo "first unpack pass hit Pre-Depends ordering; retrying the exact same frozen set" >&2
+            dpkg --unpack /opt/gateq/debs/*.deb
+          fi
           dpkg --configure -a
           python3 /opt/gateq/verify_installed_lock.py
           if command -v ccache >/dev/null 2>&1; then
