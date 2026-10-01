@@ -90,12 +90,21 @@ jobs:
           EOF
 
           mapfile -t ENGINE_DEBS < <(find "$ENGINE_EVIDENCE_DIR/package-debs" -maxdepth 1 -type f -name '*.deb' -print | LC_ALL=C sort)
-          sudo env APT_CONFIG=/tmp/engine-install.conf apt-get \
-            --no-download \
-            --allow-downgrades \
-            --no-install-recommends \
-            --yes \
-            install "${ENGINE_DEBS[@]}"
+          # Install only the exact frozen local package bytes. No network resolver is used.
+          sudo dpkg --unpack "${ENGINE_DEBS[@]}"
+          sudo dpkg --configure -a
+
+          python3 - <<'PY'
+          import csv, pathlib, subprocess
+          root=pathlib.Path('/tmp/engine-evidence')
+          rows=list(csv.DictReader((root/'TOOLCHAIN_PACKAGE_LOCK.tsv').open(), delimiter='\t'))
+          for row in rows:
+              name=row['package']
+              got_ver=subprocess.check_output(['dpkg-query','-W','-f=${Version}',name],text=True).strip()
+              got_arch=subprocess.check_output(['dpkg-query','-W','-f=${Architecture}',name],text=True).strip()
+              if got_ver != row['version'] or got_arch != row['architecture']:
+                  raise SystemExit(f'installed package mismatch: {name} {got_ver}/{got_arch}')
+          PY
 
           test "$(sha256sum /usr/bin/buildah | awk '{print $1}')" = "303c9b0918e6dc071cee05e1c6ee7be14841176a5958aff7d2f92121603f9a0c"
           buildah version --json > /tmp/buildah-version.json
