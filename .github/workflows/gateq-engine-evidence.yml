@@ -1,0 +1,287 @@
+name: Gate Q Engine Evidence Prep
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    if: github.head_ref == 'gateq-evidence-prep-20261002'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SNAPSHOT_ID: "20260911T000000Z"
+      BUILDAH_VERSION: "1.33.7+ds1-1ubuntu0.24.04.3"
+      EVIDENCE_DIR: "/tmp/gateq-evidence"
+      APT_ROOT: "/tmp/gateq-apt"
+    steps:
+      - name: Preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = "ubuntu"
+          case "$VERSION_ID" in 24.04*) ;; *) exit 64 ;; esac
+          test "$(dpkg --print-architecture)" = "amd64"
+          test -f /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          for v in http_proxy https_proxy HTTP_PROXY HTTPS_PROXY all_proxy ALL_PROXY no_proxy NO_PROXY APT_CONFIG; do
+            test -z "${!v:-}" || { echo "forbidden environment override: $v" >&2; exit 64; }
+          done
+          mkdir -p "$EVIDENCE_DIR" "$APT_ROOT/state/lists/partial" "$APT_ROOT/cache/archives/partial"
+          : > "$APT_ROOT/status-empty"
+
+      - name: Configure isolated Ubuntu snapshot APT
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$APT_ROOT/ubuntu.sources" <<EOF
+          Types: deb
+          URIs: https://archive.ubuntu.com/ubuntu
+          Suites: noble noble-updates
+          Components: main universe
+          Architectures: amd64
+          Snapshot: $SNAPSHOT_ID
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+
+          Types: deb
+          URIs: https://security.ubuntu.com/ubuntu
+          Suites: noble-security
+          Components: main universe
+          Architectures: amd64
+          Snapshot: $SNAPSHOT_ID
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          EOF
+          cp "$APT_ROOT/ubuntu.sources" "$EVIDENCE_DIR/ubuntu.sources"
+
+      - name: Snapshot update and Release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          APT_OPTS=(
+            -o "Dir::Etc::sourcelist=$APT_ROOT/ubuntu.sources"
+            -o "Dir::Etc::sourceparts=-"
+            -o "Dir::Etc::main=-"
+            -o "Dir::Etc::parts=-"
+            -o "Dir::State=$APT_ROOT/state"
+            -o "Dir::State::status=$APT_ROOT/status-empty"
+            -o "Dir::State::lists=$APT_ROOT/state/lists"
+            -o "Dir::Cache=$APT_ROOT/cache"
+            -o "Dir::Cache::archives=$APT_ROOT/cache/archives"
+            -o "Acquire::https::Verify-Peer=true"
+            -o "Acquire::https::Verify-Host=true"
+            -o "Acquire::https::AllowRedirect=false"
+            -o "Acquire::http::AllowRedirect=false"
+            -o "Acquire::AllowInsecureRepositories=false"
+            -o "Acquire::AllowDowngradeToInsecureRepositories=false"
+          )
+          apt-get "${APT_OPTS[@]}" update
+          apt-config "${APT_OPTS[@]}" dump > "$EVIDENCE_DIR/APT_EFFECTIVE_CONFIG.txt"
+
+          python3 - <<'PY'
+          import hashlib, json, pathlib, re, os
+          lists = pathlib.Path(os.environ["APT_ROOT"]) / "state/lists"
+          out = pathlib.Path(os.environ["EVIDENCE_DIR"])
+          suites = ("noble", "noble-updates", "noble-security")
+          result = {
+              "schema": "TSUCHIMARU_APT_SNAPSHOT_RELEASE_LOCK_V1",
+              "status": "LOCKED",
+              "snapshot_id": os.environ["SNAPSHOT_ID"],
+              "suites": {},
+          }
+          files = sorted(lists.glob("*_InRelease"))
+          for suite in suites:
+              matched = []
+              for p in files:
+                  text = p.read_text(encoding="utf-8", errors="strict")
+                  if re.search(rf"(?m)^Suite: {re.escape(suite)}$", text):
+                      matched.append(p)
+              if len(matched) != 1:
+                  raise SystemExit(f"{suite}: expected exactly one InRelease, got {len(matched)}")
+              p = matched[0]
+              result["suites"][suite] = {
+                  "inrelease_sha256": hashlib.sha256(p.read_bytes()).hexdigest()
+              }
+              (out / f"{suite}.InRelease").write_bytes(p.read_bytes())
+          (out / "SNAPSHOT_RELEASE_LOCK.json").write_text(
+              json.dumps(result, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Resolve and download exact Buildah dependency closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          APT_OPTS=(
+            -o "Dir::Etc::sourcelist=$APT_ROOT/ubuntu.sources"
+            -o "Dir::Etc::sourceparts=-"
+            -o "Dir::Etc::main=-"
+            -o "Dir::Etc::parts=-"
+            -o "Dir::State=$APT_ROOT/state"
+            -o "Dir::State::status=$APT_ROOT/status-empty"
+            -o "Dir::State::lists=$APT_ROOT/state/lists"
+            -o "Dir::Cache=$APT_ROOT/cache"
+            -o "Dir::Cache::archives=$APT_ROOT/cache/archives"
+            -o "Acquire::https::Verify-Peer=true"
+            -o "Acquire::https::Verify-Host=true"
+            -o "Acquire::https::AllowRedirect=false"
+            -o "Acquire::http::AllowRedirect=false"
+            -o "Acquire::AllowInsecureRepositories=false"
+            -o "Acquire::AllowDowngradeToInsecureRepositories=false"
+          )
+          apt-cache "${APT_OPTS[@]}" policy buildah | tee "$EVIDENCE_DIR/BUILDAH_POLICY.txt"
+          apt-get "${APT_OPTS[@]}"             --download-only             --no-install-recommends             --yes             install "buildah=$BUILDAH_VERSION"             | tee "$EVIDENCE_DIR/APT_DOWNLOAD_LOG.txt"
+
+          mkdir -p "$EVIDENCE_DIR/package-debs"
+          find "$APT_ROOT/cache/archives" -maxdepth 1 -type f -name '*.deb' -exec cp -- {} "$EVIDENCE_DIR/package-debs/" \;
+          test -n "$(find "$EVIDENCE_DIR/package-debs" -maxdepth 1 -type f -name '*.deb' -print -quit)"
+
+      - name: Verify every deb against signed snapshot Packages indexes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re, subprocess
+          evidence = pathlib.Path(os.environ["EVIDENCE_DIR"])
+          lists = pathlib.Path(os.environ["APT_ROOT"]) / "state/lists"
+          debdir = evidence / "package-debs"
+
+          package_files = sorted(
+              p for p in lists.iterdir()
+              if "_Packages" in p.name and p.is_file()
+          )
+          if not package_files:
+              raise SystemExit("no Packages index files found")
+
+          index = {}
+          for pf in package_files:
+              raw = subprocess.check_output(["/usr/lib/apt/apt-helper", "cat-file", str(pf)], text=True)
+              stanza = {}
+              for line in raw.splitlines() + [""]:
+                  if not line:
+                      if stanza:
+                          key = (stanza.get("Package"), stanza.get("Version"), stanza.get("Architecture"))
+                          if all(key):
+                              index.setdefault(key, []).append({
+                                  "sha256": stanza.get("SHA256"),
+                                  "filename": stanza.get("Filename"),
+                                  "index_file": pf.name,
+                              })
+                          stanza = {}
+                      continue
+                  if line.startswith(" ") or ":" not in line:
+                      continue
+                  k, v = line.split(":", 1)
+                  stanza[k] = v.strip()
+
+          rows = []
+          provenance = []
+          seen = set()
+          for deb in sorted(debdir.glob("*.deb")):
+              def field(name):
+                  return subprocess.check_output(["dpkg-deb", "-f", str(deb), name], text=True).strip()
+              pkg, ver, arch = field("Package"), field("Version"), field("Architecture")
+              sha = hashlib.sha256(deb.read_bytes()).hexdigest()
+              size = deb.stat().st_size
+              key = (pkg, ver, arch)
+              if key in seen:
+                  raise SystemExit(f"duplicate package/arch in downloaded set: {key}")
+              seen.add(key)
+              matches = [m for m in index.get(key, []) if m["sha256"] == sha]
+              if len(matches) != 1:
+                  raise SystemExit(f"{deb.name}: expected exactly one signed Packages match, got {len(matches)}")
+              rows.append((pkg, ver, arch, sha, deb.name, str(size)))
+              provenance.append({
+                  "package": pkg,
+                  "version": ver,
+                  "architecture": arch,
+                  "sha256": sha,
+                  "filename": deb.name,
+                  "bytes": size,
+                  "packages_index_file": matches[0]["index_file"],
+                  "archive_filename": matches[0]["filename"],
+              })
+
+          lock = evidence / "TOOLCHAIN_PACKAGE_LOCK.tsv"
+          lock.write_text(
+              "package\tversion\tarchitecture\tsha256\tfilename\tbytes\n"
+              + "".join("\t".join(r) + "\n" for r in rows),
+              encoding="utf-8",
+          )
+          (evidence / "PACKAGE_PROVENANCE.json").write_text(
+              json.dumps({
+                  "schema": "TSUCHIMARU_ENGINE_PACKAGE_PROVENANCE_V1",
+                  "snapshot_id": os.environ["SNAPSHOT_ID"],
+                  "packages": provenance,
+              }, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Bind Buildah package and binary bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILDAH_DEB="$(find "$EVIDENCE_DIR/package-debs" -maxdepth 1 -type f -name 'buildah_*_amd64.deb' -print -quit)"
+          test -n "$BUILDAH_DEB"
+          test "$(dpkg-deb -f "$BUILDAH_DEB" Version)" = "$BUILDAH_VERSION"
+          sha256sum "$BUILDAH_DEB" > "$EVIDENCE_DIR/BUILDAH_DEB.sha256"
+          mkdir "$EVIDENCE_DIR/buildah-extract"
+          dpkg-deb -x "$BUILDAH_DEB" "$EVIDENCE_DIR/buildah-extract"
+          test -x "$EVIDENCE_DIR/buildah-extract/usr/bin/buildah"
+          sha256sum "$EVIDENCE_DIR/buildah-extract/usr/bin/buildah" > "$EVIDENCE_DIR/BUILDAH_BINARY.sha256"
+          dpkg-deb -f "$BUILDAH_DEB" > "$EVIDENCE_DIR/BUILDAH_CONTROL_FIELDS.txt"
+          rm -rf "$EVIDENCE_DIR/buildah-extract"
+
+      - name: Freeze manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          (
+            cd "$EVIDENCE_DIR"
+            find package-debs -maxdepth 1 -type f -name '*.deb' -printf '%P\n' | LC_ALL=C sort               | while read -r f; do sha256sum "package-debs/$f"; done               > ENGINE_DEPENDENCY_BYTES.sha256
+            find . -type f ! -name FILES.sha256 -printf '%P\n' | LC_ALL=C sort               | while read -r f; do sha256sum "$f"; done               > FILES.sha256
+          )
+          python3 - <<'PY'
+          import json, os, pathlib, platform, subprocess
+          out = pathlib.Path(os.environ["EVIDENCE_DIR"])
+          manifest = {
+              "schema": "TSUCHIMARU_GATEQ_ENGINE_QUALIFICATION_EVIDENCE_V1",
+              "snapshot_id": os.environ["SNAPSHOT_ID"],
+              "buildah_package_version": os.environ["BUILDAH_VERSION"],
+              "runner": {
+                  "os_release": pathlib.Path("/etc/os-release").read_text(),
+                  "machine": platform.machine(),
+                  "dpkg_architecture": subprocess.check_output(["dpkg", "--print-architecture"], text=True).strip(),
+                  "apt_version": subprocess.check_output(["apt-get", "--version"], text=True).splitlines()[0],
+              },
+              "authorization": {
+                  "engine_provisioning_evidence_preparation": True,
+                  "oci_image_build": False,
+                  "kernel_ab": False,
+                  "wsl_change": False,
+                  "gate_a": False,
+                  "runtime": False,
+              },
+          }
+          (out / "ENGINE_QUALIFICATION_EVIDENCE_V1.json").write_text(
+              json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          (
+            cd "$EVIDENCE_DIR"
+            find . -type f ! -name FILES.sha256 -printf '%P\n' | LC_ALL=C sort               | while read -r f; do sha256sum "$f"; done               > FILES.sha256
+          )
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-engine-qualification-evidence
+          path: /tmp/gateq-evidence
+          if-no-files-found: error
+          retention-days: 7
