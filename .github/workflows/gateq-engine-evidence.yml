@@ -278,8 +278,8 @@ jobs:
           sed -i 's/^          //' "$RECIPE_DIR/capture_tool_identity.py"
           chmod 755 "$RECIPE_DIR/capture_tool_identity.py"
 
-          cat > "$RECIPE_DIR/Containerfile" <<EOF
-          FROM docker.io/library/ubuntu@$BASE_DIGEST
+          cat > "$RECIPE_DIR/Containerfile" <<'EOF'
+          FROM docker.io/library/ubuntu@__BASE_DIGEST__
           ARG SOURCE_DATE_EPOCH=1789084800
           ENV DEBIAN_FRONTEND=noninteractive
           ENV TZ=UTC
@@ -315,11 +315,12 @@ jobs:
               find /etc /usr /var/lib/dpkg /var/cache /opt/gateq /root -xdev ! -type s -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
           LABEL org.opencontainers.image.title="TSUCHIMARU Gate Q Kernel Toolchain"
           LABEL org.opencontainers.image.version="gateq-v0.1"
-          LABEL org.opencontainers.image.base.digest="$BASE_DIGEST"
-          LABEL org.tsuchimaru.gateq.snapshot="$SNAPSHOT_ID"
+          LABEL org.opencontainers.image.base.digest="__BASE_DIGEST__"
+          LABEL org.tsuchimaru.gateq.snapshot="__SNAPSHOT_ID__"
           LABEL org.tsuchimaru.gateq.qualification="A_B_REQUIRED_NOT_RUNTIME_AUTHORIZATION"
           EOF
           sed -i 's/^          //' "$RECIPE_DIR/Containerfile"
+          sed -i "s|__BASE_DIGEST__|$BASE_DIGEST|g; s|__SNAPSHOT_ID__|$SNAPSHOT_ID|g" "$RECIPE_DIR/Containerfile"
 
           cp "$RECIPE_DIR"/* "$EVIDENCE_DIR/"
 
