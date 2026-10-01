@@ -471,19 +471,33 @@ jobs:
           )
 
           # Direct exact-byte downloads only; no resolver or mutable repository lookup occurs here.
-          for i,item in enumerate(plan,1):
+          # Concurrency changes only transfer order; every file is independently verified
+          # against its signed Packages SHA-256 and byte size before use.
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          def download_one(item):
               dest=debdir/item['local_filename']
               subprocess.run([
                   'curl','--fail','--silent','--show-error',
                   '--proto','=https','--tlsv1.2',
                   '--connect-timeout','20','--max-time','180',
+                  '--retry','2','--retry-delay','1',
                   '--output',str(dest),item['url']
               ],check=True)
               data=dest.read_bytes()
               got=hashlib.sha256(data).hexdigest()
               if got != item['sha256'] or len(data) != item['bytes']:
-                  raise SystemExit(f"{item['local_filename']}: downloaded bytes differ from signed index")
-              print(f'[{i:03d}/149] {item["package"]} {item["version"]} {got}')
+                  raise RuntimeError(f"{item['local_filename']}: downloaded bytes differ from signed index")
+              return item['package'],item['version'],got
+
+          completed=[]
+          with ThreadPoolExecutor(max_workers=8) as pool:
+              futures={pool.submit(download_one,item):item for item in plan}
+              for fut in as_completed(futures):
+                  completed.append(fut.result())
+          if len(completed) != 149:
+              raise SystemExit(f'expected 149 completed downloads, got {len(completed)}')
+          for i,(pkg,ver,sha) in enumerate(sorted(completed),1):
+              print(f'[{i:03d}/149] {pkg} {ver} {sha}')
 
           lock_rows=[]
           for item in plan:
