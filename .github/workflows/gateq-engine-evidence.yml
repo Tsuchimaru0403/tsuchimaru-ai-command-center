@@ -35,6 +35,11 @@ jobs:
           repository: ${{ github.repository }}
           run-id: 36893916456
 
+      - name: Checkout frozen OCI qualification inputs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Verify engine evidence and install exact Buildah engine bytes
         shell: bash
         run: |
@@ -361,51 +366,46 @@ jobs:
 
           cp "$RECIPE_DIR"/* "$EVIDENCE_DIR/"
 
-      - name: Resolve exact toolchain package closure from the frozen snapshot
+      - name: Materialize frozen 149-package resolver set from signed snapshot indexes
         shell: bash
         run: |
           set -euo pipefail
-          APT_CONFIG="$TOOLCHAIN_APT_ROOT/bootstrap.conf" apt-get update 2>&1 | tee "$EVIDENCE_DIR/TOOLCHAIN_APT_UPDATE_LOG.txt"
+          RESOLVER_SET="$GITHUB_WORKSPACE/gateq/oci-toolchain/v0.1/RESOLVED_TOOLCHAIN_SET.tsv"
+          test -f "$RESOLVER_SET"
+          cp "$RESOLVER_SET" "$EVIDENCE_DIR/RESOLVED_TOOLCHAIN_SET.tsv"
 
           python3 - <<'PY'
-          import hashlib, json, os, pathlib, re
-          engine = pathlib.Path('/tmp/engine-evidence')
-          lists = pathlib.Path('/tmp/toolchain-apt/state/lists')
-          lock = json.loads((engine/'SNAPSHOT_RELEASE_LOCK.json').read_text())
-          for suite in ('noble','noble-updates','noble-security'):
-              matches=[]
-              for p in sorted(lists.glob('*_InRelease')):
-                  text=p.read_text(encoding='utf-8')
-                  if re.search(rf'(?m)^Suite: {re.escape(suite)}$', text):
-                      matches.append(p)
-              if len(matches) != 1:
-                  raise SystemExit(f'{suite}: expected exactly one InRelease')
-              got=hashlib.sha256(matches[0].read_bytes()).hexdigest()
-              exp=lock['suites'][suite]['inrelease_sha256']
-              if got != exp:
-                  raise SystemExit(f'{suite}: InRelease differs from Engine Evidence v0.2')
-          PY
+          import csv, hashlib, json, pathlib, subprocess
 
-          ROOTS="$(tr '\n' ' ' < "$RECIPE_DIR/TOOLCHAIN_ROOT_PACKAGES.txt")"
-          APT_CONFIG="$TOOLCHAIN_APT_ROOT/bootstrap.conf" apt-get \
-            --download-only \
-            --no-install-recommends \
-            --yes \
-            install $ROOTS \
-            | tee "$EVIDENCE_DIR/TOOLCHAIN_APT_DOWNLOAD_LOG.txt"
-
-          find "$TOOLCHAIN_APT_ROOT/cache/archives" -maxdepth 1 -type f -name '*.deb' -exec cp -- {} "$TOOLCHAIN_INPUT/toolchain-debs/" \;
-          test -n "$(find "$TOOLCHAIN_INPUT/toolchain-debs" -maxdepth 1 -type f -name '*.deb' -print -quit)"
-
-      - name: Bind toolchain package bytes to signed snapshot indexes
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import hashlib, json, pathlib, subprocess
+          snapshot='20260911T000000Z'
           engine=pathlib.Path('/tmp/engine-evidence')
           inp=pathlib.Path('/tmp/toolchain-input')
           ev=pathlib.Path('/tmp/gateq-oci-evidence')
+          resolver=pathlib.Path.cwd()/'gateq/oci-toolchain/v0.1/RESOLVED_TOOLCHAIN_SET.tsv'
+          debdir=inp/'toolchain-debs'
+          debdir.mkdir(parents=True, exist_ok=True)
+
+          # Resolver output is frozen from run 36925790669 / job 110582655261.
+          lines=[
+              line for line in resolver.read_text(encoding='utf-8').splitlines()
+              if line and not line.startswith('#')
+          ]
+          rows=list(csv.DictReader(lines, delimiter='\t'))
+          if len(rows) != 149:
+              raise SystemExit(f'expected 149 frozen resolver rows, got {len(rows)}')
+          keys={(r['package'],r['version'],r['architecture']) for r in rows}
+          if len(keys) != 149:
+              raise SystemExit('duplicate frozen resolver tuple')
+
+          roots={
+              line.strip() for line in pathlib.Path('/tmp/gateq-recipe/TOOLCHAIN_ROOT_PACKAGES.txt').read_text().splitlines()
+              if line.strip()
+          }
+          present={r['package'] for r in rows}
+          missing=sorted(roots-present)
+          if missing:
+              raise SystemExit('root package absent from frozen resolver set: '+', '.join(missing))
+
           index={}
           for pf in sorted((engine/'apt-indexes').glob('*.decoded')):
               stanza={}
@@ -424,32 +424,101 @@ jobs:
                       continue
                   if line.startswith(' ') or ':' not in line:
                       continue
-                  k,v=line.split(':',1); stanza[k]=v.strip()
-          rows=[]; prov=[]; seen=set()
-          for deb in sorted((inp/'toolchain-debs').glob('*.deb')):
-              def field(name):
-                  return subprocess.check_output(['dpkg-deb','-f',str(deb),name], text=True).strip()
-              pkg,ver,arch=field('Package'),field('Version'),field('Architecture')
-              sha=hashlib.sha256(deb.read_bytes()).hexdigest(); size=deb.stat().st_size
-              key=(pkg,ver,arch)
-              if (pkg,arch) in seen:
-                  raise SystemExit(f'duplicate package/arch: {pkg}/{arch}')
-              seen.add((pkg,arch))
-              matches=[m for m in index.get(key,[]) if m['sha256']==sha and int(m['size'])==size]
+                  k,v=line.split(':',1)
+                  stanza[k]=v.strip()
+
+          plan=[]
+          used_local=set()
+          provenance=[]
+          for row in sorted(rows, key=lambda r:(r['package'],r['architecture'])):
+              key=(row['package'],row['version'],row['architecture'])
+              matches=[
+                  m for m in index.get(key,[])
+                  if m.get('sha256') and m.get('size') and m.get('filename')
+              ]
               if not matches:
-                  raise SystemExit(f'{deb.name}: no exact signed Packages match')
-              rows.append((pkg,ver,arch,sha,deb.name,str(size)))
-              prov.append({
-                  'package':pkg,'version':ver,'architecture':arch,'sha256':sha,
-                  'filename':deb.name,'bytes':size,
-                  'signed_packages_matches':sorted({(m['index_file'],m['filename']) for m in matches}),
+                  raise SystemExit(f'{key}: no signed Packages stanza')
+              identities={(m['sha256'],int(m['size']),m['filename']) for m in matches}
+              if len(identities) != 1:
+                  raise SystemExit(f'{key}: signed indexes disagree on package bytes/path: {sorted(identities)}')
+              sha,size,archive_filename=next(iter(identities))
+              local_name=pathlib.PurePosixPath(archive_filename).name
+              if not local_name.endswith('.deb') or '/' in local_name:
+                  raise SystemExit(f'{key}: invalid archive filename')
+              if local_name in used_local:
+                  raise SystemExit(f'duplicate local filename: {local_name}')
+              used_local.add(local_name)
+              url=f'https://snapshot.ubuntu.com/ubuntu/{snapshot}/{archive_filename}'
+              plan.append({
+                  'package':row['package'],'version':row['version'],'architecture':row['architecture'],
+                  'sha256':sha,'bytes':size,'archive_filename':archive_filename,
+                  'local_filename':local_name,'url':url,
               })
-          lock=ev/'TOOLCHAIN_PACKAGE_LOCK.tsv'
-          lock.write_text('package\tversion\tarchitecture\tsha256\tfilename\tbytes\n'+''.join('\t'.join(r)+'\n' for r in rows))
-          (ev/'TOOLCHAIN_PACKAGE_PROVENANCE.json').write_text(json.dumps({
-              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_PACKAGE_PROVENANCE_V1',
-              'snapshot_id':'20260911T000000Z','packages':prov
-          },indent=2,sort_keys=True)+'\n')
+              provenance.append({
+                  'package':row['package'],'version':row['version'],'architecture':row['architecture'],
+                  'sha256':sha,'bytes':size,'filename':local_name,
+                  'archive_filename':archive_filename,
+                  'signed_packages_matches':sorted({
+                      (m['index_file'],m['filename']) for m in matches
+                      if m['sha256']==sha and int(m['size'])==size and m['filename']==archive_filename
+                  }),
+              })
+
+          (ev/'TOOLCHAIN_DOWNLOAD_PLAN.json').write_text(
+              json.dumps({'schema':'TSUCHIMARU_OCI_TOOLCHAIN_DOWNLOAD_PLAN_V1','snapshot_id':snapshot,'packages':plan},
+                         indent=2,sort_keys=True)+'\n',
+              encoding='utf-8'
+          )
+
+          # Direct exact-byte downloads only; no resolver or mutable repository lookup occurs here.
+          for i,item in enumerate(plan,1):
+              dest=debdir/item['local_filename']
+              subprocess.run([
+                  'curl','--fail','--silent','--show-error',
+                  '--proto','=https','--tlsv1.2',
+                  '--connect-timeout','20','--max-time','180',
+                  '--output',str(dest),item['url']
+              ],check=True)
+              data=dest.read_bytes()
+              got=hashlib.sha256(data).hexdigest()
+              if got != item['sha256'] or len(data) != item['bytes']:
+                  raise SystemExit(f"{item['local_filename']}: downloaded bytes differ from signed index")
+              print(f'[{i:03d}/149] {item["package"]} {item["version"]} {got}')
+
+          lock_rows=[]
+          for item in plan:
+              p=debdir/item['local_filename']
+              for field,expected in (
+                  ('Package',item['package']),('Version',item['version']),('Architecture',item['architecture'])
+              ):
+                  got=subprocess.check_output(['dpkg-deb','-f',str(p),field],text=True).strip()
+                  if got != expected:
+                      raise SystemExit(f"{item['local_filename']}: dpkg {field} mismatch")
+              lock_rows.append((
+                  item['package'],item['version'],item['architecture'],item['sha256'],
+                  item['local_filename'],str(item['bytes'])
+              ))
+
+          (ev/'TOOLCHAIN_PACKAGE_LOCK.tsv').write_text(
+              'package\tversion\tarchitecture\tsha256\tfilename\tbytes\n'
+              + ''.join('\t'.join(r)+'\n' for r in lock_rows),
+              encoding='utf-8'
+          )
+          (ev/'TOOLCHAIN_PACKAGE_PROVENANCE.json').write_text(
+              json.dumps({
+                  'schema':'TSUCHIMARU_OCI_TOOLCHAIN_PACKAGE_PROVENANCE_V2',
+                  'snapshot_id':snapshot,
+                  'resolver_source':{
+                      'workflow_run_id':36925790669,
+                      'job_id':110582655261,
+                      'workflow_commit':'04ec3f95df66093537d44fb864318b99d54b3ee4',
+                      'resolver_rows':149,
+                      'resolver_mode':'apt-get --download-only --no-install-recommends from isolated exact snapshot'
+                  },
+                  'packages':provenance
+              },indent=2,sort_keys=True)+'\n',
+              encoding='utf-8'
+          )
           PY
 
           cp -a "$TOOLCHAIN_INPUT/toolchain-debs" "$EVIDENCE_DIR/toolchain-debs"
