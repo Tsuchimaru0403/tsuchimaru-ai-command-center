@@ -72,8 +72,10 @@ jobs:
             -o "Acquire::AllowInsecureRepositories=false"
             -o "Acquire::AllowDowngradeToInsecureRepositories=false"
           )
-          apt-get "${APT_OPTS[@]}" update
+          apt-get "${APT_OPTS[@]}" update 2>&1 | tee "$EVIDENCE_DIR/APT_UPDATE_LOG.txt"
           apt-config "${APT_OPTS[@]}" dump > "$EVIDENCE_DIR/APT_EFFECTIVE_CONFIG.txt"
+          cp /usr/share/keyrings/ubuntu-archive-keyring.gpg "$EVIDENCE_DIR/ubuntu-archive-keyring.gpg"
+          sha256sum "$EVIDENCE_DIR/ubuntu-archive-keyring.gpg" > "$EVIDENCE_DIR/UBUNTU_ARCHIVE_KEYRING.sha256"
 
           python3 - <<'PY'
           import hashlib, json, pathlib, re, os
@@ -152,8 +154,12 @@ jobs:
               raise SystemExit("no Packages index files found")
 
           index = {}
+          decoded_dir = evidence / "apt-indexes"
+          decoded_dir.mkdir(exist_ok=True)
           for pf in package_files:
               raw = subprocess.check_output(["/usr/lib/apt/apt-helper", "cat-file", str(pf)], text=True)
+              decoded_name = pf.name + ".decoded"
+              (decoded_dir / decoded_name).write_text(raw, encoding="utf-8")
               stanza = {}
               for line in raw.splitlines() + [""]:
                   if not line:
@@ -164,6 +170,7 @@ jobs:
                                   "sha256": stanza.get("SHA256"),
                                   "filename": stanza.get("Filename"),
                                   "index_file": pf.name,
+                                  "decoded_index_file": "apt-indexes/" + decoded_name,
                               })
                           stanza = {}
                       continue
@@ -198,7 +205,7 @@ jobs:
                   "bytes": size,
                   "signed_packages_matches": sorted(
                       {
-                          (m["index_file"], m["filename"])
+                          (m["decoded_index_file"], m["filename"])
                           for m in matches
                       }
                   ),
