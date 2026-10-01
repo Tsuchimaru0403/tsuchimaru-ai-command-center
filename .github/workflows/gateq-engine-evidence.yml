@@ -307,11 +307,16 @@ jobs:
           cat > "$RECIPE_DIR/configure_toolchain.sh" <<'SH'
           #!/bin/sh
           set -eux
-          if ! dpkg --unpack /opt/gateq/debs/*.deb; then
-            echo "first unpack pass hit Pre-Depends ordering; retrying the exact same frozen set" >&2
-            dpkg --unpack /opt/gateq/debs/*.deb
+          if find /opt/gateq/debs -maxdepth 1 -type f -name '*%*' | grep -q .; then
+            echo "encoded package filename forbidden in OCI build context" >&2
+            exit 64
           fi
-          dpkg --configure -a
+          APT_CONFIG=/opt/gateq/apt-offline.conf apt-get \
+            --no-download \
+            --no-install-recommends \
+            --allow-downgrades \
+            --yes \
+            install /opt/gateq/debs/*.deb
           python3 /opt/gateq/verify_installed_lock.py
           if command -v ccache >/dev/null 2>&1; then
             echo ccache-unexpected >&2
