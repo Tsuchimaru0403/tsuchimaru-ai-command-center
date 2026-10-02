@@ -36,13 +36,13 @@ readme=r/'README_JA.md'; d=readme.read_text(encoding='utf-8').replace('Gate Q Wi
 d+='\n## v0.5 F-09 remediation\n\n`revalidate()` compares saved `FileAttributes` and `ReparseTag` independently by exact equality. Drift fails closed with `FILE_ATTRIBUTES_DRIFT` or `REPARSE_TAG_DRIFT`. F-01–F-08 remain unchanged. Fresh independent audit is required; this bundle does not authorize Windows execution, Host Activation, Gate A, or Runtime.\n'
 readme.write_text(d,encoding='utf-8')
 PY
-export PATH="/usr/local/swift/usr/bin:$PATH"
-sudo mkdir -p /opt/pyvenv
+export PATH="/usr/bin:$PATH"
+mkdir -p /opt/pyvenv
 sudo /opt/hostedtoolcache/Python/3.13.5/x64/bin/python3 -m venv /opt/pyvenv
 sudo ln -sf /opt/pyvenv/bin/python3 /opt/pyvenv/python3
 export PYTHON=/opt/pyvenv/python3
-test "$(/usr/local/swift/usr/bin/clang --version | head -1)" = 'clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
-test "$(/usr/local/swift/usr/bin/lld-link --version | head -1)" = 'LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
+test "$(/usr/bin/clang --version | head -1)" = 'clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
+test "$(/usr/bin/lld-link --version | head -1)" = 'LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
 test "$(/opt/pyvenv/python3 --version 2>&1)" = 'Python 3.13.5'
 export GITHUB_HEAD_SHA="${GITHUB_SHA:?}" GITHUB_RUN_ID="${GITHUB_RUN_ID:?}" GITHUB_JOB="${GITHUB_JOB:?}" GITHUB_JOB_ID="${GITHUB_JOB_ID:?}"
 bash "$BUNDLE/build/rebuild_ab.sh"
