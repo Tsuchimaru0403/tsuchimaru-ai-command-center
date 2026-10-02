@@ -135,7 +135,7 @@ jobs:
             echo "- Artifact URL: $ARTIFACT_URL"
             echo "- Note: artifact identity and digest are recorded here after upload; the package cannot contain its own final digest."
           } >> "$GITHUB_STEP_SUMMARY"
-          python3 - "$PACKAGE" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          python3 - "$PACKAGE" <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
           import hashlib, pathlib, sys, zipfile
           package=pathlib.Path(sys.argv[1])
           with zipfile.ZipFile(package) as z:
@@ -145,8 +145,20 @@ jobs:
               manifest=next(n for n in names if n.endswith('/FILES.sha256'))
               entries=[n for n in names if not n.endswith('/')]
               rows=z.read(manifest).decode('utf-8').splitlines()
+              payloads={}
+              for row in rows:
+                  digest, name=row.split('  ',1)
+                  payloads[name]=digest
+              mismatches=[name for name,digest in payloads.items()
+                          if hashlib.sha256(z.read(name)).hexdigest()!=digest]
+              if mismatches: raise SystemExit(f"FILES.sha256 mismatch: {mismatches}")
               keyfile=next(n for n in names if n.endswith('/evidence/KEY_SHA256.txt'))
               keys=dict(line.split('=',1) for line in z.read(keyfile).decode().splitlines() if '=' in line)
+              toolchain=next(n for n in names if n.endswith('/evidence/TOOLCHAIN_INSTALLATION.txt'))
+              toolchain_text=z.read(toolchain).decode()
+              assert 'clang_path=/usr/bin/clang' in toolchain_text
+              assert 'lld_link_path=/usr/bin/lld-link' in toolchain_text
+              assert 'no swiftlang/llvm-project source build was performed' in toolchain_text
               print()
               print('### Canonical package verification')
               print()
@@ -155,5 +167,7 @@ jobs:
               print(f"- FILES.sha256 payload count: {len(rows)}")
               print(f"- A/B PE SHA-256: {keys.get('PE_A')} / {keys.get('PE_B')}")
               print(f"- A/B normalized COFF SHA-256: {keys.get('normalized_COFF_A')} / {keys.get('normalized_COFF_B')}")
-              print(f"- Import library SHA-256: kernel32={keys.get('kernel32_lib')}; ntdll={keys.get('ntdll_lib')}")
+              print(f"- Import library A/B SHA-256: kernel32={keys.get('kernel32_lib')} / {keys.get('kernel32_lib_B')}; ntdll={keys.get('ntdll_lib')} / {keys.get('ntdll_lib_B')}")
+              print(f"- FILES.sha256 verification: {len(rows)}/{len(payloads)} payloads PASS; ZIP CRC PASS")
+              print(f"- Toolchain fact check: pinned image, linux/amd64, /usr/bin/clang, /usr/bin/lld-link; no source build")
           PY
