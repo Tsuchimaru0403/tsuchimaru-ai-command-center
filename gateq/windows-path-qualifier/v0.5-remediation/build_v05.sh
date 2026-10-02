@@ -46,6 +46,14 @@ test "$(/usr/local/swift/usr/bin/lld-link --version | head -1)" = 'LLD 17.0.0 (h
 test "$(/opt/pyvenv/python3 --version 2>&1)" = 'Python 3.13.5'
 export GITHUB_HEAD_SHA="${GITHUB_SHA:?}" GITHUB_RUN_ID="${GITHUB_RUN_ID:?}" GITHUB_JOB="${GITHUB_JOB:?}" GITHUB_JOB_ID="${GITHUB_JOB_ID:?}"
 bash "$BUNDLE/build/rebuild_ab.sh"
+{
+  printf 'distribution_url=%s\n' 'https://download.swift.org/swift-5.9.2-release/ubuntu2204/swift-5.9.2-RELEASE/swift-5.9.2-RELEASE-ubuntu22.04.tar.gz'
+  printf 'distribution_sha256=%s\n' "${SWIFT_ARCHIVE_SHA256:?}"
+  printf 'clang_version=%s\n' "$(/usr/local/swift/usr/bin/clang --version | head -1)"
+  printf 'lld_link_version=%s\n' "$(/usr/local/swift/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'verification=exact version and llvm commit; mismatch fails closed\n'
+} > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
 python3 - "$BUNDLE" <<'PY'
 import hashlib,json,pathlib,sys
 r=pathlib.Path(sys.argv[1]); sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
