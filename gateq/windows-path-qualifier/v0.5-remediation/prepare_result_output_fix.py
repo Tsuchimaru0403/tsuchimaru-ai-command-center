@@ -63,12 +63,12 @@ tests={
  'result':'PASS'
 }
 (ev/'RESULT_OUTPUT_FAIL_CLOSED_STATIC_TESTS.json').write_text(json.dumps(tests,indent=2)+'\n')
-(ev/'RESULT_OUTPUT_FAIL_CLOSED.md').write_text('''# PASS result output fail-closed remediation
+(ev/'RESULT_OUTPUT_FAIL_CLOSED.md').write_text("""# PASS result output fail-closed remediation
 
 The low-level write helper now records failure if WriteFile returns false or reports a byte count different from the requested length. PASS JSON construction may continue only to avoid recursive error reporting, but gateq_entry checks WRITE_FAILED after the final CRLF and before ExitProcess(0). Any failed or short PASS write closes retained chains and exits 61. stop() remains unconditionally nonzero even if its best-effort diagnostic write itself fails.
 
 This makes complete PASS-result emission an explicit success condition without adding process creation, filesystem mutation, WSL actions, or other authorization-boundary changes.
-''')
+""")
 
 context={
  'schema':'TSUCHIMARU_CURRENT_RUN_PREUPLOAD_CONTEXT_V1',
@@ -113,20 +113,20 @@ def append_once(path, marker, text):
     if marker not in data:
         path.write_text(data.rstrip()+'\n\n'+text+'\n',encoding='utf-8')
 
-note='''## PASS result output fail-closed remediation
+note="""## PASS result output fail-closed remediation
 
 WriteFile failure or short write now sets WRITE_FAILED. gateq_entry tests WRITE_FAILED after the complete PASS JSON including CRLF and before ExitProcess(0); failure exits 61 after closing retained chains. This change is limited to result-output success gating.
 
 ## Current-run artifact binding strategy
 
 The canonical ZIP is uploaded as the primary artifact first. Because GitHub artifact ID/digest do not exist until after upload, they are not self-embedded in that primary ZIP. The workflow then queries the GitHub API for the current primary artifact, writes CURRENT_RUN_ARTIFACT_BINDING_V1.json plus current run/job/artifact API snapshots, and uploads those as a separate binding artifact. Fresh audit must verify the actual downloaded primary outer artifact against this post-upload binding.
-'''
+"""
 append_once(r/'README_JA.md','PASS result output fail-closed remediation',note)
 append_once(ev/'REMEDIATION_MATRIX.md','PASS result output fail-closed remediation',note)
 
 prompt=r/'FRESH_RE_AUDIT_PROMPT_JA.md'
 pd=prompt.read_text(encoding='utf-8')
-pd += '''\n## Additional blocking findings to verify\n\nFINDING-01: verify the separately supplied current-run binding artifact records the same current run/job/HEAD/primary artifact ID/size/digest as the actual downloaded primary outer artifact, and that the primary outer artifact contains the canonical ZIP under audit. Do not require the primary ZIP to self-contain its post-upload GitHub artifact ID/digest.\n\nFINDING-02: inspect actual runtime source and verify WriteFile false or a short write sets WRITE_FAILED, and that gateq_entry checks WRITE_FAILED after the final PASS JSON write and before ExitProcess(0), exiting nonzero on output failure.\n'''
+pd += """\n## Additional blocking findings to verify\n\nFINDING-01: verify the separately supplied current-run binding artifact records the same current run/job/HEAD/primary artifact ID/size/digest as the actual downloaded primary outer artifact, and that the primary outer artifact contains the canonical ZIP under audit. Do not require the primary ZIP to self-contain its post-upload GitHub artifact ID/digest.\n\nFINDING-02: inspect actual runtime source and verify WriteFile false or a short write sets WRITE_FAILED, and that gateq_entry checks WRITE_FAILED after the final PASS JSON write and before ExitProcess(0), exiting nonzero on output failure.\n"""
 prompt.write_text(pd,encoding='utf-8')
 PYRESULT
 '''
