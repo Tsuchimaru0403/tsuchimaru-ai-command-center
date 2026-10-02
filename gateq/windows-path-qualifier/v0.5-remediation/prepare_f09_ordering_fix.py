@@ -22,10 +22,10 @@ replace_once(
     "TASK_ROOT",
 )
 
-anchor = 'python3 - "$BUNDLE" <<\\'PY\\''
+anchor = "python3 - \"$BUNDLE\" <<'PY'"
 if anchor not in s:
     raise SystemExit("first remediation python argv: anchor missing")
-s = s.replace(anchor, 'python3 - "$BUNDLE" "$0" <<\\'PY\\'', 1)
+s = s.replace(anchor, "python3 - \"$BUNDLE\" \"$0\" <<'PY'", 1)
 
 replace_once(
     "ev=r/'evidence'; ev.mkdir(exist_ok=True)\n(ev/'RUNTIME_SOURCE_V04.c').write_text(source_v04)",
