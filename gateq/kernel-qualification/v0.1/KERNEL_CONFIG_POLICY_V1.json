@@ -1,0 +1,49 @@
+{
+  "schema": "TSUCHIMARU_GATEQ_KERNEL_CONFIG_POLICY_V1",
+  "base_config": "Microsoft/config-wsl",
+  "module_policy": {
+    "promote_existing_module_selections_to_builtin_before_olddefconfig": true,
+    "final_modules_enabled": false,
+    "final_config_m_entries_allowed": 0
+  },
+  "mandatory_assertions": {
+    "CONFIG_SECURITY": "n",
+    "CONFIG_MODULES": "n",
+    "CONFIG_BPF_SYSCALL": "n",
+    "CONFIG_KPROBES": "n",
+    "CONFIG_LIVEPATCH": "n",
+    "CONFIG_KEXEC": "n",
+    "CONFIG_KEXEC_FILE": "n",
+    "CONFIG_EXT4_FS": "y",
+    "CONFIG_EXT4_FS_POSIX_ACL": "y",
+    "CONFIG_IKCONFIG": "y",
+    "CONFIG_IKCONFIG_PROC": "y",
+    "CONFIG_PROC_FS": "y",
+    "CONFIG_SYSFS": "y",
+    "CONFIG_LOCALVERSION_AUTO": "n",
+    "CONFIG_RANDSTRUCT_NONE": "y",
+    "CONFIG_RANDSTRUCT_FULL": "n",
+    "CONFIG_RANDSTRUCT_PERFORMANCE": "n"
+  },
+  "deterministic_string_inputs": {
+    "CONFIG_SYSTEM_TRUSTED_KEYS": "",
+    "CONFIG_SYSTEM_REVOCATION_KEYS": "",
+    "CONFIG_BUILD_SALT": ""
+  },
+  "build_outputs_requiring_ab_byte_identity": [
+    "arch/x86/boot/bzImage",
+    "vmlinux",
+    "System.map",
+    ".config"
+  ],
+  "build_id_must_match": true,
+  "toolchain_oci_manifest_digest": "sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829",
+  "source_date_epoch": 1789084800,
+  "kbuild_build_timestamp": "2026-09-11 00:00:00 UTC",
+  "kbuild_build_user": "tsuchimaru",
+  "kbuild_build_host": "gateq-builder",
+  "kbuild_build_version": "1",
+  "ccache_disabled": true,
+  "source_prefix": "/workspace/linux",
+  "normalized_source_prefix": "/usr/src/linux"
+}
