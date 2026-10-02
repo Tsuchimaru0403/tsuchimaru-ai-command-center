@@ -37,6 +37,8 @@ jobs:
           echo "SWIFT_ARCHIVE_SHA256=$archive_sha256" >> "$GITHUB_ENV"
           sudo mkdir -p /usr/local/swift
           sudo tar -xzf "$archive" -C /usr/local/swift --strip-components=1
+          echo "Resolved clang: $(/usr/local/swift/usr/bin/clang --version | head -1)"
+          echo "Resolved lld-link: $(/usr/local/swift/usr/bin/lld-link --version | head -1)"
           test "$(/usr/local/swift/usr/bin/clang --version | head -1)" = 'clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
           test "$(/usr/local/swift/usr/bin/lld-link --version | head -1)" = 'LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
           sudo mkdir -p /opt/pyvenv
