@@ -129,12 +129,29 @@ jobs:
         run: |
           set -euo pipefail
           SRC="$GITHUB_WORKSPACE/_kernel_source_checkout"
-          test "$(git -C "$SRC" rev-parse HEAD)" = "$KERNEL_COMMIT"
-          test "$(git -C "$SRC" rev-parse HEAD^{tree})" = "$KERNEL_TREE"
-          test "$(git -C "$SRC" hash-object Microsoft/config-wsl)" = "$KERNEL_BASE_CONFIG_BLOB"
-          test -z "$(git -C "$SRC" status --porcelain)"
+          actual_head="$(git -C "$SRC" rev-parse HEAD)"
+          actual_tree="$(git -C "$SRC" rev-parse 'HEAD^{tree}')"
+          actual_config_blob="$(git -C "$SRC" hash-object Microsoft/config-wsl)"
+          git -C "$SRC" status --porcelain=v1 --untracked-files=all > /tmp/kernel-source-status.txt
+
+          printf 'HEAD=%s\nTREE=%s\nCONFIG_BLOB=%s\n' "$actual_head" "$actual_tree" "$actual_config_blob"
+          if test -s /tmp/kernel-source-status.txt; then
+            echo "working-tree status (recorded; archive is still generated directly from the immutable commit):"
+            cat /tmp/kernel-source-status.txt
+          fi
+
+          test "$actual_head" = "$KERNEL_COMMIT"
+          test "$actual_tree" = "$KERNEL_TREE"
+          test "$actual_config_blob" = "$KERNEL_BASE_CONFIG_BLOB"
+
+          # Tracked bytes must be pristine. Untracked checkout/runtime metadata cannot
+          # enter the source artifact because the archive is emitted directly from
+          # the exact immutable commit below.
+          git -C "$SRC" diff --quiet
+          git -C "$SRC" diff --cached --quiet
 
           mkdir -p "$EVIDENCE_DIR"
+          cp /tmp/kernel-source-status.txt "$EVIDENCE_DIR/KERNEL_SOURCE_WORKTREE_STATUS.txt"
           git -C "$SRC" archive --format=tar --prefix=linux/ "$KERNEL_COMMIT" | gzip -n -9 > "$EVIDENCE_DIR/kernel-source.tar.gz"
           sha256sum "$EVIDENCE_DIR/kernel-source.tar.gz" > "$EVIDENCE_DIR/KERNEL_SOURCE_ARCHIVE.sha256"
 
