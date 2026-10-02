@@ -38,8 +38,8 @@ readme.write_text(d,encoding='utf-8')
 PY
 export PATH="/usr/bin:$PATH"
 mkdir -p /opt/pyvenv
-sudo /opt/hostedtoolcache/Python/3.13.5/x64/bin/python3 -m venv /opt/pyvenv
-sudo ln -sf /opt/pyvenv/bin/python3 /opt/pyvenv/python3
+/opt/hostedtoolcache/Python/3.13.5/x64/bin/python3 -m venv /opt/pyvenv
+ln -sf /opt/pyvenv/bin/python3 /opt/pyvenv/python3
 export PYTHON=/opt/pyvenv/python3
 test "$(/usr/bin/clang --version | head -1)" = 'clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
 test "$(/usr/bin/lld-link --version | head -1)" = 'LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
@@ -50,8 +50,8 @@ bash "$BUNDLE/build/rebuild_ab.sh"
   printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
   printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
   printf 'build_flags=%s\n' 'Release; clang+lld; X86 only; assertions/tests/examples/benchmarks disabled'
-  printf 'clang_version=%s\n' "$(/usr/local/swift/usr/bin/clang --version | head -1)"
-  printf 'lld_link_version=%s\n' "$(/usr/local/swift/usr/bin/lld-link --version | head -1)"
+  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
   printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
   printf 'verification=exact version and llvm commit; mismatch fails closed\n'
 } > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
