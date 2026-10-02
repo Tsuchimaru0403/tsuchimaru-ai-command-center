@@ -73,7 +73,7 @@ cases=[
     {'case':'unchanged_accepted_state','same_id':True,'tag_drift':False,'attribute_drift':False,'current_forbidden':False,'expected':'POLICY_THEN_VOLUME'}
 ]
 ordering={'schema':'TSUCHIMARU_F09_REVALIDATION_ORDER_STATIC_TEST_V1','source':'actual v0.5 product source','sequence':['raw metadata collection','FILE_ID_DRIFT check','REPARSE_TAG_DRIFT check','FILE_ATTRIBUTES_DRIFT check','current policy enforcement','volume check'],'both_tag_and_attribute_drift_priority':'REPARSE_TAG_DRIFT','cases':cases,'result':'PASS'}
-(ev/'F09_REVALIDATION_ORDER_STATIC_TESTS.json').write_text(json.dumps(ordering,indent=2)+'\n')
+(ev/'F09_REVALIDATION_ORDER_STATIC_TESTS.json').write_text(json.dumps(ordering,indent=2)+'\\n')
 (ev/'F09_REVALIDATION_ORDERING.md').write_text('''# F-09 revalidation ordering remediation
 
 The runtime source separates raw metadata collection from policy enforcement. Initial chain construction still calls inspect(), which calls inspect_raw() and then validate_node_policy(), preserving F-04 initial rejection. Revalidation calls inspect_raw() first, preserves FILE_ID_DRIFT priority, then checks ReparseTag drift, then FileAttributes drift, then enforces the current-node policy, and finally performs the volume check. Therefore forbidden current attributes/tags cannot preempt the dedicated F-09 drift codes.
