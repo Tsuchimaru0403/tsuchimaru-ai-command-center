@@ -131,10 +131,11 @@ jobs:
           SRC="$GITHUB_WORKSPACE/_kernel_source_checkout"
           actual_head="$(git -C "$SRC" rev-parse HEAD)"
           actual_tree="$(git -C "$SRC" rev-parse 'HEAD^{tree}')"
-          actual_config_blob="$(git -C "$SRC" hash-object Microsoft/config-wsl)"
+          actual_config_blob="$(git -C "$SRC" rev-parse "$KERNEL_COMMIT:Microsoft/config-wsl")"
+          worktree_config_sha256="$(sha256sum "$SRC/Microsoft/config-wsl" | awk '{print $1}')"
           git -C "$SRC" status --porcelain=v1 --untracked-files=all > /tmp/kernel-source-status.txt
 
-          printf 'HEAD=%s\nTREE=%s\nCONFIG_BLOB=%s\n' "$actual_head" "$actual_tree" "$actual_config_blob"
+          printf 'HEAD=%s\nTREE=%s\nCONFIG_GIT_BLOB=%s\nWORKTREE_CONFIG_SHA256=%s\n' "$actual_head" "$actual_tree" "$actual_config_blob" "$worktree_config_sha256"
           if test -s /tmp/kernel-source-status.txt; then
             echo "working-tree status (recorded; archive is still generated directly from the immutable commit):"
             cat /tmp/kernel-source-status.txt
