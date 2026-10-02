@@ -134,15 +134,33 @@ jobs:
           BIND_DIR="$RUNNER_TEMP/gateq-v05-current-binding"
           rm -rf "$BIND_DIR"
           mkdir -p "$BIND_DIR"
-          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+          api_get_retry() {
+            local url="$1" out="$2" attempts=12 delay=5 i
+            rm -f "$out"
+            for i in $(seq 1 "$attempts"); do
+              code="$(curl -sS -L -o "$out.tmp" -w '%{http_code}' \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" "$url" || true)"
+              if test "$code" = 200; then
+                mv "$out.tmp" "$out"
+                return 0
+              fi
+              rm -f "$out.tmp"
+              echo "API visibility retry $i/$attempts: HTTP $code for $url" >&2
+              sleep "$delay"
+            done
+            echo "API object did not become visible: $url" >&2
+            return 1
+          }
+          api_get_retry \
             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$PRIMARY_ARTIFACT_ID" \
-            > "$BIND_DIR/PRIMARY_ARTIFACT_API_RESPONSE.json"
-          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "$BIND_DIR/PRIMARY_ARTIFACT_API_RESPONSE.json"
+          api_get_retry \
             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            > "$BIND_DIR/CURRENT_RUN_API_RESPONSE.json"
-          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "$BIND_DIR/CURRENT_RUN_API_RESPONSE.json"
+          api_get_retry \
             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" \
-            > "$BIND_DIR/CURRENT_RUN_JOBS_API_RESPONSE.json"
+            "$BIND_DIR/CURRENT_RUN_JOBS_API_RESPONSE.json"
           python3 - "$BIND_DIR" "$RUNNER_TEMP/gateq-v05/gateq-windows-path-qualifier-v0.5.zip" "$RUNNER_TEMP/gateq-v05/gateq-windows-path-qualifier-v0.5.zip.sha256" <<'PYBIND'
           import hashlib,json,os,pathlib,sys
           d=pathlib.Path(sys.argv[1]); package=pathlib.Path(sys.argv[2]); sidecar=pathlib.Path(sys.argv[3])
@@ -150,10 +168,11 @@ jobs:
           run=json.loads((d/'CURRENT_RUN_API_RESPONSE.json').read_text())
           jobs=json.loads((d/'CURRENT_RUN_JOBS_API_RESPONSE.json').read_text())
           expected_id=int(os.environ['PRIMARY_ARTIFACT_ID'])
-          expected_digest=os.environ['PRIMARY_ARTIFACT_DIGEST']
+          upload_digest=os.environ['PRIMARY_ARTIFACT_DIGEST']
+          expected_digest=upload_digest if upload_digest.startswith('sha256:') else 'sha256:'+upload_digest
           run_id=int(os.environ['GITHUB_RUN_ID']); job_id=int(os.environ['GITHUB_JOB_ID']); head=os.environ['GITHUB_SHA']
           if art.get('id')!=expected_id: raise SystemExit('primary artifact ID API mismatch')
-          if art.get('digest')!=expected_digest: raise SystemExit('primary artifact digest API mismatch')
+          if art.get('digest')!=expected_digest: raise SystemExit(f"primary artifact digest API mismatch: api={art.get('digest')} upload={expected_digest}")
           if art.get('workflow_run',{}).get('id')!=run_id: raise SystemExit('primary artifact run binding mismatch')
           if art.get('workflow_run',{}).get('head_sha')!=head: raise SystemExit('primary artifact head binding mismatch')
           if run.get('id')!=run_id or run.get('head_sha')!=head: raise SystemExit('current run API identity mismatch')
@@ -174,7 +193,9 @@ jobs:
               'id':art['id'],'name':art['name'],'size_in_bytes':art['size_in_bytes'],
               'digest':art['digest'],'api_url':art['url'],
               'archive_download_url':art['archive_download_url'],
-              'upload_output_url':os.environ['PRIMARY_ARTIFACT_URL']
+              'upload_output_url':os.environ['PRIMARY_ARTIFACT_URL'],
+              'upload_output_digest_raw':upload_digest,
+              'upload_output_digest_normalized':expected_digest
             },
             'canonical_inner_zip':{
               'name':package.name,'size_in_bytes':package.stat().st_size,'sha256':canonical_sha
