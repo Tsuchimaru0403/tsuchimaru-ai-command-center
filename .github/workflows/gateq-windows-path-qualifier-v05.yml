@@ -149,8 +149,11 @@ jobs:
               for row in rows:
                   digest, name=row.split('  ',1)
                   payloads[name]=digest
-              mismatches=[name for name,digest in payloads.items()
-                          if hashlib.sha256(z.read(name)).hexdigest()!=digest]
+              mismatches=[]
+              for name,digest in payloads.items():
+                  matches=[entry for entry in names if entry.endswith('/'+name)]
+                  if len(matches)!=1 or hashlib.sha256(z.read(matches[0])).hexdigest()!=digest:
+                      mismatches.append(name)
               if mismatches: raise SystemExit(f"FILES.sha256 mismatch: {mismatches}")
               keyfile=next(n for n in names if n.endswith('/evidence/KEY_SHA256.txt'))
               keys=dict(line.split('=',1) for line in z.read(keyfile).decode().splitlines() if '=' in line)
