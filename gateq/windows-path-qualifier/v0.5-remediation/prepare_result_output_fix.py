@@ -14,7 +14,7 @@ if s.count(anchor) != 1:
     raise SystemExit(f"result-output insertion anchor count={s.count(anchor)}; fail closed")
 
 block=r'''python3 - "$BUNDLE" <<'PYRESULT'
-import difflib,hashlib,json,pathlib,sys
+import difflib,hashlib,json,os,pathlib,sys
 r=pathlib.Path(sys.argv[1])
 src=r/'src/windows_path_chain_qualifier.c'
 ev=r/'evidence'
@@ -69,6 +69,19 @@ The low-level write helper now records failure if WriteFile returns false or rep
 
 This makes complete PASS-result emission an explicit success condition without adding process creation, filesystem mutation, WSL actions, or other authorization-boundary changes.
 ''')
+
+context={
+ 'schema':'TSUCHIMARU_CURRENT_RUN_PREUPLOAD_CONTEXT_V1',
+ 'run_id':int(os.environ['GITHUB_RUN_ID']),
+ 'job_id':int(os.environ['GITHUB_JOB_ID']),
+ 'head_sha':os.environ['GITHUB_HEAD_SHA'],
+ 'job_name':os.environ['GITHUB_JOB'],
+ 'workflow_path':'.github/workflows/gateq-windows-path-qualifier-v05.yml',
+ 'primary_artifact_name':'gateq-windows-path-qualifier-v0.5',
+ 'post_upload_binding_artifact_name':'gateq-windows-path-qualifier-v0.5-current-run-binding',
+ 'note':'Run/job/HEAD are known pre-upload. Primary artifact ID/size/digest are assigned by GitHub after upload and are bound in the separate post-upload binding artifact.'
+}
+(ev/'CURRENT_RUN_PREUPLOAD_CONTEXT_V1.json').write_text(json.dumps(context,indent=2)+'\\n')
 
 binding=r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json'
 b=json.loads(binding.read_text())
