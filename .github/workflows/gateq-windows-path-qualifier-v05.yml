@@ -20,9 +20,7 @@ jobs:
           image='swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
           expected_clang='clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
           expected_lld='LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
-          docker run --platform linux/amd64 --pull=always --rm \
-            -e EXPECTED_CLANG="$expected_clang" -e EXPECTED_LLD="$expected_lld" \
-            "$image" bash -lc '
+          docker run --platform linux/amd64 --pull=always --rm             -e EXPECTED_CLANG="$expected_clang" -e EXPECTED_LLD="$expected_lld"             "$image" bash -lc '
               set -uo pipefail
               printf "=== command -v ===\\n"
               for tool in swift swiftc clang clang-17 clang-19 lld-link ld.lld; do
@@ -92,17 +90,20 @@ jobs:
           export GITHUB_JOB_ID="$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" | jq -r '[.jobs[] | select(.status == "in_progress")][0].id')"
           test -n "$GITHUB_JOB_ID" -a "$GITHUB_JOB_ID" != null
           echo "GITHUB_JOB_ID=$GITHUB_JOB_ID" >> "$GITHUB_ENV"
+      - name: Prepare F-09 ordering remediation driver
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 gateq/windows-path-qualifier/v0.5-remediation/prepare_f09_ordering_fix.py             gateq/windows-path-qualifier/v0.5-remediation/build_v05.sh             "$RUNNER_TEMP/build_v05_f09_effective.sh"
+          chmod +x "$RUNNER_TEMP/build_v05_f09_effective.sh"
+          grep -F 'inspect_raw' "$RUNNER_TEMP/build_v05_f09_effective.sh" >/dev/null
+          grep -F 'REPARSE_TAG_DRIFT' "$RUNNER_TEMP/build_v05_f09_effective.sh" >/dev/null
       - name: Run v0.5 build inside exact pinned Swift image
         shell: bash
         run: |
           set -euo pipefail
           image='swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
-          docker run --platform linux/amd64 --pull=always --rm \
-            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=$GITHUB_WORKSPACE,readonly" \
-            --mount "type=bind,src=$RUNNER_TEMP,dst=$RUNNER_TEMP" \
-            --mount "type=bind,src=/opt/hostedtoolcache/Python/3.13.5/x64,dst=/opt/hostedtoolcache/Python/3.13.5/x64,readonly" \
-            -e GITHUB_WORKSPACE -e RUNNER_TEMP -e GITHUB_SHA -e GITHUB_RUN_ID -e GITHUB_JOB -e GITHUB_JOB_ID -e LLVM_SOURCE_COMMIT \
-            "$image" bash -lc 'cd "$GITHUB_WORKSPACE" && bash -x gateq/windows-path-qualifier/v0.5-remediation/build_v05.sh'
+          docker run --platform linux/amd64 --pull=always --rm             --mount "type=bind,src=$GITHUB_WORKSPACE,dst=$GITHUB_WORKSPACE,readonly"             --mount "type=bind,src=$RUNNER_TEMP,dst=$RUNNER_TEMP"             --mount "type=bind,src=/opt/hostedtoolcache/Python/3.13.5/x64,dst=/opt/hostedtoolcache/Python/3.13.5/x64,readonly"             -e GITHUB_WORKSPACE -e RUNNER_TEMP -e GITHUB_SHA -e GITHUB_RUN_ID -e GITHUB_JOB -e GITHUB_JOB_ID -e LLVM_SOURCE_COMMIT             "$image" bash -lc 'cd "$GITHUB_WORKSPACE" && bash -x "$RUNNER_TEMP/build_v05_f09_effective.sh"'
       - name: Upload v0.5 package
         id: upload
         uses: actions/upload-artifact@v4
@@ -162,6 +163,11 @@ jobs:
               assert 'clang_path=/usr/bin/clang' in toolchain_text
               assert 'lld_link_path=/usr/bin/lld-link' in toolchain_text
               assert 'no swiftlang/llvm-project source build was performed' in toolchain_text
+              order_test=next(n for n in names if n.endswith('/evidence/F09_REVALIDATION_ORDER_STATIC_TESTS.json'))
+              import json
+              order=json.loads(z.read(order_test))
+              assert order['result']=='PASS'
+              assert order['both_tag_and_attribute_drift_priority']=='REPARSE_TAG_DRIFT'
               print()
               print('### Canonical package verification')
               print()
@@ -175,5 +181,6 @@ jobs:
                   return hashlib.sha256(z.read(entry)).hexdigest()
               print(f"- Import library A/B SHA-256: kernel32={payload_hash('/bin/A/kernel32.lib')} / {payload_hash('/bin/B/kernel32.lib')}; ntdll={payload_hash('/bin/A/ntdll.lib')} / {payload_hash('/bin/B/ntdll.lib')}")
               print(f"- FILES.sha256 verification: {len(rows)}/{len(payloads)} payloads PASS; ZIP CRC PASS")
+              print(f"- F-09 ordering static evidence: PASS; both-drift priority=REPARSE_TAG_DRIFT")
               print(f"- Toolchain fact check: pinned image, linux/amd64, /usr/bin/clang, /usr/bin/lld-link; no source build")
           PY
