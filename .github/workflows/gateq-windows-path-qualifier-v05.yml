@@ -1,4 +1,4 @@
-name: Gate Q Windows Path Qualifier v0.5 toolchain verification
+name: Gate Q Windows Path Qualifier v0.5 toolchain layout discovery
 
 on:
   push:
@@ -9,11 +9,11 @@ permissions:
   contents: read
 
 jobs:
-  verify-swift-toolchain:
-    name: Verify official Swift Linux toolchain
+  discover-swift-toolchain:
+    name: Read-only layout discovery in pinned Swift image
     runs-on: ubuntu-22.04
     steps:
-      - name: Verify exact Clang and LLD in pinned Swift image
+      - name: Discover tools and compare pinned versions
         shell: bash
         run: |
           set -euo pipefail
@@ -23,11 +23,46 @@ jobs:
           docker run --platform linux/amd64 --pull=always --rm \
             -e EXPECTED_CLANG="$expected_clang" -e EXPECTED_LLD="$expected_lld" \
             "$image" bash -lc '
-              set -euo pipefail
-              clang=$(/usr/local/swift/usr/bin/clang --version | head -1)
-              lld=$(/usr/local/swift/usr/bin/lld-link --version | head -1)
-              printf "clang=%s\n" "$clang"
-              printf "lld=%s\n" "$lld"
-              test "$clang" = "$EXPECTED_CLANG"
-              test "$lld" = "$EXPECTED_LLD"
+              set -uo pipefail
+              printf "=== command -v ===\\n"
+              for tool in swift swiftc clang clang-17 clang-19 lld-link ld.lld; do
+                if path=$(command -v "$tool" 2>/dev/null); then printf "%s=%s\\n" "$tool" "$path"; else printf "%s=NOT_FOUND\\n" "$tool"; fi
+              done
+              printf "=== versions ===\\n"
+              for tool in swift swiftc; do
+                if path=$(command -v "$tool" 2>/dev/null); then "$path" --version 2>&1 || true; else printf "%s unavailable\\n" "$tool"; fi
+              done
+              printf "=== PATH-related environment ===\\n"
+              env | sort | grep -E "^(PATH|SWIFT[^=]*|LLVM[^=]*|CLANG[^=]*|LD_LIBRARY_PATH)=" || true
+              printf "=== /usr/local ===\\n"
+              ls -la /usr/local 2>&1 || true
+              printf "=== /usr/local/swift (when present) ===\\n"
+              if test -e /usr/local/swift; then ls -la /usr/local/swift 2>&1; else printf "/usr/local/swift=NOT_FOUND\\n"; fi
+              printf "=== bounded candidate paths (depth <= 7; first 80) ===\\n"
+              find /usr /opt /usr/local -maxdepth 7 -type f \\( -name clang -o -name clang-17 -o -name clang-19 -o -name lld-link -o -name ld.lld -o -name swiftc \\) -print 2>/dev/null | head -n 80 || true
+              mapfile -t clangs < <({ for t in clang clang-17 clang-19; do command -v "$t" 2>/dev/null || true; done; find /usr /opt /usr/local -maxdepth 7 -type f \\( -name clang -o -name clang-17 -o -name clang-19 \\) -print 2>/dev/null; } | sort -u | head -n 80)
+              mapfile -t llds < <({ command -v lld-link 2>/dev/null || true; find /usr /opt /usr/local -maxdepth 7 -type f -name lld-link -print 2>/dev/null; } | sort -u | head -n 80)
+              clang_match=0
+              lld_match=0
+              printf "=== candidate Clang versions ===\\n"
+              for candidate in "${clangs[@]}"; do
+                test -x "$candidate" || continue
+                line=$("$candidate" --version 2>&1 | head -n 1 || true)
+                printf "clang_candidate=%s\\nversion=%s\\n" "$candidate" "$line"
+                if test "$line" = "$EXPECTED_CLANG"; then clang_match=1; fi
+              done
+              printf "=== candidate LLD versions ===\\n"
+              for candidate in "${llds[@]}"; do
+                test -x "$candidate" || continue
+                line=$("$candidate" --version 2>&1 | head -n 1 || true)
+                printf "lld_link_candidate=%s\\nversion=%s\\n" "$candidate" "$line"
+                if test "$line" = "$EXPECTED_LLD"; then lld_match=1; fi
+              done
+              printf "=== decision ===\\n"
+              if test "$clang_match" -eq 1 && test "$lld_match" -eq 1; then
+                printf "EXACT_VERSION_MATCH: eligible for separately authorized remediation build steps.\\n"
+              else
+                printf "FAIL_CLOSED: required Clang and LLD exact version strings were not both found.\\n"
+                exit 1
+              fi
             '
