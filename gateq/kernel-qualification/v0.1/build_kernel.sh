@@ -45,6 +45,9 @@ scripts/config --set-str BUILD_SALT ""
 
 make olddefconfig
 
+mkdir -p "$OUT_DIR"
+: > "$OUT_DIR/KCONFIG_EFFECTIVE_N_ABSENT.txt"
+
 assert_y() {
   grep -qx "$1=y" .config || {
     echo "required y assertion failed: $1" >&2
@@ -105,7 +108,6 @@ if grep -Eq '^CONFIG_[A-Za-z0-9_]+=m$' .config; then
   exit 64
 fi
 
-mkdir -p "$OUT_DIR"
 cp .config "$OUT_DIR/final.config"
 
 {
