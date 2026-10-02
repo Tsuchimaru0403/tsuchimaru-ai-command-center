@@ -45,6 +45,14 @@ test "$(/usr/bin/clang --version | head -1)" = 'clang version 17.0.0 (https://gi
 test "$(/usr/bin/lld-link --version | head -1)" = 'LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
 test "$(/opt/pyvenv/python3 --version 2>&1)" = 'Python 3.13.5'
 export GITHUB_HEAD_SHA="${GITHUB_SHA:?}" GITHUB_RUN_ID="${GITHUB_RUN_ID:?}" GITHUB_JOB="${GITHUB_JOB:?}" GITHUB_JOB_ID="${GITHUB_JOB_ID:?}"
+python3 - "$BUNDLE/build/build_windows_path_qualifier.sh" <<'PY'
+import pathlib,sys
+p=pathlib.Path(sys.argv[1]); s=p.read_text()
+for old,new in (('/usr/local/swift/usr/bin/clang','/usr/bin/clang'),('/usr/local/swift/usr/bin/lld-link','/usr/bin/lld-link')):
+    if s.count(old)!=1: raise SystemExit(f'expected exactly one pinned tool path anchor: {old}')
+    s=s.replace(old,new)
+p.write_text(s)
+PY
 printf "=== rebuild_ab.sh ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; bash -x "$BUNDLE/build/rebuild_ab.sh"
 {
   printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
