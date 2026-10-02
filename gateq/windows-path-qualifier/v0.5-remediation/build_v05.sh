@@ -17,15 +17,30 @@ BUNDLE="$ROOT/unpack/gateq_windows_path_qualifier_v04"
 python3 - "$BUNDLE" <<'PY'
 import hashlib,json,pathlib,sys
 r=pathlib.Path(sys.argv[1]); src=r/'src/windows_path_chain_qualifier.c'
-s=src.read_text()
+source_v04=src.read_text()
+s=source_v04
+ev=r/'evidence'; ev.mkdir(exist_ok=True)
+(ev/'RUNTIME_SOURCE_V04.c').write_text(source_v04)
+
 old='static void revalidate(path_chain*c){u32 i;chain_node now;for(i=0;i<c->count;i++){inspect(c->nodes[i].h,c->nodes[i].is_dir,&now,c->nodes[i].component);if(!same_id(&now.id,&c->nodes[i].id))stop("FILE_ID_DRIFT",50);volume_check(c->nodes[i].h,c,&now.id);}}'
 new='static void revalidate(path_chain*c){u32 i;chain_node now;for(i=0;i<c->count;i++){inspect(c->nodes[i].h,c->nodes[i].is_dir,&now,c->nodes[i].component);if(!same_id(&now.id,&c->nodes[i].id))stop("FILE_ID_DRIFT",50);if(now.tag.FileAttributes!=c->nodes[i].tag.FileAttributes)stop("FILE_ATTRIBUTES_DRIFT",51);if(now.tag.ReparseTag!=c->nodes[i].tag.ReparseTag)stop("REPARSE_TAG_DRIFT",52);volume_check(c->nodes[i].h,c,&now.id);}}'
 if s.count(old)!=1: raise SystemExit('F-09 source anchor mismatch; fail closed')
 src.write_text(s.replace(old,new))
+import difflib
+source_v05=src.read_text()
+diff=''.join(difflib.unified_diff(source_v04.splitlines(True),source_v05.splitlines(True),fromfile='v0.4/src/windows_path_chain_qualifier.c',tofile='v0.5/src/windows_path_chain_qualifier.c'))
+if diff.count('@@') != 1: raise SystemExit('runtime diff is not one F-09-only hunk')
+(ev/'RUNTIME_SOURCE_V04_TO_V05.diff').write_text(diff)
+if source_v05.replace(new,old) != source_v04: raise SystemExit('runtime source differs beyond F-09 replacement')
+
 binding=r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json'; b=json.loads(binding.read_text())
 b['revision']='v0.5'; b['status']='QUALIFIED_REMEDIATED_CANDIDATE_PENDING_FRESH_REAUDIT'
 b['prior_bundle_sha256']='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092'
 b['clang_path']='/usr/bin/clang'; b['lld_link_path']='/usr/bin/lld-link'
+if not isinstance(b.get('toolchain'),dict): raise SystemExit('binding nested toolchain object missing')
+b['toolchain']['clang_path']='/usr/bin/clang'
+b['toolchain']['lld_link_path']='/usr/bin/lld-link'
+
 b['clang_version']='clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
 b['lld_link_version']='LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
 b['toolchain_provenance']={'image':'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791','platform':'linux/amd64','discovery':'Existing /usr/bin/clang and /usr/bin/lld-link discovered in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'}
@@ -33,7 +48,9 @@ b['source_sha256']=hashlib.sha256(src.read_bytes()).hexdigest()
 b['revalidation_policy']={'file_attributes':'exact equality: saved node.tag.FileAttributes == current inspect tag.FileAttributes; mismatch stops FILE_ATTRIBUTES_DRIFT','reparse_tag':'exact equality: saved node.tag.ReparseTag == current inspect tag.ReparseTag; mismatch stops REPARSE_TAG_DRIFT','fail_closed':True}
 b['prior_audit']={'revision':'v0.4','result':'FAIL','critical':0,'major':1,'minor':0,'note':1,'finding_ids':['F-09']}
 binding.write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
-matrix=r/'evidence/REMEDIATION_MATRIX.md'; m=matrix.read_text(encoding='utf-8').replace('v0.4 — v0.3 Fresh Audit Remediation Matrix','v0.5 — v0.4 Fresh Audit Remediation Matrix').replace('Prior Fresh Static Audit result for v0.3: FAIL — CRITICAL 0 / MAJOR 4 / MINOR 2 / NOTE 2.','Prior Fresh Static Audit result for v0.4: FAIL — CRITICAL 0 / MAJOR 1 / MINOR 0 / NOTE 1 (blocking F-09 only).')
+matrix=r/'evidence/REMEDIATION_MATRIX.md'; m=matrix.read_text(encoding='utf-8')
+m=m.replace('F-09','F-10').replace('v0.4 — v0.3 Fresh Audit Remediation Matrix','v0.5 — F-10 evidence-only remediation matrix')
+.replace('v0.4 — v0.3 Fresh Audit Remediation Matrix','v0.5 — v0.4 Fresh Audit Remediation Matrix').replace('Prior Fresh Static Audit result for v0.3: FAIL — CRITICAL 0 / MAJOR 4 / MINOR 2 / NOTE 2.','Prior Fresh Static Audit result for v0.4: FAIL — CRITICAL 0 / MAJOR 1 / MINOR 0 / NOTE 1 (blocking F-09 only).')
 m += '\n| F-09 MAJOR — attribute/tag drift | `revalidate()` compares saved and current `FileAttributes` and `ReparseTag` individually using exact equality; mismatches stop as `FILE_ATTRIBUTES_DRIFT` / `REPARSE_TAG_DRIFT`. | REMEDIATED CANDIDATE / pending Fresh Re-Audit |\n\nF-01–F-08 remain as recorded in v0.4. No Windows host execution, Host Activation, Gate A, or Runtime was performed.\n'
 matrix.write_text(m,encoding='utf-8')
 compat_note="## Evidence-only build compatibility adjustments\n\nThe v0.5 remediation build carries two build/evidence compatibility adjustments from v0.4: `FILE_TOOL` changes from `/usr/bin/file` to `/usr/bin/objdump` (invoked with `-f` solely to record PE file-format evidence), and the import-evidence parser accepts the decimal address-column form emitted by the pinned image's objdump. These changes affect evidence collection/parsing only; they do not change F-01–F-09 implementation source, compiler inputs/options, linker inputs/options, or runtime behavior. The A/B artifacts are freshly rebuilt from identical source and their normalized COFF, PE, and import libraries are compared byte-for-byte. Independent audit should verify this scope from the bundled build scripts and logs."
@@ -42,10 +59,16 @@ def append_once(path, marker, text):
     if marker not in data:
         path.write_text(data.rstrip()+'\n\n'+text+'\n',encoding='utf-8')
 append_once(matrix, 'Evidence-only build compatibility adjustments', compat_note)
+f10='## F-10 evidence-only remediation\n\nAll binding toolchain paths, including nested `toolchain.clang_path` and `toolchain.lld_link_path`, identify the actual tools: `/usr/bin/clang` and `/usr/bin/lld-link`. Current facts are the pinned image `swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791`, platform `linux/amd64`, exact Clang/LLD 17.0.0 strings, and Python 3.13.5. F-10 changes evidence only; v0.5 runtime source is unchanged. Fresh independent re-audit remains pending.\n'
+append_once(matrix, 'F-10 evidence-only remediation', f10)
+
 append_once(r/'README_JA.md', 'Evidence-only build compatibility adjustments', compat_note)
+append_once(r/'README_JA.md', 'F-10 evidence-only remediation', f10)
+
 (r/'evidence/BUILD_COMPATIBILITY_NOTE.md').write_text(compat_note+'\n',encoding='utf-8')
 readme=r/'README_JA.md'; d=readme.read_text(encoding='utf-8').replace('Gate Q Windows Path Qualifier v0.4','Gate Q Windows Path Qualifier v0.5').replace('**Fresh Re-Audit待ちのread-only candidateです。Windowsホストではまだ実行しないでください。**','**QUALIFIED/REMEDIATED CANDIDATE PENDING FRESH RE-AUDIT。Windowsホストではまだ実行しないでください。**')
 d+='\n## v0.5 F-09 remediation\n\n`revalidate()` compares saved `FileAttributes` and `ReparseTag` independently by exact equality. Drift fails closed with `FILE_ATTRIBUTES_DRIFT` or `REPARSE_TAG_DRIFT`. F-01–F-08 remain unchanged. Fresh independent audit is required; this bundle does not authorize Windows execution, Host Activation, Gate A, or Runtime.\n'
+d=d.replace('v0.5 F-09 remediation','v0.5 F-10 evidence-only remediation')
 readme.write_text(d,encoding='utf-8')
 PY
 export PATH="/usr/bin:$PATH"
@@ -57,6 +80,13 @@ test "$(/usr/bin/clang --version | head -1)" = 'clang version 17.0.0 (https://gi
 test "$(/usr/bin/lld-link --version | head -1)" = 'LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
 test "$(/opt/pyvenv/python3 --version 2>&1)" = 'Python 3.13.5'
 export GITHUB_HEAD_SHA="${GITHUB_SHA:?}" GITHUB_RUN_ID="${GITHUB_RUN_ID:?}" GITHUB_JOB="${GITHUB_JOB:?}" GITHUB_JOB_ID="${GITHUB_JOB_ID:?}"
+cp "$GITHUB_WORKSPACE/.github/workflows/gateq-windows-path-qualifier-v05.yml" "$BUNDLE/evidence/WORKFLOW_SNAPSHOT_gateq-windows-path-qualifier-v05.yml"
+python3 - "$BUNDLE/evidence/GITHUB_RUN_JOB_ARTIFACT_METADATA_V1.json" <<'PYMETA'
+import json,pathlib,sys
+data={"snapshot_kind":"previous_run_metadata_reference","run":{"id":37003180168,"head_sha":"73f909368fe1636287ba57484a6afb20e92a9c35","status":"completed","conclusion":"success","workflow_path":".github/workflows/gateq-windows-path-qualifier-v05.yml"},"job":{"id":110825476969,"run_id":37003180168,"head_sha":"73f909368fe1636287ba57484a6afb20e92a9c35","status":"completed","conclusion":"success"},"artifact":{"id":11224309094,"name":"gateq-windows-path-qualifier-v0.5","size_in_bytes":48327,"digest":"sha256:e5e4f87a68b17a126a69fdb6036e78f0fdce53dafccad1becc9b043e56d46a13"},"note":"This is prior-run metadata; current-run metadata is recorded in the post-upload workflow summary."}
+pathlib.Path(sys.argv[1]).write_text(json.dumps(data,indent=2)+"\\n")
+PYMETA
+
 python3 - "$BUNDLE/build/build_windows_path_qualifier.sh" <<'PY'
 import pathlib,sys
 p=pathlib.Path(sys.argv[1]); s=p.read_text()
@@ -116,7 +146,7 @@ keys={
  'ntdll_lib_B':sha(r/'bin/B/ntdll.lib'),
 }
 (r/'evidence/KEY_SHA256.txt').write_text(''.join(f'{k}={v}\n' for k,v in keys.items()))
-prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Explicitly assess whether the following build/evidence compatibility-only edits alter product behavior: FILE_TOOL changed from /usr/bin/file to /usr/bin/objdump -f for PE metadata, and the import-evidence regex accepts the decimal address-column format from objdump. Verify these are limited to evidence generation/parsing and that implementation source/compiler/linker behavior is unchanged.\n\nReturn an independent finding-by-finding result.\n'''
+prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: F-10 only (MAJOR), caused by inconsistent nested toolchain paths in the previous binding. Verify all current paths agree with actual build facts. Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Explicitly assess whether the following build/evidence compatibility-only edits alter product behavior: FILE_TOOL changed from /usr/bin/file to /usr/bin/objdump -f for PE metadata, and the import-evidence regex accepts the decimal address-column format from objdump. Verify these are limited to evidence generation/parsing and that implementation source/compiler/linker behavior is unchanged.\n\nInspect the workflow snapshot and run/job/artifact metadata snapshot; distinguish prior-run metadata from current-run metadata. Verify the v0.4-to-v0.5 runtime diff contains only F-09 and that this F-10 cleanup leaves runtime source unchanged. Return an independent finding-by-finding result.\n'''
 (r/'FRESH_RE_AUDIT_PROMPT_JA.md').write_text(prompt,encoding='utf-8')
 # Verify normalized bytes and hashes before packaging.
 assert (r/'bin/A/qualifier.obj').read_bytes()==(r/'bin/B/qualifier.obj').read_bytes()
