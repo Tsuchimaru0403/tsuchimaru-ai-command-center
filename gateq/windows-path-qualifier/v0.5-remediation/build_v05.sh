@@ -36,7 +36,7 @@ binding.write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
 matrix=r/'evidence/REMEDIATION_MATRIX.md'; m=matrix.read_text(encoding='utf-8').replace('v0.4 — v0.3 Fresh Audit Remediation Matrix','v0.5 — v0.4 Fresh Audit Remediation Matrix').replace('Prior Fresh Static Audit result for v0.3: FAIL — CRITICAL 0 / MAJOR 4 / MINOR 2 / NOTE 2.','Prior Fresh Static Audit result for v0.4: FAIL — CRITICAL 0 / MAJOR 1 / MINOR 0 / NOTE 1 (blocking F-09 only).')
 m += '\n| F-09 MAJOR — attribute/tag drift | `revalidate()` compares saved and current `FileAttributes` and `ReparseTag` individually using exact equality; mismatches stop as `FILE_ATTRIBUTES_DRIFT` / `REPARSE_TAG_DRIFT`. | REMEDIATED CANDIDATE / pending Fresh Re-Audit |\n\nF-01–F-08 remain as recorded in v0.4. No Windows host execution, Host Activation, Gate A, or Runtime was performed.\n'
 matrix.write_text(m,encoding='utf-8')
-compat_note="## Evidence-only build compatibility adjustments\\n\\nThe v0.5 remediation build carries two build/evidence compatibility adjustments from v0.4: `FILE_TOOL` changes from `/usr/bin/file` to `/usr/bin/objdump` (invoked with `-f` solely to record PE file-format evidence), and the import-evidence parser accepts the decimal address-column form emitted by the pinned image's objdump. These changes affect evidence collection/parsing only; they do not change F-01–F-09 implementation source, compiler inputs/options, linker inputs/options, or runtime behavior. The A/B artifacts are freshly rebuilt from identical source and their normalized COFF, PE, and import libraries are compared byte-for-byte. Independent audit should verify this scope from the bundled build scripts and logs."
+compat_note="## Evidence-only build compatibility adjustments\n\nThe v0.5 remediation build carries two build/evidence compatibility adjustments from v0.4: `FILE_TOOL` changes from `/usr/bin/file` to `/usr/bin/objdump` (invoked with `-f` solely to record PE file-format evidence), and the import-evidence parser accepts the decimal address-column form emitted by the pinned image's objdump. These changes affect evidence collection/parsing only; they do not change F-01–F-09 implementation source, compiler inputs/options, linker inputs/options, or runtime behavior. The A/B artifacts are freshly rebuilt from identical source and their normalized COFF, PE, and import libraries are compared byte-for-byte. Independent audit should verify this scope from the bundled build scripts and logs."
 def append_once(path, marker, text):
     data=path.read_text(encoding='utf-8')
     if marker not in data:
@@ -79,17 +79,17 @@ if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then
   exit 1
 fi
 {
-  printf 'container_image=%s\\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
-  printf 'platform=%s\\n' 'linux/amd64'
-  printf 'toolchain_discovery=%s\\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
-  printf 'clang_path=%s\\n' '/usr/bin/clang'
-  printf 'clang_version=%s\\n' "$(/usr/bin/clang --version | head -1)"
-  printf 'lld_link_path=%s\\n' '/usr/bin/lld-link'
-  printf 'lld_link_version=%s\\n' "$(/usr/bin/lld-link --version | head -1)"
-  printf 'python_version=%s\\n' "$(/opt/pyvenv/python3 --version 2>&1)"
-  printf 'upstream_version_commit=%s\\n' "${LLVM_SOURCE_COMMIT:?}"
-  printf 'version_provenance=%s\\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
-  printf 'verification=%s\\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
+  printf 'container_image=%s\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
+  printf 'platform=%s\n' 'linux/amd64'
+  printf 'toolchain_discovery=%s\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
+  printf 'clang_path=%s\n' '/usr/bin/clang'
+  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_path=%s\n' '/usr/bin/lld-link'
+  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'upstream_version_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'version_provenance=%s\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
+  printf 'verification=%s\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
 } > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
 python3 - "$BUNDLE" <<'PY'
 import hashlib,json,pathlib,sys
@@ -137,17 +137,17 @@ with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) 
 PY
 (cd "$ROOT" && sha256sum gateq-windows-path-qualifier-v0.5.zip > gateq-windows-path-qualifier-v0.5.zip.sha256)
 {
-  printf 'container_image=%s\\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
-  printf 'platform=%s\\n' 'linux/amd64'
-  printf 'toolchain_discovery=%s\\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
-  printf 'clang_path=%s\\n' '/usr/bin/clang'
-  printf 'clang_version=%s\\n' "$(/usr/bin/clang --version | head -1)"
-  printf 'lld_link_path=%s\\n' '/usr/bin/lld-link'
-  printf 'lld_link_version=%s\\n' "$(/usr/bin/lld-link --version | head -1)"
-  printf 'python_version=%s\\n' "$(/opt/pyvenv/python3 --version 2>&1)"
-  printf 'upstream_version_commit=%s\\n' "${LLVM_SOURCE_COMMIT:?}"
-  printf 'version_provenance=%s\\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
-  printf 'verification=%s\\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
+  printf 'container_image=%s\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
+  printf 'platform=%s\n' 'linux/amd64'
+  printf 'toolchain_discovery=%s\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
+  printf 'clang_path=%s\n' '/usr/bin/clang'
+  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_path=%s\n' '/usr/bin/lld-link'
+  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'upstream_version_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'version_provenance=%s\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
+  printf 'verification=%s\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
 } > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
 python3 - "$BUNDLE" <<'PY'
 import hashlib,json,pathlib,sys
@@ -195,17 +195,17 @@ with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) 
 PY
 (cd "$ROOT" && sha256sum gateq-windows-path-qualifier-v0.5.zip > gateq-windows-path-qualifier-v0.5.zip.sha256)
 {
-  printf 'container_image=%s\\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
-  printf 'platform=%s\\n' 'linux/amd64'
-  printf 'toolchain_discovery=%s\\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
-  printf 'clang_path=%s\\n' '/usr/bin/clang'
-  printf 'clang_version=%s\\n' "$(/usr/bin/clang --version | head -1)"
-  printf 'lld_link_path=%s\\n' '/usr/bin/lld-link'
-  printf 'lld_link_version=%s\\n' "$(/usr/bin/lld-link --version | head -1)"
-  printf 'python_version=%s\\n' "$(/opt/pyvenv/python3 --version 2>&1)"
-  printf 'upstream_version_commit=%s\\n' "${LLVM_SOURCE_COMMIT:?}"
-  printf 'version_provenance=%s\\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
-  printf 'verification=%s\\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
+  printf 'container_image=%s\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
+  printf 'platform=%s\n' 'linux/amd64'
+  printf 'toolchain_discovery=%s\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
+  printf 'clang_path=%s\n' '/usr/bin/clang'
+  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_path=%s\n' '/usr/bin/lld-link'
+  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'upstream_version_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'version_provenance=%s\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
+  printf 'verification=%s\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
 } > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
 python3 - "$BUNDLE" <<'PY'
 import hashlib,json,pathlib,sys
