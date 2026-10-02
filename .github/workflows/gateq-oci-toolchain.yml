@@ -35,6 +35,11 @@ jobs:
           repository: ${{ github.repository }}
           run-id: 36893916456
 
+      - name: Checkout frozen OCI qualification inputs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Verify engine evidence and install exact Buildah engine bytes
         shell: bash
         run: |
@@ -278,6 +283,74 @@ jobs:
           sed -i 's/^          //' "$RECIPE_DIR/capture_tool_identity.py"
           chmod 755 "$RECIPE_DIR/capture_tool_identity.py"
 
+          cat > "$RECIPE_DIR/verify_installed_lock.py" <<'PY'
+          #!/usr/bin/env python3
+          import csv, pathlib, subprocess
+          lock=pathlib.Path('/usr/local/share/gateq/TOOLCHAIN_PACKAGE_LOCK.tsv')
+          rows=list(csv.DictReader(lock.open(encoding='utf-8'), delimiter='\t'))
+          if not rows:
+              raise SystemExit('empty toolchain package lock')
+          seen=set()
+          for row in rows:
+              key=(row['package'],row['architecture'])
+              if key in seen:
+                  raise SystemExit(f'duplicate package/architecture in lock: {key}')
+              seen.add(key)
+              got_ver=subprocess.check_output(['dpkg-query','-W','-f=${Version}',row['package']],text=True).strip()
+              got_arch=subprocess.check_output(['dpkg-query','-W','-f=${Architecture}',row['package']],text=True).strip()
+              if got_ver != row['version'] or got_arch != row['architecture']:
+                  raise SystemExit(f"installed identity mismatch: {row['package']} {got_ver}/{got_arch}")
+          PY
+          sed -i 's/^          //' "$RECIPE_DIR/verify_installed_lock.py"
+          chmod 755 "$RECIPE_DIR/verify_installed_lock.py"
+
+          cat > "$RECIPE_DIR/configure_toolchain.sh" <<'SH'
+          #!/bin/sh
+          set -eux
+          if find /opt/gateq/debs -maxdepth 1 -type f -name '*%*' | grep -q .; then
+            echo "encoded package filename forbidden in OCI build context" >&2
+            exit 64
+          fi
+          # dpkg enforces Pre-Depends at unpack time. Resolve the ordering with
+          # bounded deterministic passes over the exact same frozen local set.
+          # Intermediate failures are allowed only to expose ordering; the final
+          # unpack and configure passes are strict and must both succeed.
+          pass=1
+          while [ "$pass" -le 4 ]; do
+            echo "frozen-deb ordering pass $pass" >&2
+            unpack_ok=0
+            configure_ok=0
+            if dpkg --unpack /opt/gateq/debs/*.deb; then unpack_ok=1; fi
+            if dpkg --configure -a; then configure_ok=1; fi
+            if [ "$unpack_ok" -eq 1 ] && [ "$configure_ok" -eq 1 ]; then
+              break
+            fi
+            pass=$((pass + 1))
+          done
+          dpkg --unpack /opt/gateq/debs/*.deb
+          dpkg --configure -a
+          python3 /opt/gateq/verify_installed_lock.py
+          if command -v ccache >/dev/null 2>&1; then
+            echo ccache-unexpected >&2
+            exit 64
+          fi
+          python3 /opt/gateq/capture_tool_identity.py
+          dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' | LC_ALL=C sort > /usr/local/share/gateq/DPKG_MANIFEST.tsv
+          sha256sum /usr/local/share/gateq/DPKG_MANIFEST.tsv > /usr/local/share/gateq/DPKG_MANIFEST.tsv.sha256
+          sha256sum /usr/local/share/gateq/TOOL_VERSIONS.json > /usr/local/share/gateq/TOOL_VERSIONS.json.sha256
+          sha256sum /usr/local/share/gateq/BUILD_ENV.json > /usr/local/share/gateq/BUILD_ENV.json.sha256
+          rm -rf /opt/gateq/debs /var/log/apt/* /var/lib/apt/lists/*
+          rm -f /var/log/dpkg.log /var/log/alternatives.log
+          # ldconfig's auxiliary cache is a performance-only cache whose file
+          # content contains run-dependent ordering/state. It was the sole
+          # A/B filesystem-content difference in diagnostic run 36928841944.
+          # Remove it before final normalization; /etc/ld.so.cache remains.
+          rm -f /var/cache/ldconfig/aux-cache
+          find /etc /usr /var/lib/dpkg /var/cache /opt/gateq /root -xdev ! -type s -exec touch -h -d "@${SOURCE_DATE_EPOCH}" {} +
+          SH
+          sed -i 's/^          //' "$RECIPE_DIR/configure_toolchain.sh"
+          chmod 755 "$RECIPE_DIR/configure_toolchain.sh"
+
           cat > "$RECIPE_DIR/Containerfile" <<'EOF'
           FROM docker.io/library/ubuntu@__BASE_DIGEST__
           ARG SOURCE_DATE_EPOCH=1789084800
@@ -298,21 +371,12 @@ jobs:
           ENV HOSTCXXFLAGS="-fdebug-prefix-map=/workspace/linux=/usr/src/linux -fmacro-prefix-map=/workspace/linux=/usr/src/linux"
           COPY apt-offline.conf /opt/gateq/apt-offline.conf
           COPY capture_tool_identity.py /opt/gateq/capture_tool_identity.py
+          COPY verify_installed_lock.py /opt/gateq/verify_installed_lock.py
+          COPY configure_toolchain.sh /opt/gateq/configure_toolchain.sh
           COPY REPRODUCIBILITY_POLICY.json /usr/local/share/gateq/REPRODUCIBILITY_POLICY.json
           COPY TOOLCHAIN_PACKAGE_LOCK.tsv /usr/local/share/gateq/TOOLCHAIN_PACKAGE_LOCK.tsv
           COPY toolchain-debs/ /opt/gateq/debs/
-          RUN set -eux; \
-              mkdir -p /opt/gateq/apt-etc/apt.conf.d /opt/gateq/apt-etc/sources.list.d /opt/gateq/apt-etc/preferences.d /opt/gateq/apt-etc/auth.conf.d; \
-              : > /opt/gateq/apt-etc/apt.conf; : > /opt/gateq/apt-etc/sources.list; : > /opt/gateq/apt-etc/preferences; : > /opt/gateq/apt-etc/auth.conf; chmod 600 /opt/gateq/apt-etc/auth.conf; \
-              APT_CONFIG=/opt/gateq/apt-offline.conf apt-get --no-download --no-install-recommends --allow-downgrades --yes install /opt/gateq/debs/*.deb; \
-              if command -v ccache >/dev/null 2>&1; then echo ccache-unexpected >&2; exit 64; fi; \
-              python3 /opt/gateq/capture_tool_identity.py; \
-              dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' | LC_ALL=C sort > /usr/local/share/gateq/DPKG_MANIFEST.tsv; \
-              sha256sum /usr/local/share/gateq/DPKG_MANIFEST.tsv > /usr/local/share/gateq/DPKG_MANIFEST.tsv.sha256; \
-              sha256sum /usr/local/share/gateq/TOOL_VERSIONS.json > /usr/local/share/gateq/TOOL_VERSIONS.json.sha256; \
-              sha256sum /usr/local/share/gateq/BUILD_ENV.json > /usr/local/share/gateq/BUILD_ENV.json.sha256; \
-              rm -rf /opt/gateq/debs /var/log/apt/* /var/lib/apt/lists/*; rm -f /var/log/dpkg.log /var/log/alternatives.log; \
-              find /etc /usr /var/lib/dpkg /var/cache /opt/gateq /root -xdev ! -type s -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
+          RUN /opt/gateq/configure_toolchain.sh
           LABEL org.opencontainers.image.title="TSUCHIMARU Gate Q Kernel Toolchain"
           LABEL org.opencontainers.image.version="gateq-v0.1"
           LABEL org.opencontainers.image.base.digest="__BASE_DIGEST__"
@@ -324,95 +388,46 @@ jobs:
 
           cp "$RECIPE_DIR"/* "$EVIDENCE_DIR/"
 
-      - name: Resolve exact toolchain package closure from the frozen snapshot
+      - name: Materialize frozen 149-package resolver set from signed snapshot indexes
         shell: bash
         run: |
           set -euo pipefail
-          APT_CONFIG="$TOOLCHAIN_APT_ROOT/bootstrap.conf" apt-get update 2>&1 | tee "$EVIDENCE_DIR/TOOLCHAIN_APT_UPDATE_LOG.txt"
-          APT_CONFIG="$TOOLCHAIN_APT_ROOT/bootstrap.conf" apt-config dump > "$EVIDENCE_DIR/TOOLCHAIN_APT_EFFECTIVE_CONFIG.txt"
-          cp "$TOOLCHAIN_APT_ROOT/bootstrap.conf" "$EVIDENCE_DIR/TOOLCHAIN_APT_BOOTSTRAP_CONFIG.txt"
-          cp "$TOOLCHAIN_APT_ROOT/etc/ubuntu.sources" "$EVIDENCE_DIR/TOOLCHAIN_UBUNTU_SOURCES.txt"
+          RESOLVER_SET="$GITHUB_WORKSPACE/gateq/oci-toolchain/v0.1/RESOLVED_TOOLCHAIN_SET.tsv"
+          test -f "$RESOLVER_SET"
+          cp "$RESOLVER_SET" "$EVIDENCE_DIR/RESOLVED_TOOLCHAIN_SET.tsv"
 
           python3 - <<'PY'
-          import json, pathlib, re
-          ev=pathlib.Path('/tmp/gateq-oci-evidence')
-          text=(ev/'TOOLCHAIN_APT_EFFECTIVE_CONFIG.txt').read_text(encoding='utf-8')
-          forbidden=(
-              '/etc/apt/apt.conf.d',
-              '/etc/apt/preferences',
-              '/etc/apt/auth.conf',
-              '/etc/apt/sources.list',
-          )
-          path_hits=[x for x in forbidden if x in text]
-          hook_lines=[
-              line for line in text.splitlines()
-              if re.search(r'(APT::Update::.*Invoke|DPkg::.*Invoke)', line)
-          ]
-          required=(
-              'Dir::Etc "/tmp/toolchain-apt/etc";',
-              'Dir::Etc::main "apt.conf";',
-              'Dir::Etc::parts "apt.conf.d";',
-              'Dir::Etc::sourcelist "ubuntu.sources";',
-              'Dir::Etc::sourceparts "sources.list.d";',
-              'Dir::Etc::preferences "preferences";',
-              'Dir::Etc::preferencesparts "preferences.d";',
-              'Dir::Etc::netrc "auth.conf";',
-              'Dir::Etc::netrcparts "auth.conf.d";',
-              'Dir::State "/tmp/toolchain-apt/state";',
-              'Dir::Cache "/tmp/toolchain-apt/cache";',
-          )
-          missing=[x for x in required if x not in text]
-          result={
-              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_APT_ISOLATION_V1',
-              'status':'PASS' if not path_hits and not hook_lines and not missing else 'FAIL',
-              'forbidden_system_path_hits':path_hits,
-              'system_hook_lines':hook_lines,
-              'missing_required_entries':missing,
-          }
-          (ev/'TOOLCHAIN_APT_ISOLATION_CHECK.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
-          if result['status'] != 'PASS':
-              raise SystemExit('toolchain APT isolation failed')
-          PY
+          import csv, hashlib, json, pathlib, subprocess
 
-          python3 - <<'PY'
-          import hashlib, json, os, pathlib, re
-          engine = pathlib.Path('/tmp/engine-evidence')
-          lists = pathlib.Path('/tmp/toolchain-apt/state/lists')
-          lock = json.loads((engine/'SNAPSHOT_RELEASE_LOCK.json').read_text())
-          for suite in ('noble','noble-updates','noble-security'):
-              matches=[]
-              for p in sorted(lists.glob('*_InRelease')):
-                  text=p.read_text(encoding='utf-8')
-                  if re.search(rf'(?m)^Suite: {re.escape(suite)}$', text):
-                      matches.append(p)
-              if len(matches) != 1:
-                  raise SystemExit(f'{suite}: expected exactly one InRelease')
-              got=hashlib.sha256(matches[0].read_bytes()).hexdigest()
-              exp=lock['suites'][suite]['inrelease_sha256']
-              if got != exp:
-                  raise SystemExit(f'{suite}: InRelease differs from Engine Evidence v0.2')
-          PY
-
-          ROOTS="$(tr '\n' ' ' < "$RECIPE_DIR/TOOLCHAIN_ROOT_PACKAGES.txt")"
-          APT_CONFIG="$TOOLCHAIN_APT_ROOT/bootstrap.conf" apt-get \
-            --download-only \
-            --no-install-recommends \
-            --yes \
-            install $ROOTS \
-            | tee "$EVIDENCE_DIR/TOOLCHAIN_APT_DOWNLOAD_LOG.txt"
-
-          find "$TOOLCHAIN_APT_ROOT/cache/archives" -maxdepth 1 -type f -name '*.deb' -exec cp -- {} "$TOOLCHAIN_INPUT/toolchain-debs/" \;
-          test -n "$(find "$TOOLCHAIN_INPUT/toolchain-debs" -maxdepth 1 -type f -name '*.deb' -print -quit)"
-
-      - name: Bind toolchain package bytes to signed snapshot indexes
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import hashlib, json, pathlib, subprocess
+          snapshot='20260911T000000Z'
           engine=pathlib.Path('/tmp/engine-evidence')
           inp=pathlib.Path('/tmp/toolchain-input')
           ev=pathlib.Path('/tmp/gateq-oci-evidence')
+          resolver=pathlib.Path.cwd()/'gateq/oci-toolchain/v0.1/RESOLVED_TOOLCHAIN_SET.tsv'
+          debdir=inp/'toolchain-debs'
+          debdir.mkdir(parents=True, exist_ok=True)
+
+          # Resolver output is frozen from run 36925790669 / job 110582655261.
+          lines=[
+              line for line in resolver.read_text(encoding='utf-8').splitlines()
+              if line and not line.startswith('#')
+          ]
+          rows=list(csv.DictReader(lines, delimiter='\t'))
+          if len(rows) != 149:
+              raise SystemExit(f'expected 149 frozen resolver rows, got {len(rows)}')
+          keys={(r['package'],r['version'],r['architecture']) for r in rows}
+          if len(keys) != 149:
+              raise SystemExit('duplicate frozen resolver tuple')
+
+          roots={
+              line.strip() for line in pathlib.Path('/tmp/gateq-recipe/TOOLCHAIN_ROOT_PACKAGES.txt').read_text().splitlines()
+              if line.strip()
+          }
+          present={r['package'] for r in rows}
+          missing=sorted(roots-present)
+          if missing:
+              raise SystemExit('root package absent from frozen resolver set: '+', '.join(missing))
+
           index={}
           for pf in sorted((engine/'apt-indexes').glob('*.decoded')):
               stanza={}
@@ -431,37 +446,120 @@ jobs:
                       continue
                   if line.startswith(' ') or ':' not in line:
                       continue
-                  k,v=line.split(':',1); stanza[k]=v.strip()
-          rows=[]; prov=[]; seen=set()
-          for deb in sorted((inp/'toolchain-debs').glob('*.deb')):
-              def field(name):
-                  return subprocess.check_output(['dpkg-deb','-f',str(deb),name], text=True).strip()
-              pkg,ver,arch=field('Package'),field('Version'),field('Architecture')
-              sha=hashlib.sha256(deb.read_bytes()).hexdigest(); size=deb.stat().st_size
-              key=(pkg,ver,arch)
-              if (pkg,arch) in seen:
-                  raise SystemExit(f'duplicate package/arch: {pkg}/{arch}')
-              seen.add((pkg,arch))
-              matches=[m for m in index.get(key,[]) if m['sha256']==sha and int(m['size'])==size]
+                  k,v=line.split(':',1)
+                  stanza[k]=v.strip()
+
+          plan=[]
+          used_local=set()
+          provenance=[]
+          for row in sorted(rows, key=lambda r:(r['package'],r['architecture'])):
+              key=(row['package'],row['version'],row['architecture'])
+              matches=[
+                  m for m in index.get(key,[])
+                  if m.get('sha256') and m.get('size') and m.get('filename')
+              ]
               if not matches:
-                  raise SystemExit(f'{deb.name}: no exact signed Packages match')
-              rows.append((pkg,ver,arch,sha,deb.name,str(size)))
-              prov.append({
-                  'package':pkg,'version':ver,'architecture':arch,'sha256':sha,
-                  'filename':deb.name,'bytes':size,
-                  'signed_packages_matches':sorted({(m['index_file'],m['filename']) for m in matches}),
+                  raise SystemExit(f'{key}: no signed Packages stanza')
+              identities={(m['sha256'],int(m['size']),m['filename']) for m in matches}
+              if len(identities) != 1:
+                  raise SystemExit(f'{key}: signed indexes disagree on package bytes/path: {sorted(identities)}')
+              sha,size,archive_filename=next(iter(identities))
+              local_name=pathlib.PurePosixPath(archive_filename).name
+              if not local_name.endswith('.deb') or '/' in local_name:
+                  raise SystemExit(f'{key}: invalid archive filename')
+              if local_name in used_local:
+                  raise SystemExit(f'duplicate local filename: {local_name}')
+              used_local.add(local_name)
+              url=f'https://snapshot.ubuntu.com/ubuntu/{snapshot}/{archive_filename}'
+              plan.append({
+                  'package':row['package'],'version':row['version'],'architecture':row['architecture'],
+                  'sha256':sha,'bytes':size,'archive_filename':archive_filename,
+                  'local_filename':local_name,'url':url,
               })
-          lock=ev/'TOOLCHAIN_PACKAGE_LOCK.tsv'
-          lock.write_text('package\tversion\tarchitecture\tsha256\tfilename\tbytes\n'+''.join('\t'.join(r)+'\n' for r in rows))
-          (ev/'TOOLCHAIN_PACKAGE_PROVENANCE.json').write_text(json.dumps({
-              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_PACKAGE_PROVENANCE_V1',
-              'snapshot_id':'20260911T000000Z','packages':prov
-          },indent=2,sort_keys=True)+'\n')
+              provenance.append({
+                  'package':row['package'],'version':row['version'],'architecture':row['architecture'],
+                  'sha256':sha,'bytes':size,'filename':local_name,
+                  'archive_filename':archive_filename,
+                  'signed_packages_matches':sorted({
+                      (m['index_file'],m['filename']) for m in matches
+                      if m['sha256']==sha and int(m['size'])==size and m['filename']==archive_filename
+                  }),
+              })
+
+          (ev/'TOOLCHAIN_DOWNLOAD_PLAN.json').write_text(
+              json.dumps({'schema':'TSUCHIMARU_OCI_TOOLCHAIN_DOWNLOAD_PLAN_V1','snapshot_id':snapshot,'packages':plan},
+                         indent=2,sort_keys=True)+'\n',
+              encoding='utf-8'
+          )
+
+          # Direct exact-byte downloads only; no resolver or mutable repository lookup occurs here.
+          # Concurrency changes only transfer order; every file is independently verified
+          # against its signed Packages SHA-256 and byte size before use.
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          def download_one(item):
+              dest=debdir/item['local_filename']
+              subprocess.run([
+                  'curl','--fail','--silent','--show-error',
+                  '--proto','=https','--tlsv1.2',
+                  '--connect-timeout','20','--max-time','180',
+                  '--retry','2','--retry-delay','1',
+                  '--output',str(dest),item['url']
+              ],check=True)
+              data=dest.read_bytes()
+              got=hashlib.sha256(data).hexdigest()
+              if got != item['sha256'] or len(data) != item['bytes']:
+                  raise RuntimeError(f"{item['local_filename']}: downloaded bytes differ from signed index")
+              return item['package'],item['version'],got
+
+          completed=[]
+          with ThreadPoolExecutor(max_workers=8) as pool:
+              futures={pool.submit(download_one,item):item for item in plan}
+              for fut in as_completed(futures):
+                  completed.append(fut.result())
+          if len(completed) != 149:
+              raise SystemExit(f'expected 149 completed downloads, got {len(completed)}')
+          for i,(pkg,ver,sha) in enumerate(sorted(completed),1):
+              print(f'[{i:03d}/149] {pkg} {ver} {sha}')
+
+          lock_rows=[]
+          for item in plan:
+              p=debdir/item['local_filename']
+              for field,expected in (
+                  ('Package',item['package']),('Version',item['version']),('Architecture',item['architecture'])
+              ):
+                  got=subprocess.check_output(['dpkg-deb','-f',str(p),field],text=True).strip()
+                  if got != expected:
+                      raise SystemExit(f"{item['local_filename']}: dpkg {field} mismatch")
+              lock_rows.append((
+                  item['package'],item['version'],item['architecture'],item['sha256'],
+                  item['local_filename'],str(item['bytes'])
+              ))
+
+          (ev/'TOOLCHAIN_PACKAGE_LOCK.tsv').write_text(
+              'package\tversion\tarchitecture\tsha256\tfilename\tbytes\n'
+              + ''.join('\t'.join(r)+'\n' for r in lock_rows),
+              encoding='utf-8'
+          )
+          (ev/'TOOLCHAIN_PACKAGE_PROVENANCE.json').write_text(
+              json.dumps({
+                  'schema':'TSUCHIMARU_OCI_TOOLCHAIN_PACKAGE_PROVENANCE_V2',
+                  'snapshot_id':snapshot,
+                  'resolver_source':{
+                      'workflow_run_id':36925790669,
+                      'job_id':110582655261,
+                      'workflow_commit':'04ec3f95df66093537d44fb864318b99d54b3ee4',
+                      'resolver_rows':149,
+                      'resolver_mode':'apt-get --download-only --no-install-recommends from isolated exact snapshot'
+                  },
+                  'packages':provenance
+              },indent=2,sort_keys=True)+'\n',
+              encoding='utf-8'
+          )
           PY
 
           cp -a "$TOOLCHAIN_INPUT/toolchain-debs" "$EVIDENCE_DIR/toolchain-debs"
           cp "$EVIDENCE_DIR/TOOLCHAIN_PACKAGE_LOCK.tsv" "$TOOLCHAIN_INPUT/TOOLCHAIN_PACKAGE_LOCK.tsv"
-          cp "$RECIPE_DIR/apt-offline.conf" "$RECIPE_DIR/capture_tool_identity.py" "$RECIPE_DIR/REPRODUCIBILITY_POLICY.json" "$RECIPE_DIR/Containerfile" "$TOOLCHAIN_INPUT/"
+          cp "$RECIPE_DIR/apt-offline.conf" "$RECIPE_DIR/capture_tool_identity.py" "$RECIPE_DIR/verify_installed_lock.py" "$RECIPE_DIR/configure_toolchain.sh" "$RECIPE_DIR/REPRODUCIBILITY_POLICY.json" "$RECIPE_DIR/Containerfile" "$TOOLCHAIN_INPUT/"
 
       - name: Prepare independent normalized build contexts A and B
         shell: bash
@@ -559,94 +657,278 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import hashlib, json, pathlib
+          import gzip
+          import hashlib
+          import io
+          import json
+          import pathlib
+          import tarfile
+
           ev=pathlib.Path('/tmp/gateq-oci-evidence')
-          def sha(data): return 'sha256:'+hashlib.sha256(data).hexdigest()
-          def load_layout(root):
+
+          def sha_bytes(data):
+              return 'sha256:'+hashlib.sha256(data).hexdigest()
+
+          def sha_file(path):
+              h=hashlib.sha256()
+              with open(path,'rb') as f:
+                  while True:
+                      b=f.read(1024*1024)
+                      if not b: break
+                      h.update(b)
+              return 'sha256:'+h.hexdigest()
+
+          def blob_path(root,digest):
+              alg,hexv=digest.split(':',1)
+              if alg!='sha256':
+                  raise SystemExit('non-sha256 OCI blob')
+              return pathlib.Path(root)/'blobs'/alg/hexv
+
+          def load_layout(root,lane):
               root=pathlib.Path(root)
-              idx_bytes=(root/'index.json').read_bytes(); idx=json.loads(idx_bytes)
+              idx_bytes=(root/'index.json').read_bytes()
+              idx=json.loads(idx_bytes)
               if len(idx.get('manifests',[])) != 1:
                   raise SystemExit('OCI layout must contain exactly one manifest descriptor')
-              desc=idx['manifests'][0]; digest=desc['digest']
-              alg,hexv=digest.split(':',1)
-              if alg!='sha256': raise SystemExit('non-sha256 manifest')
-              mbytes=(root/'blobs'/alg/hexv).read_bytes()
-              if sha(mbytes)!=digest: raise SystemExit('manifest descriptor hash mismatch')
+              desc=idx['manifests'][0]
+              digest=desc['digest']
+              mpath=blob_path(root,digest)
+              mbytes=mpath.read_bytes()
+              if sha_bytes(mbytes)!=digest:
+                  raise SystemExit('manifest descriptor hash mismatch')
               manifest=json.loads(mbytes)
-              cdesc=manifest['config']; calg,chex=cdesc['digest'].split(':',1)
-              cbytes=(root/'blobs'/calg/chex).read_bytes()
-              if sha(cbytes)!=cdesc['digest']: raise SystemExit('config hash mismatch')
+
+              cdesc=manifest['config']
+              cpath=blob_path(root,cdesc['digest'])
+              cbytes=cpath.read_bytes()
+              if sha_bytes(cbytes)!=cdesc['digest']:
+                  raise SystemExit('config hash mismatch')
+              config=json.loads(cbytes)
+
               layers=[]
-              for ld in manifest['layers']:
-                  lalg,lhex=ld['digest'].split(':',1)
-                  lbytes=(root/'blobs'/lalg/lhex).read_bytes()
-                  if sha(lbytes)!=ld['digest']: raise SystemExit('layer hash mismatch')
-                  layers.append(ld['digest'])
+              for pos,ld in enumerate(manifest['layers']):
+                  lpath=blob_path(root,ld['digest'])
+                  if sha_file(lpath)!=ld['digest']:
+                      raise SystemExit('layer hash mismatch')
+                  layers.append({
+                      'position':pos,
+                      'digest':ld['digest'],
+                      'mediaType':ld.get('mediaType'),
+                      'size':ld.get('size'),
+                      'path':str(lpath),
+                  })
+
+              (ev/f'OCI_{lane}_INDEX.json').write_text(
+                  json.dumps(idx,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+              (ev/f'OCI_{lane}_MANIFEST.json').write_text(
+                  json.dumps(manifest,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+              (ev/f'OCI_{lane}_CONFIG.json').write_text(
+                  json.dumps(config,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+
               return {
-                  'index_sha256':sha(idx_bytes),
+                  'index_sha256':sha_bytes(idx_bytes),
                   'manifest_digest':digest,
                   'config_digest':cdesc['digest'],
-                  'layer_digests':layers,
+                  'layer_digests':[x['digest'] for x in layers],
+                  'manifest':manifest,
+                  'config':config,
+                  'layers':layers,
               }
-          a=load_layout('/tmp/oci-A'); b=load_layout('/tmp/oci-B')
-          id_files=['TOOL_VERSIONS.json','BUILD_ENV.json','DPKG_MANIFEST.tsv','REPRODUCIBILITY_POLICY.json','TOOLCHAIN_PACKAGE_LOCK.tsv']
+
+          def json_diff(a,b,path='$',out=None,limit=500):
+              if out is None: out=[]
+              if len(out)>=limit: return out
+              if type(a) is not type(b):
+                  out.append({'path':path,'A':a,'B':b,'kind':'type'})
+                  return out
+              if isinstance(a,dict):
+                  for k in sorted(set(a)|set(b)):
+                      p=f'{path}.{k}'
+                      if k not in a:
+                          out.append({'path':p,'A':'<MISSING>','B':b[k],'kind':'missing-A'})
+                      elif k not in b:
+                          out.append({'path':p,'A':a[k],'B':'<MISSING>','kind':'missing-B'})
+                      else:
+                          json_diff(a[k],b[k],p,out,limit)
+                      if len(out)>=limit: break
+              elif isinstance(a,list):
+                  if len(a)!=len(b):
+                      out.append({'path':path+'.length','A':len(a),'B':len(b),'kind':'length'})
+                  for i,(x,y) in enumerate(zip(a,b)):
+                      json_diff(x,y,f'{path}[{i}]',out,limit)
+                      if len(out)>=limit: break
+              elif a!=b:
+                  out.append({'path':path,'A':a,'B':b,'kind':'value'})
+              return out
+
+          def tar_inventory(blob,media_type):
+              blob=pathlib.Path(blob)
+              raw_sha=sha_file(blob)
+              uncompressed_sha=None
+              if media_type and media_type.endswith('+gzip'):
+                  h=hashlib.sha256()
+                  with gzip.open(blob,'rb') as g:
+                      while True:
+                          chunk=g.read(1024*1024)
+                          if not chunk: break
+                          h.update(chunk)
+                  uncompressed_sha='sha256:'+h.hexdigest()
+
+              entries=[]
+              with tarfile.open(blob,'r:*') as tf:
+                  for order,m in enumerate(tf):
+                      content_sha=None
+                      if m.isfile():
+                          fh=tf.extractfile(m)
+                          h=hashlib.sha256()
+                          if fh is not None:
+                              while True:
+                                  chunk=fh.read(1024*1024)
+                                  if not chunk: break
+                                  h.update(chunk)
+                              content_sha=h.hexdigest()
+                      entries.append({
+                          'order':order,
+                          'name':m.name,
+                          'type':m.type.decode('latin1') if isinstance(m.type,bytes) else str(m.type),
+                          'mode':m.mode,'uid':m.uid,'gid':m.gid,
+                          'uname':m.uname,'gname':m.gname,
+                          'mtime':m.mtime,'size':m.size,
+                          'linkname':m.linkname,
+                          'pax_headers':dict(sorted((m.pax_headers or {}).items())),
+                          'content_sha256':content_sha,
+                      })
+              canonical=json.dumps(entries,sort_keys=True,separators=(',',':')).encode()
+              return {
+                  'raw_sha256':raw_sha,
+                  'uncompressed_tar_sha256':uncompressed_sha,
+                  'entry_count':len(entries),
+                  'inventory_sha256':'sha256:'+hashlib.sha256(canonical).hexdigest(),
+                  'entries':entries,
+              }
+
+          def inventory_diff(ia,ib,limit=500):
+              diffs=[]
+              ea=ia['entries']; eb=ib['entries']
+              names_a=[x['name'] for x in ea]; names_b=[x['name'] for x in eb]
+              if names_a!=names_b:
+                  diffs.append({
+                      'kind':'tar-order-or-name-list',
+                      'A_count':len(names_a),'B_count':len(names_b),
+                      'same_name_set':set(names_a)==set(names_b),
+                      'first_order_mismatches':[
+                          {'position':i,'A':a,'B':b}
+                          for i,(a,b) in enumerate(zip(names_a,names_b)) if a!=b
+                      ][:50],
+                  })
+              by_a={x['name']:x for x in ea}
+              by_b={x['name']:x for x in eb}
+              for name in sorted(set(by_a)|set(by_b)):
+                  if len(diffs)>=limit: break
+                  if name not in by_a:
+                      diffs.append({'kind':'missing-A','name':name}); continue
+                  if name not in by_b:
+                      diffs.append({'kind':'missing-B','name':name}); continue
+                  aa={k:v for k,v in by_a[name].items() if k!='order'}
+                  bb={k:v for k,v in by_b[name].items() if k!='order'}
+                  if aa!=bb:
+                      fields={k:{'A':aa.get(k),'B':bb.get(k)}
+                              for k in sorted(set(aa)|set(bb)) if aa.get(k)!=bb.get(k)}
+                      diffs.append({'kind':'member-metadata-or-content','name':name,'fields':fields})
+              return diffs
+
+          a=load_layout('/tmp/oci-A','A')
+          b=load_layout('/tmp/oci-B','B')
+
+          id_files=[
+              'TOOL_VERSIONS.json','BUILD_ENV.json','DPKG_MANIFEST.tsv',
+              'REPRODUCIBILITY_POLICY.json','TOOLCHAIN_PACKAGE_LOCK.tsv'
+          ]
           identity={}
           mismatches=[]
           for name in id_files:
-              ba=(ev/'image-A-identity'/name).read_bytes(); bb=(ev/'image-B-identity'/name).read_bytes()
-              ha=hashlib.sha256(ba).hexdigest(); hb=hashlib.sha256(bb).hexdigest()
+              ba=(ev/'image-A-identity'/name).read_bytes()
+              bb=(ev/'image-B-identity'/name).read_bytes()
+              ha=hashlib.sha256(ba).hexdigest()
+              hb=hashlib.sha256(bb).hexdigest()
               identity[name]={'A':ha,'B':hb,'equal':ha==hb}
               if ha!=hb: mismatches.append(name)
 
-          def validate_installed_lock(lane):
-              import csv, io
-              lock_text=(ev/f'image-{lane}-identity/TOOLCHAIN_PACKAGE_LOCK.tsv').read_text(encoding='utf-8')
-              rows=list(csv.DictReader(io.StringIO(lock_text), delimiter='\t'))
-              manifest={}
-              for line in (ev/f'image-{lane}-identity/DPKG_MANIFEST.tsv').read_text(encoding='utf-8').splitlines():
-                  if not line: continue
-                  parts=line.split('\t')
-                  if len(parts) != 3:
-                      raise SystemExit(f'{lane}: malformed DPKG_MANIFEST row: {line!r}')
-                  pkg,ver,arch=parts
-                  if pkg in manifest:
-                      raise SystemExit(f'{lane}: duplicate installed package: {pkg}')
-                  manifest[pkg]=(ver,arch)
-              errors=[]
-              for row in rows:
-                  got=manifest.get(row['package'])
-                  exp=(row['version'],row['architecture'])
-                  if got != exp:
-                      errors.append({'package':row['package'],'expected':exp,'actual':got})
-              return errors
-
-          installed_lock_errors={
-              'A': validate_installed_lock('A'),
-              'B': validate_installed_lock('B'),
-          }
-          if installed_lock_errors['A'] or installed_lock_errors['B']:
-              mismatches.append('installed_package_lock_binding')
-
           for key in ('manifest_digest','config_digest','layer_digests'):
               if a[key]!=b[key]: mismatches.append(key)
+
+          diagnostics={
+              'schema':'TSUCHIMARU_OCI_TOOLCHAIN_AB_DIAGNOSTICS_V1',
+              'config_diff':json_diff(a['config'],b['config']),
+              'manifest_diff':json_diff(a['manifest'],b['manifest']),
+              'layers':[],
+          }
+
+          for pos,(la,lb) in enumerate(zip(a['layers'],b['layers'])):
+              if la['digest']==lb['digest']:
+                  diagnostics['layers'].append({
+                      'position':pos,'equal':True,'digest':la['digest']
+                  })
+                  continue
+              ia=tar_inventory(la['path'],la['mediaType'])
+              ib=tar_inventory(lb['path'],lb['mediaType'])
+              da={k:v for k,v in ia.items() if k!='entries'}
+              db={k:v for k,v in ib.items() if k!='entries'}
+              member_diffs=inventory_diff(ia,ib)
+              diagnostics['layers'].append({
+                  'position':pos,'equal':False,
+                  'A_digest':la['digest'],'B_digest':lb['digest'],
+                  'A_mediaType':la['mediaType'],'B_mediaType':lb['mediaType'],
+                  'A':da,'B':db,
+                  'member_differences':member_diffs,
+              })
+
           result={
               'schema':'TSUCHIMARU_OCI_TOOLCHAIN_AB_QUALIFICATION_V1',
               'result':'PASS' if not mismatches else 'FAIL',
-              'A':a,'B':b,'identity_files':identity,'installed_package_lock_errors':installed_lock_errors,'mismatches':mismatches,
+              'A':{k:a[k] for k in ('index_sha256','manifest_digest','config_digest','layer_digests')},
+              'B':{k:b[k] for k in ('index_sha256','manifest_digest','config_digest','layer_digests')},
+              'identity_files':identity,
+              'mismatches':mismatches,
               'final_oci_manifest_digest':a['manifest_digest'] if not mismatches else None,
               'kernel_ab_authorized':False,
               'wsl_change_authorized':False,
               'gate_a_authorized':False,
               'runtime_authorized':False,
           }
-          (ev/'OCI_A_B_COMPARISON.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          (ev/'OCI_A_B_COMPARISON.json').write_text(
+              json.dumps(result,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+          (ev/'OCI_A_B_DIAGNOSTICS.json').write_text(
+              json.dumps(diagnostics,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+
           if mismatches:
               raise SystemExit('OCI A/B mismatch: '+', '.join(mismatches))
-          (ev/'FINAL_OCI_DIGEST.txt').write_text(a['manifest_digest']+'\n')
+
+          (ev/'FINAL_OCI_DIGEST.txt').write_text(
+              a['manifest_digest']+'\n',encoding='utf-8')
           PY
 
           cp -a /tmp/oci-A "$EVIDENCE_DIR/oci-A"
           cp -a /tmp/oci-B "$EVIDENCE_DIR/oci-B"
+
+      - name: Upload OCI A/B diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-oci-toolchain-ab-diagnostics
+          path: |
+            /tmp/gateq-oci-evidence/OCI_A_B_COMPARISON.json
+            /tmp/gateq-oci-evidence/OCI_A_B_DIAGNOSTICS.json
+            /tmp/gateq-oci-evidence/OCI_A_INDEX.json
+            /tmp/gateq-oci-evidence/OCI_B_INDEX.json
+            /tmp/gateq-oci-evidence/OCI_A_MANIFEST.json
+            /tmp/gateq-oci-evidence/OCI_B_MANIFEST.json
+            /tmp/gateq-oci-evidence/OCI_A_CONFIG.json
+            /tmp/gateq-oci-evidence/OCI_B_CONFIG.json
+            /tmp/gateq-oci-evidence/image-A-identity
+            /tmp/gateq-oci-evidence/image-B-identity
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Freeze OCI qualification attestation and evidence manifest
         shell: bash
