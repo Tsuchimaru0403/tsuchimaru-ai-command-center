@@ -120,8 +120,6 @@ with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) 
   z.writestr(i,p.read_bytes(),compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
 PY
 (cd "$ROOT" && sha256sum gateq-windows-path-qualifier-v0.5.zip > gateq-windows-path-qualifier-v0.5.zip.sha256)
-, text, re.M)"
-new=r"funcs=re.findall(r'^\\s*[0-9a-f]+\\s+(?:<none>\\s+[0-9a-f]+\\s+|[0-9]+\\s+)([A-Za-z0-9_]+)\\s* ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; cat "$BUNDLE/bin/A/PE_IMPORTS.txt" 2>/dev/null || true; exit 1; fi
 {
   printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
   printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
