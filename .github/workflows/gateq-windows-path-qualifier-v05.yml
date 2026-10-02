@@ -66,3 +66,72 @@ jobs:
                 exit 1
               fi
             '
+
+  build-v05:
+    name: v0.5 fresh A/B build and package
+    needs: discover-swift-toolchain
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      actions: read
+    env:
+      LLVM_SOURCE_COMMIT: 10999b6d034fe318f3d56c83bddb6572593a8bb0
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@v4
+      - name: Set up pinned Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13.5
+      - name: Resolve current Actions job ID
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          export GITHUB_JOB_ID="$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" | jq -r '[.jobs[] | select(.status == "in_progress")][0].id')"
+          test -n "$GITHUB_JOB_ID" -a "$GITHUB_JOB_ID" != null
+          echo "GITHUB_JOB_ID=$GITHUB_JOB_ID" >> "$GITHUB_ENV"
+      - name: Run v0.5 build inside exact pinned Swift image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image='swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
+          docker run --platform linux/amd64 --pull=always --rm \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=$GITHUB_WORKSPACE,readonly" \
+            --mount "type=bind,src=$RUNNER_TEMP,dst=$RUNNER_TEMP" \
+            --mount "type=bind,src=/opt/hostedtoolcache/Python/3.13.5/x64,dst=/opt/hostedtoolcache/Python/3.13.5/x64,readonly" \
+            -e GITHUB_WORKSPACE -e RUNNER_TEMP -e GITHUB_SHA -e GITHUB_RUN_ID -e GITHUB_JOB -e GITHUB_JOB_ID -e LLVM_SOURCE_COMMIT \
+            "$image" bash -lc 'cd "$GITHUB_WORKSPACE" && bash gateq/windows-path-qualifier/v0.5-remediation/build_v05.sh'
+      - name: Upload v0.5 package
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-windows-path-qualifier-v0.5
+          path: |
+            ${{ runner.temp }}/gateq-v05/gateq-windows-path-qualifier-v0.5.zip
+            ${{ runner.temp }}/gateq-v05/gateq-windows-path-qualifier-v0.5.zip.sha256
+          if-no-files-found: error
+          retention-days: 90
+      - name: Record artifact metadata
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+        run: |
+          set -euo pipefail
+          PACKAGE="$RUNNER_TEMP/gateq-v05/gateq-windows-path-qualifier-v0.5.zip"
+          SIZE="$(stat -c %s "$PACKAGE")"
+          {
+            echo "## Gate Q v0.5 package"
+            echo
+            echo "- Run ID: $GITHUB_RUN_ID"
+            echo "- Job ID: $GITHUB_JOB_ID"
+            echo "- Head commit: $GITHUB_SHA"
+            echo "- Artifact ID: $ARTIFACT_ID"
+            echo "- Artifact size: $SIZE bytes"
+            echo "- GitHub artifact digest: $ARTIFACT_DIGEST"
+            echo "- Artifact URL: $ARTIFACT_URL"
+            echo "- Note: artifact identity and digest are recorded here after upload; the package cannot contain its own final digest."
+          } >> "$GITHUB_STEP_SUMMARY"
