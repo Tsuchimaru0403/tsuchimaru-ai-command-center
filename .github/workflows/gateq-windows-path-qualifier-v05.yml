@@ -90,20 +90,27 @@ jobs:
           export GITHUB_JOB_ID="$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" | jq -r '[.jobs[] | select(.status == "in_progress")][0].id')"
           test -n "$GITHUB_JOB_ID" -a "$GITHUB_JOB_ID" != null
           echo "GITHUB_JOB_ID=$GITHUB_JOB_ID" >> "$GITHUB_ENV"
-      - name: Prepare F-09 ordering remediation driver
+      - name: Prepare remediation driver
         shell: bash
         run: |
           set -euo pipefail
-          python3 gateq/windows-path-qualifier/v0.5-remediation/prepare_f09_ordering_fix.py             gateq/windows-path-qualifier/v0.5-remediation/build_v05.sh             "$RUNNER_TEMP/build_v05_f09_effective.sh"
-          chmod +x "$RUNNER_TEMP/build_v05_f09_effective.sh"
-          grep -F 'inspect_raw' "$RUNNER_TEMP/build_v05_f09_effective.sh" >/dev/null
-          grep -F 'REPARSE_TAG_DRIFT' "$RUNNER_TEMP/build_v05_f09_effective.sh" >/dev/null
+          python3 gateq/windows-path-qualifier/v0.5-remediation/prepare_f09_ordering_fix.py \
+            gateq/windows-path-qualifier/v0.5-remediation/build_v05.sh \
+            "$RUNNER_TEMP/build_v05_f09_stage.sh"
+          python3 gateq/windows-path-qualifier/v0.5-remediation/prepare_result_output_fix.py \
+            "$RUNNER_TEMP/build_v05_f09_stage.sh" \
+            "$RUNNER_TEMP/build_v05_effective.sh"
+          chmod +x "$RUNNER_TEMP/build_v05_effective.sh"
+          grep -F 'inspect_raw' "$RUNNER_TEMP/build_v05_effective.sh" >/dev/null
+          grep -F 'REPARSE_TAG_DRIFT' "$RUNNER_TEMP/build_v05_effective.sh" >/dev/null
+          grep -F 'WRITE_FAILED' "$RUNNER_TEMP/build_v05_effective.sh" >/dev/null
+          grep -F 'CURRENT_RUN_PREUPLOAD_CONTEXT_V1' "$RUNNER_TEMP/build_v05_effective.sh" >/dev/null
       - name: Run v0.5 build inside exact pinned Swift image
         shell: bash
         run: |
           set -euo pipefail
           image='swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
-          docker run --platform linux/amd64 --pull=always --rm             --mount "type=bind,src=$GITHUB_WORKSPACE,dst=$GITHUB_WORKSPACE,readonly"             --mount "type=bind,src=$RUNNER_TEMP,dst=$RUNNER_TEMP"             --mount "type=bind,src=/opt/hostedtoolcache/Python/3.13.5/x64,dst=/opt/hostedtoolcache/Python/3.13.5/x64,readonly"             -e GITHUB_WORKSPACE -e RUNNER_TEMP -e GITHUB_SHA -e GITHUB_RUN_ID -e GITHUB_JOB -e GITHUB_JOB_ID -e LLVM_SOURCE_COMMIT             "$image" bash -lc 'cd "$GITHUB_WORKSPACE" && bash -x "$RUNNER_TEMP/build_v05_f09_effective.sh"'
+          docker run --platform linux/amd64 --pull=always --rm             --mount "type=bind,src=$GITHUB_WORKSPACE,dst=$GITHUB_WORKSPACE,readonly"             --mount "type=bind,src=$RUNNER_TEMP,dst=$RUNNER_TEMP"             --mount "type=bind,src=/opt/hostedtoolcache/Python/3.13.5/x64,dst=/opt/hostedtoolcache/Python/3.13.5/x64,readonly"             -e GITHUB_WORKSPACE -e RUNNER_TEMP -e GITHUB_SHA -e GITHUB_RUN_ID -e GITHUB_JOB -e GITHUB_JOB_ID -e LLVM_SOURCE_COMMIT             "$image" bash -lc 'cd "$GITHUB_WORKSPACE" && bash -x "$RUNNER_TEMP/build_v05_effective.sh"'
       - name: Upload v0.5 package
         id: upload
         uses: actions/upload-artifact@v4
@@ -114,12 +121,87 @@ jobs:
             ${{ runner.temp }}/gateq-v05/gateq-windows-path-qualifier-v0.5.zip.sha256
           if-no-files-found: error
           retention-days: 90
+      - name: Create current-run primary artifact binding
+        id: create_binding
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRIMARY_ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          PRIMARY_ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          PRIMARY_ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+        run: |
+          set -euo pipefail
+          BIND_DIR="$RUNNER_TEMP/gateq-v05-current-binding"
+          rm -rf "$BIND_DIR"
+          mkdir -p "$BIND_DIR"
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$PRIMARY_ARTIFACT_ID" \
+            > "$BIND_DIR/PRIMARY_ARTIFACT_API_RESPONSE.json"
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            > "$BIND_DIR/CURRENT_RUN_API_RESPONSE.json"
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" \
+            > "$BIND_DIR/CURRENT_RUN_JOBS_API_RESPONSE.json"
+          python3 - "$BIND_DIR" "$RUNNER_TEMP/gateq-v05/gateq-windows-path-qualifier-v0.5.zip" "$RUNNER_TEMP/gateq-v05/gateq-windows-path-qualifier-v0.5.zip.sha256" <<'PYBIND'
+          import hashlib,json,os,pathlib,sys
+          d=pathlib.Path(sys.argv[1]); package=pathlib.Path(sys.argv[2]); sidecar=pathlib.Path(sys.argv[3])
+          art=json.loads((d/'PRIMARY_ARTIFACT_API_RESPONSE.json').read_text())
+          run=json.loads((d/'CURRENT_RUN_API_RESPONSE.json').read_text())
+          jobs=json.loads((d/'CURRENT_RUN_JOBS_API_RESPONSE.json').read_text())
+          expected_id=int(os.environ['PRIMARY_ARTIFACT_ID'])
+          expected_digest=os.environ['PRIMARY_ARTIFACT_DIGEST']
+          run_id=int(os.environ['GITHUB_RUN_ID']); job_id=int(os.environ['GITHUB_JOB_ID']); head=os.environ['GITHUB_SHA']
+          if art.get('id')!=expected_id: raise SystemExit('primary artifact ID API mismatch')
+          if art.get('digest')!=expected_digest: raise SystemExit('primary artifact digest API mismatch')
+          if art.get('workflow_run',{}).get('id')!=run_id: raise SystemExit('primary artifact run binding mismatch')
+          if art.get('workflow_run',{}).get('head_sha')!=head: raise SystemExit('primary artifact head binding mismatch')
+          if run.get('id')!=run_id or run.get('head_sha')!=head: raise SystemExit('current run API identity mismatch')
+          if not any(j.get('id')==job_id and j.get('run_id')==run_id for j in jobs.get('jobs',[])):
+              raise SystemExit('current job API identity mismatch')
+          canonical_sha=hashlib.sha256(package.read_bytes()).hexdigest()
+          sidecar_value=sidecar.read_text().split()[0]
+          if canonical_sha!=sidecar_value: raise SystemExit('canonical ZIP sidecar mismatch')
+          binding={
+            'schema':'TSUCHIMARU_CURRENT_RUN_ARTIFACT_BINDING_V1',
+            'capture_phase':'post-primary-upload within the same GitHub Actions job',
+            'repository':os.environ['GITHUB_REPOSITORY'],
+            'workflow_path':'.github/workflows/gateq-windows-path-qualifier-v05.yml',
+            'run_id':run_id,
+            'job_id':job_id,
+            'head_sha':head,
+            'primary_artifact':{
+              'id':art['id'],'name':art['name'],'size_in_bytes':art['size_in_bytes'],
+              'digest':art['digest'],'api_url':art['url'],
+              'archive_download_url':art['archive_download_url'],
+              'upload_output_url':os.environ['PRIMARY_ARTIFACT_URL']
+            },
+            'canonical_inner_zip':{
+              'name':package.name,'size_in_bytes':package.stat().st_size,'sha256':canonical_sha
+            },
+            'sidecar_sha256_value':sidecar_value,
+            'binding_artifact_name':'gateq-windows-path-qualifier-v0.5-current-run-binding',
+            'self_reference_boundary':'The primary artifact cannot contain its own GitHub-assigned post-upload ID/digest. This binding is therefore generated after primary upload and uploaded separately.'
+          }
+          (d/'CURRENT_RUN_ARTIFACT_BINDING_V1.json').write_text(json.dumps(binding,indent=2)+'\n')
+          PYBIND
+      - name: Upload current-run binding artifact
+        id: upload_binding
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-windows-path-qualifier-v0.5-current-run-binding
+          path: ${{ runner.temp }}/gateq-v05-current-binding/
+          if-no-files-found: error
+          retention-days: 90
       - name: Record artifact metadata
         shell: bash
         env:
           ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
           ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
           ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          BINDING_ARTIFACT_ID: ${{ steps.upload_binding.outputs.artifact-id }}
+          BINDING_ARTIFACT_URL: ${{ steps.upload_binding.outputs.artifact-url }}
+          BINDING_ARTIFACT_DIGEST: ${{ steps.upload_binding.outputs.artifact-digest }}
         run: |
           set -euo pipefail
           PACKAGE="$RUNNER_TEMP/gateq-v05/gateq-windows-path-qualifier-v0.5.zip"
@@ -134,7 +216,10 @@ jobs:
             echo "- Artifact size: $SIZE bytes"
             echo "- GitHub artifact digest: $ARTIFACT_DIGEST"
             echo "- Artifact URL: $ARTIFACT_URL"
-            echo "- Note: artifact identity and digest are recorded here after upload; the package cannot contain its own final digest."
+            echo "- Binding artifact ID: $BINDING_ARTIFACT_ID"
+            echo "- Binding artifact digest: $BINDING_ARTIFACT_DIGEST"
+            echo "- Binding artifact URL: $BINDING_ARTIFACT_URL"
+            echo "- Note: the primary package cannot self-contain its post-upload GitHub identity; the separately uploaded current-run binding artifact records that identity."
           } >> "$GITHUB_STEP_SUMMARY"
           python3 - "$PACKAGE" <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
           import hashlib, pathlib, sys, zipfile
