@@ -54,7 +54,7 @@ for old,new in (('/usr/local/swift/usr/bin/clang','/usr/bin/clang'),('/usr/local
 s=s.replace('"$FILE_TOOL" windows_path_chain_qualifier.exe > PE_FILE.txt','"$FILE_TOOL" -f windows_path_chain_qualifier.exe > PE_FILE.txt')
 p.write_text(s)
 PY
-printf "=== rebuild_ab.sh ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; exit 1; fi
+printf "=== rebuild_ab.sh ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; cat "$BUNDLE/bin/A/PE_IMPORTS.txt" 2>/dev/null || true; exit 1; fi
 {
   printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
   printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
