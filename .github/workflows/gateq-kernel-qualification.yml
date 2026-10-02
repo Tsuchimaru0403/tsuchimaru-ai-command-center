@@ -6,7 +6,7 @@ on:
       - gateq-kernel-qualification-20261002
     paths:
       - ".github/workflows/gateq-kernel-qualification.yml"
-      - "gateq/kernel-qualification/v0.1/**"
+      - "gateq/kernel-qualification/v0.2/**"
 
 permissions:
   contents: read
@@ -132,10 +132,14 @@ jobs:
           actual_head="$(git -C "$SRC" rev-parse HEAD)"
           actual_tree="$(git -C "$SRC" rev-parse 'HEAD^{tree}')"
           actual_config_blob="$(git -C "$SRC" rev-parse "$KERNEL_COMMIT:Microsoft/config-wsl")"
+          actual_config_target="$(git -C "$SRC" show "$KERNEL_COMMIT:Microsoft/config-wsl")"
+          actual_config_target_blob="$(git -C "$SRC" rev-parse "$KERNEL_COMMIT:arch/x86/configs/config-wsl")"
+          dereferenced_config_sha256="$(git -C "$SRC" show "$KERNEL_COMMIT:arch/x86/configs/config-wsl" | sha256sum | awk '{print $1}')"
           worktree_config_sha256="$(sha256sum "$SRC/Microsoft/config-wsl" | awk '{print $1}')"
           git -C "$SRC" status --porcelain=v1 --untracked-files=all > /tmp/kernel-source-status.txt
 
-          printf 'HEAD=%s\nTREE=%s\nCONFIG_GIT_BLOB=%s\nWORKTREE_CONFIG_SHA256=%s\n' "$actual_head" "$actual_tree" "$actual_config_blob" "$worktree_config_sha256"
+          printf 'HEAD=%s\nTREE=%s\nCONFIG_SYMLINK_GIT_BLOB=%s\nCONFIG_SYMLINK_TARGET=%s\nCONFIG_TARGET_GIT_BLOB=%s\nDEREFERENCED_CONFIG_SHA256=%s\nWORKTREE_CONFIG_SHA256=%s\n' \
+            "$actual_head" "$actual_tree" "$actual_config_blob" "$actual_config_target" "$actual_config_target_blob" "$dereferenced_config_sha256" "$worktree_config_sha256"
           if test -s /tmp/kernel-source-status.txt; then
             echo "working-tree status (recorded; archive is still generated directly from the immutable commit):"
             cat /tmp/kernel-source-status.txt
@@ -144,6 +148,12 @@ jobs:
           test "$actual_head" = "$KERNEL_COMMIT"
           test "$actual_tree" = "$KERNEL_TREE"
           test "$actual_config_blob" = "$KERNEL_BASE_CONFIG_BLOB"
+          test -L "$SRC/Microsoft/config-wsl"
+          test "$(readlink "$SRC/Microsoft/config-wsl")" = "../arch/x86/configs/config-wsl"
+          test "$actual_config_target" = "../arch/x86/configs/config-wsl"
+          test "$actual_config_target_blob" = "1a4736cfd9e9a7f523d23fd79848999a4fbd44ed"
+          test "$dereferenced_config_sha256" = "4e1eb0e493bc9e1b8dba715084834119743eb509e6c43773ce6cd74e19cf1139"
+          test "$worktree_config_sha256" = "4e1eb0e493bc9e1b8dba715084834119743eb509e6c43773ce6cd74e19cf1139"
 
           # Tracked bytes must be pristine. Untracked checkout/runtime metadata cannot
           # enter the source artifact because the archive is emitted directly from
@@ -156,9 +166,9 @@ jobs:
           git -C "$SRC" archive --format=tar --prefix=linux/ "$KERNEL_COMMIT" | gzip -n -9 > "$EVIDENCE_DIR/kernel-source.tar.gz"
           sha256sum "$EVIDENCE_DIR/kernel-source.tar.gz" > "$EVIDENCE_DIR/KERNEL_SOURCE_ARCHIVE.sha256"
 
-          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.1/KERNEL_SOURCE_BINDING_V1.json" "$EVIDENCE_DIR/"
-          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.1/KERNEL_CONFIG_POLICY_V1.json" "$EVIDENCE_DIR/"
-          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.1/build_kernel.sh" "$EVIDENCE_DIR/"
+          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.2/KERNEL_SOURCE_BINDING_V1.json" "$EVIDENCE_DIR/"
+          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.2/KERNEL_CONFIG_POLICY_V1.json" "$EVIDENCE_DIR/"
+          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.2/build_kernel.sh" "$EVIDENCE_DIR/"
           sha256sum "$EVIDENCE_DIR/KERNEL_SOURCE_BINDING_V1.json" > "$EVIDENCE_DIR/KERNEL_SOURCE_BINDING_V1.json.sha256"
           sha256sum "$EVIDENCE_DIR/KERNEL_CONFIG_POLICY_V1.json" > "$EVIDENCE_DIR/KERNEL_CONFIG_POLICY_V1.json.sha256"
           sha256sum "$EVIDENCE_DIR/build_kernel.sh" > "$EVIDENCE_DIR/build_kernel.sh.sha256"
@@ -217,25 +227,33 @@ jobs:
           import hashlib, json, pathlib
           ev=pathlib.Path('/tmp/gateq-kernel-evidence')
           required=['bzImage','vmlinux','System.map','final.config']
-          auxiliary=['GNU_BUILD_ID.txt','KERNEL_RELEASE.txt','BUILD_ENV_EFFECTIVE.txt','TOOL_VERSIONS_KERNEL_BUILD.txt']
+          version_required=[
+              'GNU_BUILD_ID.txt','KERNEL_RELEASE.txt','UTS_VERSION.txt',
+              'EXPECTED_UNAME_R.txt','EXPECTED_UNAME_V.txt','EXPECTED_UNAME_M.txt',
+              'EXPECTED_PROC_VERSION.txt','VMLINUX_PROC_VERSION_STRING.txt',
+              'VERSION_CORROBORATION_V1.json','compile.h','utsrelease.h','utsversion.h',
+              'LINUX_COMPILE_BY.txt','LINUX_COMPILE_HOST.txt','LINUX_COMPILER.txt',
+              'KCONFIG_EFFECTIVE_N_ABSENT.txt','BUILD_ENV_EFFECTIVE.txt',
+              'TOOL_VERSIONS_KERNEL_BUILD.txt'
+          ]
           mismatches=[]
           outputs={}
-          for name in required+auxiliary:
+          for name in required+version_required:
               a=(ev/'A'/name).read_bytes()
               b=(ev/'B'/name).read_bytes()
               ha=hashlib.sha256(a).hexdigest()
               hb=hashlib.sha256(b).hexdigest()
               equal=a==b
               outputs[name]={'A_sha256':ha,'B_sha256':hb,'equal':equal}
-              if name in required and not equal:
+              if not equal:
                   mismatches.append(name)
           aid=(ev/'A/GNU_BUILD_ID.txt').read_text().strip()
           bid=(ev/'B/GNU_BUILD_ID.txt').read_text().strip()
           build_id_equal=aid==bid and bool(aid)
-          if not build_id_equal:
+          if not build_id_equal and 'GNU_BUILD_ID.txt' not in mismatches:
               mismatches.append('GNU_BUILD_ID')
           result={
-              'schema':'TSUCHIMARU_KERNEL_AB_QUALIFICATION_V1',
+              'schema':'TSUCHIMARU_KERNEL_AB_QUALIFICATION_V2',
               'result':'PASS' if not mismatches else 'FAIL',
               'mismatches':mismatches,
               'outputs':outputs,
@@ -257,13 +275,17 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: gateq-kernel-ab-diagnostics
+          name: gateq-kernel-ab-diagnostics-v02
           path: |
             /tmp/gateq-kernel-evidence/KERNEL_A_B_COMPARISON.json
             /tmp/gateq-kernel-evidence/BUILD_A.log
             /tmp/gateq-kernel-evidence/BUILD_B.log
             /tmp/gateq-kernel-evidence/A/OUTPUTS.sha256
             /tmp/gateq-kernel-evidence/B/OUTPUTS.sha256
+            /tmp/gateq-kernel-evidence/A/VERSION_CORROBORATION_V1.json
+            /tmp/gateq-kernel-evidence/B/VERSION_CORROBORATION_V1.json
+            /tmp/gateq-kernel-evidence/A/EXPECTED_PROC_VERSION.txt
+            /tmp/gateq-kernel-evidence/B/EXPECTED_PROC_VERSION.txt
           if-no-files-found: warn
           retention-days: 7
 
@@ -290,10 +312,18 @@ jobs:
               return hashlib.sha256(path.read_bytes()).hexdigest()
           ab=json.loads((ev/'KERNEL_A_B_COMPARISON.json').read_text())
           assert ab['result']=='PASS'
+          assert not ab['mismatches']
           src_archive_sha=sha(ev/'kernel-source.tar.gz')
+          version=json.loads((ev/'A/VERSION_CORROBORATION_V1.json').read_text())
+          assert (ev/'A/VERSION_CORROBORATION_V1.json').read_bytes() == (ev/'B/VERSION_CORROBORATION_V1.json').read_bytes()
+          expected_proc=(ev/'A/EXPECTED_PROC_VERSION.txt').read_text()
+          assert expected_proc == version['expected_proc_version']
           att={
               'schema':'KERNEL_ATTESTATION_V1',
-              'status':'QUALIFIED_CANDIDATE_PENDING_FRESH_AUDIT',
+              'revision':'v0.2',
+              'status':'QUALIFIED_CANDIDATE_PENDING_FRESH_REAUDIT',
+              'prior_failed_fresh_audit_run_id':36954748912,
+              'remediates':['MAJOR-KQ-EVIDENCE-01','MAJOR-KQ-VERSION-02','NOTE-KQ-CONFIG-01'],
               'kernel':{
                   'repository':'microsoft/WSL2-Linux-Kernel',
                   'release':'linux-msft-wsl-6.18.40.1',
@@ -301,13 +331,32 @@ jobs:
                   'tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99',
                   'source_archive_sha256':src_archive_sha,
                   'base_config_path':'Microsoft/config-wsl',
-                  'base_config_blob_sha1':'9d187c05816e5b54b6f9bdbca3bc8fd7b30d5752',
+                  'base_config_path_type':'symlink',
+                  'base_config_symlink_blob_sha1':'9d187c05816e5b54b6f9bdbca3bc8fd7b30d5752',
+                  'base_config_symlink_target':'../arch/x86/configs/config-wsl',
+                  'dereferenced_config_path':'arch/x86/configs/config-wsl',
+                  'dereferenced_config_blob_sha1':'1a4736cfd9e9a7f523d23fd79848999a4fbd44ed',
+                  'dereferenced_config_sha256':'4e1eb0e493bc9e1b8dba715084834119743eb509e6c43773ce6cd74e19cf1139',
                   'config_sha256':ab['outputs']['final.config']['A_sha256'],
                   'bzimage_sha256':ab['outputs']['bzImage']['A_sha256'],
                   'vmlinux_sha256':ab['outputs']['vmlinux']['A_sha256'],
                   'system_map_sha256':ab['outputs']['System.map']['A_sha256'],
-                  'gnu_build_id':ab['gnu_build_id_A'],
-                  'expected_uname_r':(ev/'A/KERNEL_RELEASE.txt').read_text().strip()
+                  'gnu_build_id':ab['gnu_build_id_A']
+              },
+              'version_corroboration':{
+                  'expected_uname_r':version['expected_uname_r'],
+                  'expected_uname_v':version['expected_uname_v'],
+                  'expected_uname_m':version['expected_uname_m'],
+                  'expected_proc_version':version['expected_proc_version'],
+                  'expected_proc_version_sha256':version['expected_proc_version_sha256'],
+                  'uts_version_source':'include/generated/utsversion.h',
+                  'compile_identity_source':'include/generated/compile.h',
+                  'proc_version_format_sources':['init/version.c','fs/proc/version.c'],
+                  'linux_banner_format_source':'init/version-timestamp.c',
+                  'vmlinux_expected_proc_version_string_sha256':sha(ev/'A/VMLINUX_PROC_VERSION_STRING.txt'),
+                  'utsversion_header_sha256':sha(ev/'A/utsversion.h'),
+                  'utsrelease_header_sha256':sha(ev/'A/utsrelease.h'),
+                  'compile_header_sha256':sha(ev/'A/compile.h')
               },
               'recipe':{
                   'build_script_sha256':sha(ev/'build_kernel.sh'),
@@ -342,10 +391,235 @@ jobs:
           find . -type f ! -name FILES.sha256 -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > FILES.sha256
           sha256sum -c FILES.sha256
 
-      - name: Upload Kernel Qualification evidence
+      - name: Build audit-retrievable canonical evidence package
+        shell: bash
+        run: |
+          set -euo pipefail
+          PKG=/tmp/gateq-kernel-audit-package
+          ARCHIVE="$PKG/gateq-kernel-qualification-v02-canonical.tar.gz"
+          rm -rf "$PKG"
+          mkdir -p "$PKG"
+
+          tar --sort=name             --mtime='@1789084800'             --owner=0 --group=0 --numeric-owner             --pax-option=delete=atime,delete=ctime             -C "$EVIDENCE_DIR" -cf - .             | gzip -n -9 > "$ARCHIVE"
+
+          archive_size="$(stat -c '%s' "$ARCHIVE")"
+          archive_sha="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
+          printf '%s  %s\n' "$archive_sha" "$(basename "$ARCHIVE")" > "$PKG/CANONICAL_EVIDENCE_ARCHIVE.sha256"
+          printf '%s\n' "$archive_size" > "$PKG/CANONICAL_EVIDENCE_ARCHIVE.size"
+
+          split -b 128M -d -a 2 "$ARCHIVE" "$PKG/chunk-"
+          rm "$ARCHIVE"
+          (cd "$PKG" && sha256sum chunk-* > CHUNKS.sha256)
+
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib
+          pkg=pathlib.Path('/tmp/gateq-kernel-audit-package')
+          archive_sha=(pkg/'CANONICAL_EVIDENCE_ARCHIVE.sha256').read_text().split()[0]
+          archive_size=int((pkg/'CANONICAL_EVIDENCE_ARCHIVE.size').read_text().strip())
+          chunks=[]
+          for p in sorted(pkg.glob('chunk-*')):
+              data=p.read_bytes()
+              chunks.append({
+                  'name':p.name,
+                  'size':len(data),
+                  'sha256':hashlib.sha256(data).hexdigest(),
+                  'artifact_name':f'gateq-kernel-qualification-v02-{p.name}'
+              })
+          if not chunks:
+              raise SystemExit('no audit chunks produced')
+          if any(c['size'] > 134217728 for c in chunks):
+              raise SystemExit('chunk exceeds 128 MiB')
+          manifest={
+              'schema':'TSUCHIMARU_GATEQ_KERNEL_AUDIT_DELIVERY_V1',
+              'qualification_revision':'v0.2',
+              'github_run_id':int(os.environ['GITHUB_RUN_ID']),
+              'workflow_head_sha':os.environ['GITHUB_SHA'],
+              'canonical_archive':{
+                  'name':'gateq-kernel-qualification-v02-canonical.tar.gz',
+                  'size':archive_size,
+                  'sha256':archive_sha,
+                  'format':'deterministic tar.gz',
+                  'source':'complete /tmp/gateq-kernel-evidence after FILES.sha256 verification'
+              },
+              'chunk_size_limit_bytes':134217728,
+              'chunks':chunks,
+              'reconstruction':{
+                  'ordered_concat':'cat chunk-* > gateq-kernel-qualification-v02-canonical.tar.gz',
+                  'verify_archive':'sha256sum gateq-kernel-qualification-v02-canonical.tar.gz',
+                  'extract':'tar -xzf gateq-kernel-qualification-v02-canonical.tar.gz',
+                  'verify_payload':'sha256sum -c FILES.sha256'
+              },
+              'authorization':{
+                  'wsl_change':False,
+                  'wslconfig_change':False,
+                  'custom_kernel_activation':False,
+                  'gate_a':False,
+                  'runtime':False
+              }
+          }
+          (pkg/'AUDIT_PACKAGE_MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
+          PY
+
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          pkg=pathlib.Path('/tmp/gateq-kernel-audit-package')
+          manifest=json.loads((pkg/'AUDIT_PACKAGE_MANIFEST.json').read_text())
+          lines=(pkg/'CHUNKS.sha256').read_text().strip().splitlines()
+          recorded={}
+          for line in lines:
+              h,name=line.split(None,1)
+              recorded[name.strip()]=h
+          for c in manifest['chunks']:
+              p=pkg/c['name']
+              assert p.exists()
+              assert p.stat().st_size==c['size']
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==c['sha256']==recorded[c['name']]
+          PY
+
+      - name: Upload kernel qualification v0.2 audit index
         uses: actions/upload-artifact@v4
         with:
-          name: gateq-kernel-qualification-v01
-          path: /tmp/gateq-kernel-evidence
+          name: gateq-kernel-qualification-v02-index
+          path: |
+            /tmp/gateq-kernel-audit-package/AUDIT_PACKAGE_MANIFEST.json
+            /tmp/gateq-kernel-audit-package/CANONICAL_EVIDENCE_ARCHIVE.sha256
+            /tmp/gateq-kernel-audit-package/CANONICAL_EVIDENCE_ARCHIVE.size
+            /tmp/gateq-kernel-audit-package/CHUNKS.sha256
+            /tmp/gateq-kernel-evidence/KERNEL_ATTESTATION_V1.json
+            /tmp/gateq-kernel-evidence/KERNEL_A_B_COMPARISON.json
+            /tmp/gateq-kernel-evidence/FILES.sha256
+            /tmp/gateq-kernel-evidence/KERNEL_SOURCE_ARCHIVE.sha256
+            /tmp/gateq-kernel-evidence/KERNEL_SOURCE_BINDING_V1.json
+            /tmp/gateq-kernel-evidence/KERNEL_CONFIG_POLICY_V1.json
+            /tmp/gateq-kernel-evidence/build_kernel.sh
+            /tmp/gateq-kernel-evidence/A/final.config
+            /tmp/gateq-kernel-evidence/B/final.config
+            /tmp/gateq-kernel-evidence/A/bzImage
+            /tmp/gateq-kernel-evidence/B/bzImage
+            /tmp/gateq-kernel-evidence/A/System.map
+            /tmp/gateq-kernel-evidence/B/System.map
+            /tmp/gateq-kernel-evidence/A/GNU_BUILD_ID.txt
+            /tmp/gateq-kernel-evidence/B/GNU_BUILD_ID.txt
+            /tmp/gateq-kernel-evidence/A/KCONFIG_EFFECTIVE_N_ABSENT.txt
+            /tmp/gateq-kernel-evidence/B/KCONFIG_EFFECTIVE_N_ABSENT.txt
+            /tmp/gateq-kernel-evidence/A/VERSION_CORROBORATION_V1.json
+            /tmp/gateq-kernel-evidence/B/VERSION_CORROBORATION_V1.json
+            /tmp/gateq-kernel-evidence/A/EXPECTED_PROC_VERSION.txt
+            /tmp/gateq-kernel-evidence/B/EXPECTED_PROC_VERSION.txt
+            /tmp/gateq-kernel-evidence/A/utsversion.h
+            /tmp/gateq-kernel-evidence/B/utsversion.h
+            /tmp/gateq-kernel-evidence/A/utsrelease.h
+            /tmp/gateq-kernel-evidence/B/utsrelease.h
+            /tmp/gateq-kernel-evidence/A/compile.h
+            /tmp/gateq-kernel-evidence/B/compile.h
           include-hidden-files: true
           retention-days: 7
+          compression-level: 6
+
+      - name: Upload kernel qualification v0.2 chunk 00
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-00
+          path: /tmp/gateq-kernel-audit-package/chunk-00
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 01
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-01
+          path: /tmp/gateq-kernel-audit-package/chunk-01
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 02
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-02
+          path: /tmp/gateq-kernel-audit-package/chunk-02
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 03
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-03
+          path: /tmp/gateq-kernel-audit-package/chunk-03
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 04
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-04
+          path: /tmp/gateq-kernel-audit-package/chunk-04
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 05
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-05
+          path: /tmp/gateq-kernel-audit-package/chunk-05
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 06
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-06
+          path: /tmp/gateq-kernel-audit-package/chunk-06
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 07
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-07
+          path: /tmp/gateq-kernel-audit-package/chunk-07
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 08
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-08
+          path: /tmp/gateq-kernel-audit-package/chunk-08
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 09
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-09
+          path: /tmp/gateq-kernel-audit-package/chunk-09
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 10
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-10
+          path: /tmp/gateq-kernel-audit-package/chunk-10
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload kernel qualification v0.2 chunk 11
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v02-chunk-11
+          path: /tmp/gateq-kernel-audit-package/chunk-11
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0
