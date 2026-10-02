@@ -52,10 +52,22 @@ assert_y() {
   }
 }
 assert_n() {
-  grep -qx "# $1 is not set" .config || {
-    echo "required n assertion failed: $1" >&2
+  # In a resolved Kconfig, a disabled visible symbol is normally emitted as
+  # "# CONFIG_FOO is not set". If its dependencies make it invisible, the
+  # symbol may be absent entirely; that is also an effective n. Any concrete
+  # assignment is therefore a fail-closed violation.
+  if grep -q "^$1=" .config; then
+    echo "required n assertion failed: $1 has a concrete assignment" >&2
+    grep "^$1=" .config >&2 || true
     exit 64
-  }
+  fi
+  if grep -qx "# $1 is not set" .config; then
+    return 0
+  fi
+  if grep -q "^# $1 is not set$" .config; then
+    return 0
+  fi
+  printf '%s\n' "$1=ABSENT_EFFECTIVE_N" >> "$OUT_DIR/KCONFIG_EFFECTIVE_N_ABSENT.txt"
 }
 assert_empty_string_or_absent() {
   if grep -q "^$1=" .config; then
