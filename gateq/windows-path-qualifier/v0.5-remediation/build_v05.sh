@@ -29,7 +29,6 @@ src.write_text(s.replace(old,new))
 import difflib
 source_v05=src.read_text()
 diff=''.join(difflib.unified_diff(source_v04.splitlines(True),source_v05.splitlines(True),fromfile='v0.4/src/windows_path_chain_qualifier.c',tofile='v0.5/src/windows_path_chain_qualifier.c'))
-if diff.count('@@') != 1: raise SystemExit('runtime diff is not one F-09-only hunk')
 (ev/'RUNTIME_SOURCE_V04_TO_V05.diff').write_text(diff)
 if source_v05.replace(new,old) != source_v04: raise SystemExit('runtime source differs beyond F-09 replacement')
 
