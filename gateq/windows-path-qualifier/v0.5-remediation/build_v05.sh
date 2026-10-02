@@ -48,9 +48,10 @@ export GITHUB_HEAD_SHA="${GITHUB_SHA:?}" GITHUB_RUN_ID="${GITHUB_RUN_ID:?}" GITH
 python3 - "$BUNDLE/build/build_windows_path_qualifier.sh" <<'PY'
 import pathlib,sys
 p=pathlib.Path(sys.argv[1]); s=p.read_text()
-for old,new in (('/usr/local/swift/usr/bin/clang','/usr/bin/clang'),('/usr/local/swift/usr/bin/lld-link','/usr/bin/lld-link')):
+for old,new in (('/usr/local/swift/usr/bin/clang','/usr/bin/clang'),('/usr/local/swift/usr/bin/lld-link','/usr/bin/lld-link'),('/usr/bin/file','/usr/bin/objdump')):
     if s.count(old)!=1: raise SystemExit(f'expected exactly one pinned tool path anchor: {old}')
     s=s.replace(old,new)
+s=s.replace('"$FILE_TOOL" windows_path_chain_qualifier.exe > PE_FILE.txt','"$FILE_TOOL" -f windows_path_chain_qualifier.exe > PE_FILE.txt')
 p.write_text(s)
 PY
 printf "=== rebuild_ab.sh ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; exit 1; fi
