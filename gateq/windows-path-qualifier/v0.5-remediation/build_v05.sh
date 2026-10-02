@@ -174,12 +174,6 @@ with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) 
   z.writestr(i,p.read_bytes(),compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
 PY
 (cd "$ROOT" && sha256sum gateq-windows-path-qualifier-v0.5.zip > gateq-windows-path-qualifier-v0.5.zip.sha256)
-, text, re.M)"
-if s.count(old)!=1: raise SystemExit("PE import parser anchor mismatch")
-s=s.replace(old,new)
-p.write_text(s)
-PY
-printf "=== rebuild_ab.sh" ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; cat "$BUNDLE/bin/A/PE_IMPORTS.txt" 2>/dev/null || true; exit 1; fi
 {
   printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
   printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
