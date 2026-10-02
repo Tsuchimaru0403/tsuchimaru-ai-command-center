@@ -25,6 +25,10 @@ src.write_text(s.replace(old,new))
 binding=r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json'; b=json.loads(binding.read_text())
 b['revision']='v0.5'; b['status']='QUALIFIED_REMEDIATED_CANDIDATE_PENDING_FRESH_REAUDIT'
 b['prior_bundle_sha256']='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092'
+b['clang_path']='/usr/bin/clang'; b['lld_link_path']='/usr/bin/lld-link'
+b['clang_version']='clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
+b['lld_link_version']='LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
+b['toolchain_provenance']={'image':'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791','platform':'linux/amd64','discovery':'Existing /usr/bin/clang and /usr/bin/lld-link discovered in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'}
 b['source_sha256']=hashlib.sha256(src.read_bytes()).hexdigest()
 b['revalidation_policy']={'file_attributes':'exact equality: saved node.tag.FileAttributes == current inspect tag.FileAttributes; mismatch stops FILE_ATTRIBUTES_DRIFT','reparse_tag':'exact equality: saved node.tag.ReparseTag == current inspect tag.ReparseTag; mismatch stops REPARSE_TAG_DRIFT','fail_closed':True}
 b['prior_audit']={'revision':'v0.4','result':'FAIL','critical':0,'major':1,'minor':0,'note':1,'finding_ids':['F-09']}
@@ -32,6 +36,14 @@ binding.write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
 matrix=r/'evidence/REMEDIATION_MATRIX.md'; m=matrix.read_text(encoding='utf-8').replace('v0.4 — v0.3 Fresh Audit Remediation Matrix','v0.5 — v0.4 Fresh Audit Remediation Matrix').replace('Prior Fresh Static Audit result for v0.3: FAIL — CRITICAL 0 / MAJOR 4 / MINOR 2 / NOTE 2.','Prior Fresh Static Audit result for v0.4: FAIL — CRITICAL 0 / MAJOR 1 / MINOR 0 / NOTE 1 (blocking F-09 only).')
 m += '\n| F-09 MAJOR — attribute/tag drift | `revalidate()` compares saved and current `FileAttributes` and `ReparseTag` individually using exact equality; mismatches stop as `FILE_ATTRIBUTES_DRIFT` / `REPARSE_TAG_DRIFT`. | REMEDIATED CANDIDATE / pending Fresh Re-Audit |\n\nF-01–F-08 remain as recorded in v0.4. No Windows host execution, Host Activation, Gate A, or Runtime was performed.\n'
 matrix.write_text(m,encoding='utf-8')
+compat_note="## Evidence-only build compatibility adjustments\\n\\nThe v0.5 remediation build carries two build/evidence compatibility adjustments from v0.4: `FILE_TOOL` changes from `/usr/bin/file` to `/usr/bin/objdump` (invoked with `-f` solely to record PE file-format evidence), and the import-evidence parser accepts the decimal address-column form emitted by the pinned image's objdump. These changes affect evidence collection/parsing only; they do not change F-01–F-09 implementation source, compiler inputs/options, linker inputs/options, or runtime behavior. The A/B artifacts are freshly rebuilt from identical source and their normalized COFF, PE, and import libraries are compared byte-for-byte. Independent audit should verify this scope from the bundled build scripts and logs."
+def append_once(path, marker, text):
+    data=path.read_text(encoding='utf-8')
+    if marker not in data:
+        path.write_text(data.rstrip()+'\n\n'+text+'\n',encoding='utf-8')
+append_once(matrix, 'Evidence-only build compatibility adjustments', compat_note)
+append_once(r/'README_JA.md', 'Evidence-only build compatibility adjustments', compat_note)
+(r/'evidence/BUILD_COMPATIBILITY_NOTE.md').write_text(compat_note+'\n',encoding='utf-8')
 readme=r/'README_JA.md'; d=readme.read_text(encoding='utf-8').replace('Gate Q Windows Path Qualifier v0.4','Gate Q Windows Path Qualifier v0.5').replace('**Fresh Re-Audit待ちのread-only candidateです。Windowsホストではまだ実行しないでください。**','**QUALIFIED/REMEDIATED CANDIDATE PENDING FRESH RE-AUDIT。Windowsホストではまだ実行しないでください。**')
 d+='\n## v0.5 F-09 remediation\n\n`revalidate()` compares saved `FileAttributes` and `ReparseTag` independently by exact equality. Drift fails closed with `FILE_ATTRIBUTES_DRIFT` or `REPARSE_TAG_DRIFT`. F-01–F-08 remain unchanged. Fresh independent audit is required; this bundle does not authorize Windows execution, Host Activation, Gate A, or Runtime.\n'
 readme.write_text(d,encoding='utf-8')
@@ -67,13 +79,17 @@ if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then
   exit 1
 fi
 {
-  printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
-  printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
-  printf 'build_flags=%s\n' 'Release; clang+lld; X86 only; assertions/tests/examples/benchmarks disabled'
-  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
-  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
-  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
-  printf 'verification=exact version and llvm commit; mismatch fails closed\n'
+  printf 'container_image=%s\\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
+  printf 'platform=%s\\n' 'linux/amd64'
+  printf 'toolchain_discovery=%s\\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
+  printf 'clang_path=%s\\n' '/usr/bin/clang'
+  printf 'clang_version=%s\\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_path=%s\\n' '/usr/bin/lld-link'
+  printf 'lld_link_version=%s\\n' "$(/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'upstream_version_commit=%s\\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'version_provenance=%s\\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
+  printf 'verification=%s\\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
 } > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
 python3 - "$BUNDLE" <<'PY'
 import hashlib,json,pathlib,sys
@@ -81,7 +97,7 @@ r=pathlib.Path(sys.argv[1]); sha=lambda p:hashlib.sha256(p.read_bytes()).hexdige
 b=json.loads((r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').read_text()); e=json.loads((r/'evidence/A_B_BUILD_EXECUTION_V1.json').read_text())
 b.update(binary_a_sha256=sha(r/'bin/A/windows_path_chain_qualifier.exe'),binary_b_sha256=sha(r/'bin/B/windows_path_chain_qualifier.exe'),normalized_object_a_sha256=sha(r/'bin/A/qualifier.obj'),normalized_object_b_sha256=sha(r/'bin/B/qualifier.obj'),import_kernel32_lib_sha256=sha(r/'bin/A/kernel32.lib'),import_ntdll_lib_sha256=sha(r/'bin/A/ntdll.lib'),object_ab_byte_identical=True,binary_ab_byte_identical=True,build_script_sha256=sha(r/'build/build_windows_path_qualifier.sh'),rebuild_ab_script_sha256=sha(r/'build/rebuild_ab.sh'))
 (r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
-e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='PASS',fresh_reaudit='PENDING')
+e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='REMEDIATED CANDIDATE PENDING FRESH RE-AUDIT',fresh_reaudit='PENDING')
 (r/'evidence/A_B_BUILD_EXECUTION_V1.json').write_text(json.dumps(e,indent=2,sort_keys=True)+'\n')
 for name in ('PE_FILE.txt','PE_IMPORTS.txt','TOOLCHAIN.txt'):
  (r/'evidence'/name).write_bytes((r/'bin/A'/name).read_bytes())
@@ -98,7 +114,7 @@ keys={
  'ntdll_lib':sha(r/'bin/A/ntdll.lib'),
 }
 (r/'evidence/KEY_SHA256.txt').write_text(''.join(f'{k}={v}\n' for k,v in keys.items()))
-prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Return an independent finding-by-finding result.\n'''
+prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Explicitly assess whether the following build/evidence compatibility-only edits alter product behavior: FILE_TOOL changed from /usr/bin/file to /usr/bin/objdump -f for PE metadata, and the import-evidence regex accepts the decimal address-column format from objdump. Verify these are limited to evidence generation/parsing and that implementation source/compiler/linker behavior is unchanged.\n\nReturn an independent finding-by-finding result.\n'''
 (r/'FRESH_RE_AUDIT_PROMPT_JA.md').write_text(prompt,encoding='utf-8')
 # Verify normalized bytes and hashes before packaging.
 assert (r/'bin/A/qualifier.obj').read_bytes()==(r/'bin/B/qualifier.obj').read_bytes()
@@ -121,13 +137,17 @@ with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) 
 PY
 (cd "$ROOT" && sha256sum gateq-windows-path-qualifier-v0.5.zip > gateq-windows-path-qualifier-v0.5.zip.sha256)
 {
-  printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
-  printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
-  printf 'build_flags=%s\n' 'Release; clang+lld; X86 only; assertions/tests/examples/benchmarks disabled'
-  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
-  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
-  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
-  printf 'verification=exact version and llvm commit; mismatch fails closed\n'
+  printf 'container_image=%s\\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
+  printf 'platform=%s\\n' 'linux/amd64'
+  printf 'toolchain_discovery=%s\\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
+  printf 'clang_path=%s\\n' '/usr/bin/clang'
+  printf 'clang_version=%s\\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_path=%s\\n' '/usr/bin/lld-link'
+  printf 'lld_link_version=%s\\n' "$(/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'upstream_version_commit=%s\\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'version_provenance=%s\\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
+  printf 'verification=%s\\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
 } > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
 python3 - "$BUNDLE" <<'PY'
 import hashlib,json,pathlib,sys
@@ -135,7 +155,7 @@ r=pathlib.Path(sys.argv[1]); sha=lambda p:hashlib.sha256(p.read_bytes()).hexdige
 b=json.loads((r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').read_text()); e=json.loads((r/'evidence/A_B_BUILD_EXECUTION_V1.json').read_text())
 b.update(binary_a_sha256=sha(r/'bin/A/windows_path_chain_qualifier.exe'),binary_b_sha256=sha(r/'bin/B/windows_path_chain_qualifier.exe'),normalized_object_a_sha256=sha(r/'bin/A/qualifier.obj'),normalized_object_b_sha256=sha(r/'bin/B/qualifier.obj'),import_kernel32_lib_sha256=sha(r/'bin/A/kernel32.lib'),import_ntdll_lib_sha256=sha(r/'bin/A/ntdll.lib'),object_ab_byte_identical=True,binary_ab_byte_identical=True,build_script_sha256=sha(r/'build/build_windows_path_qualifier.sh'),rebuild_ab_script_sha256=sha(r/'build/rebuild_ab.sh'))
 (r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
-e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='PASS',fresh_reaudit='PENDING')
+e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='REMEDIATED CANDIDATE PENDING FRESH RE-AUDIT',fresh_reaudit='PENDING')
 (r/'evidence/A_B_BUILD_EXECUTION_V1.json').write_text(json.dumps(e,indent=2,sort_keys=True)+'\n')
 for name in ('PE_FILE.txt','PE_IMPORTS.txt','TOOLCHAIN.txt'):
  (r/'evidence'/name).write_bytes((r/'bin/A'/name).read_bytes())
@@ -152,7 +172,7 @@ keys={
  'ntdll_lib':sha(r/'bin/A/ntdll.lib'),
 }
 (r/'evidence/KEY_SHA256.txt').write_text(''.join(f'{k}={v}\n' for k,v in keys.items()))
-prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Return an independent finding-by-finding result.\n'''
+prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Explicitly assess whether the following build/evidence compatibility-only edits alter product behavior: FILE_TOOL changed from /usr/bin/file to /usr/bin/objdump -f for PE metadata, and the import-evidence regex accepts the decimal address-column format from objdump. Verify these are limited to evidence generation/parsing and that implementation source/compiler/linker behavior is unchanged.\n\nReturn an independent finding-by-finding result.\n'''
 (r/'FRESH_RE_AUDIT_PROMPT_JA.md').write_text(prompt,encoding='utf-8')
 # Verify normalized bytes and hashes before packaging.
 assert (r/'bin/A/qualifier.obj').read_bytes()==(r/'bin/B/qualifier.obj').read_bytes()
@@ -175,13 +195,17 @@ with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) 
 PY
 (cd "$ROOT" && sha256sum gateq-windows-path-qualifier-v0.5.zip > gateq-windows-path-qualifier-v0.5.zip.sha256)
 {
-  printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
-  printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
-  printf 'build_flags=%s\n' 'Release; clang+lld; X86 only; assertions/tests/examples/benchmarks disabled'
-  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
-  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
-  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
-  printf 'verification=exact version and llvm commit; mismatch fails closed\n'
+  printf 'container_image=%s\\n' 'swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
+  printf 'platform=%s\\n' 'linux/amd64'
+  printf 'toolchain_discovery=%s\\n' 'Existing tools discovered and used in the pinned official Swift image; no swiftlang/llvm-project source build was performed.'
+  printf 'clang_path=%s\\n' '/usr/bin/clang'
+  printf 'clang_version=%s\\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_path=%s\\n' '/usr/bin/lld-link'
+  printf 'lld_link_version=%s\\n' "$(/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'upstream_version_commit=%s\\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'version_provenance=%s\\n' 'Upstream revision embedded in exact Clang/LLD version strings; not a source-build input.'
+  printf 'verification=%s\\n' 'Complete Clang and LLD version strings matched the v0.4 expected values before build; mismatch fails closed.'
 } > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
 python3 - "$BUNDLE" <<'PY'
 import hashlib,json,pathlib,sys
@@ -189,7 +213,7 @@ r=pathlib.Path(sys.argv[1]); sha=lambda p:hashlib.sha256(p.read_bytes()).hexdige
 b=json.loads((r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').read_text()); e=json.loads((r/'evidence/A_B_BUILD_EXECUTION_V1.json').read_text())
 b.update(binary_a_sha256=sha(r/'bin/A/windows_path_chain_qualifier.exe'),binary_b_sha256=sha(r/'bin/B/windows_path_chain_qualifier.exe'),normalized_object_a_sha256=sha(r/'bin/A/qualifier.obj'),normalized_object_b_sha256=sha(r/'bin/B/qualifier.obj'),import_kernel32_lib_sha256=sha(r/'bin/A/kernel32.lib'),import_ntdll_lib_sha256=sha(r/'bin/A/ntdll.lib'),object_ab_byte_identical=True,binary_ab_byte_identical=True,build_script_sha256=sha(r/'build/build_windows_path_qualifier.sh'),rebuild_ab_script_sha256=sha(r/'build/rebuild_ab.sh'))
 (r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
-e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='PASS',fresh_reaudit='PENDING')
+e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='REMEDIATED CANDIDATE PENDING FRESH RE-AUDIT',fresh_reaudit='PENDING')
 (r/'evidence/A_B_BUILD_EXECUTION_V1.json').write_text(json.dumps(e,indent=2,sort_keys=True)+'\n')
 for name in ('PE_FILE.txt','PE_IMPORTS.txt','TOOLCHAIN.txt'):
  (r/'evidence'/name).write_bytes((r/'bin/A'/name).read_bytes())
@@ -206,7 +230,7 @@ keys={
  'ntdll_lib':sha(r/'bin/A/ntdll.lib'),
 }
 (r/'evidence/KEY_SHA256.txt').write_text(''.join(f'{k}={v}\n' for k,v in keys.items()))
-prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Return an independent finding-by-finding result.\n'''
+prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Explicitly assess whether the following build/evidence compatibility-only edits alter product behavior: FILE_TOOL changed from /usr/bin/file to /usr/bin/objdump -f for PE metadata, and the import-evidence regex accepts the decimal address-column format from objdump. Verify these are limited to evidence generation/parsing and that implementation source/compiler/linker behavior is unchanged.\n\nReturn an independent finding-by-finding result.\n'''
 (r/'FRESH_RE_AUDIT_PROMPT_JA.md').write_text(prompt,encoding='utf-8')
 # Verify normalized bytes and hashes before packaging.
 assert (r/'bin/A/qualifier.obj').read_bytes()==(r/'bin/B/qualifier.obj').read_bytes()

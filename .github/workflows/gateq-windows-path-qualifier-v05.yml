@@ -135,3 +135,25 @@ jobs:
             echo "- Artifact URL: $ARTIFACT_URL"
             echo "- Note: artifact identity and digest are recorded here after upload; the package cannot contain its own final digest."
           } >> "$GITHUB_STEP_SUMMARY"
+          python3 - "$PACKAGE" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import hashlib, pathlib, sys, zipfile
+          package=pathlib.Path(sys.argv[1])
+          with zipfile.ZipFile(package) as z:
+              bad=z.testzip()
+              if bad: raise SystemExit(f"canonical ZIP CRC failure: {bad}")
+              names=z.namelist()
+              manifest=next(n for n in names if n.endswith('/FILES.sha256'))
+              entries=[n for n in names if not n.endswith('/')]
+              rows=z.read(manifest).decode('utf-8').splitlines()
+              keyfile=next(n for n in names if n.endswith('/evidence/KEY_SHA256.txt'))
+              keys=dict(line.split('=',1) for line in z.read(keyfile).decode().splitlines() if '=' in line)
+              print()
+              print('### Canonical package verification')
+              print()
+              print(f"- Canonical ZIP SHA-256: {hashlib.sha256(package.read_bytes()).hexdigest()} ({package.stat().st_size} bytes)")
+              print(f"- ZIP entries: {len(entries)}")
+              print(f"- FILES.sha256 payload count: {len(rows)}")
+              print(f"- A/B PE SHA-256: {keys.get('PE_A')} / {keys.get('PE_B')}")
+              print(f"- A/B normalized COFF SHA-256: {keys.get('normalized_COFF_A')} / {keys.get('normalized_COFF_B')}")
+              print(f"- Import library SHA-256: kernel32={keys.get('kernel32_lib')}; ntdll={keys.get('ntdll_lib')}")
+          PY
