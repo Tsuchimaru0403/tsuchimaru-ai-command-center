@@ -102,7 +102,7 @@ jobs:
             --mount "type=bind,src=$RUNNER_TEMP,dst=$RUNNER_TEMP" \
             --mount "type=bind,src=/opt/hostedtoolcache/Python/3.13.5/x64,dst=/opt/hostedtoolcache/Python/3.13.5/x64,readonly" \
             -e GITHUB_WORKSPACE -e RUNNER_TEMP -e GITHUB_SHA -e GITHUB_RUN_ID -e GITHUB_JOB -e GITHUB_JOB_ID -e LLVM_SOURCE_COMMIT \
-            "$image" bash -lc 'cd "$GITHUB_WORKSPACE" && bash gateq/windows-path-qualifier/v0.5-remediation/build_v05.sh'
+            "$image" bash -lc 'cd "$GITHUB_WORKSPACE" && bash -x gateq/windows-path-qualifier/v0.5-remediation/build_v05.sh'
       - name: Upload v0.5 package
         id: upload
         uses: actions/upload-artifact@v4
