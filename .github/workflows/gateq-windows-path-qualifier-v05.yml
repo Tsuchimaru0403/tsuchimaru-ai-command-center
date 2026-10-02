@@ -20,12 +20,14 @@ jobs:
           image='swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
           expected_clang='clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
           expected_lld='LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
-          docker run --platform linux/amd64 --pull=always --rm "$image" bash -lc '
-            set -euo pipefail
-            clang=$(/usr/local/swift/usr/bin/clang --version | head -1)
-            lld=$(/usr/local/swift/usr/bin/lld-link --version | head -1)
-            printf "clang=%s\n" "$clang"
-            printf "lld=%s\n" "$lld"
-            test "$clang" = "$EXPECTED_CLANG"
-            test "$lld" = "$EXPECTED_LLD"
-          '
+          docker run --platform linux/amd64 --pull=always --rm \
+            -e EXPECTED_CLANG="$expected_clang" -e EXPECTED_LLD="$expected_lld" \
+            "$image" bash -lc '
+              set -euo pipefail
+              clang=$(/usr/local/swift/usr/bin/clang --version | head -1)
+              lld=$(/usr/local/swift/usr/bin/lld-link --version | head -1)
+              printf "clang=%s\n" "$clang"
+              printf "lld=%s\n" "$lld"
+              test "$clang" = "$EXPECTED_CLANG"
+              test "$lld" = "$EXPECTED_LLD"
+            '
