@@ -1,0 +1,40 @@
+{
+  "schema": "TSUCHIMARU_GATEQ_KERNEL_SOURCE_BINDING_V1",
+  "revision": "v0.2",
+  "repository": "microsoft/WSL2-Linux-Kernel",
+  "release": "linux-msft-wsl-6.18.40.1",
+  "commit": "14794180686c2fb6307fbe359c359bec765249f3",
+  "tree": "3b5ec33f7fd60f23d01064150f7c7020d2e6af99",
+  "base_config_path": "Microsoft/config-wsl",
+  "base_config_path_type": "symlink",
+  "base_config_symlink_blob_sha1": "9d187c05816e5b54b6f9bdbca3bc8fd7b30d5752",
+  "base_config_symlink_target": "../arch/x86/configs/config-wsl",
+  "dereferenced_config_path": "arch/x86/configs/config-wsl",
+  "dereferenced_config_blob_sha1": "1a4736cfd9e9a7f523d23fd79848999a4fbd44ed",
+  "dereferenced_config_sha256": "4e1eb0e493bc9e1b8dba715084834119743eb509e6c43773ce6cd74e19cf1139",
+  "toolchain_oci_manifest_digest": "sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829",
+  "toolchain_qualification_run_id": 36947817583,
+  "toolchain_qualification_artifact_id": 11202612596,
+  "toolchain_qualification_artifact_digest": "sha256:71c5308d18de240ba7743e17db50f851de97f65a28dc109f84d21a6c2a0cffbe",
+  "engine_evidence_run_id": 36893916456,
+  "human_authorization_notion_page_id": "3ed454a6-3962-8171-bd52-c7e44fbc314d",
+  "fresh_audit_remediation": {
+    "prior_run_id": 36954748912,
+    "finding_ids": [
+      "MAJOR-KQ-EVIDENCE-01",
+      "MAJOR-KQ-VERSION-02",
+      "NOTE-KQ-CONFIG-01"
+    ]
+  },
+  "authorization": {
+    "kernel_ab": true,
+    "kernel_attestation": true,
+    "fresh_audit_evidence": true,
+    "wsl_change": false,
+    "wslconfig_change": false,
+    "custom_kernel_activation": false,
+    "gate_a": false,
+    "runtime": false
+  },
+  "fail_closed_on_any_ab_mismatch": true
+}
