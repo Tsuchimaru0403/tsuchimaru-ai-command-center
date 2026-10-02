@@ -1,0 +1,333 @@
+name: Gate Q Kernel Qualification
+
+on:
+  push:
+    branches:
+      - gateq-kernel-qualification-20261002
+    paths:
+      - ".github/workflows/gateq-kernel-qualification.yml"
+      - "gateq/kernel-qualification/v0.1/**"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      ENGINE_RUN_ID: "36893916456"
+      ENGINE_EVIDENCE_DIR: "/tmp/engine-evidence"
+      TOOLCHAIN_RUN_ID: "36947817583"
+      TOOLCHAIN_EVIDENCE_DIR: "/tmp/toolchain-evidence"
+      TOOLCHAIN_OCI_DIGEST: "sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829"
+      KERNEL_REPOSITORY: "microsoft/WSL2-Linux-Kernel"
+      KERNEL_RELEASE_TAG: "linux-msft-wsl-6.18.40.1"
+      KERNEL_COMMIT: "14794180686c2fb6307fbe359c359bec765249f3"
+      KERNEL_TREE: "3b5ec33f7fd60f23d01064150f7c7020d2e6af99"
+      KERNEL_BASE_CONFIG_BLOB: "9d187c05816e5b54b6f9bdbca3bc8fd7b30d5752"
+      EVIDENCE_DIR: "/tmp/gateq-kernel-evidence"
+
+    steps:
+      - name: Checkout kernel qualification control inputs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download exact Engine Qualification Evidence v0.2
+        uses: actions/download-artifact@v4
+        with:
+          name: gateq-engine-qualification-evidence
+          path: /tmp/engine-evidence
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 36893916456
+
+      - name: Install exact qualified Buildah engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = "ubuntu"
+          case "$VERSION_ID" in 24.04*) ;; *) exit 64 ;; esac
+          test "$(dpkg --print-architecture)" = "amd64"
+
+          cd "$ENGINE_EVIDENCE_DIR"
+          sha256sum -c FILES.sha256
+
+          python3 - <<'PY'
+          import csv, hashlib, json, pathlib, subprocess
+          root=pathlib.Path('/tmp/engine-evidence')
+          meta=json.loads((root/'ENGINE_QUALIFICATION_EVIDENCE_V1.json').read_text())
+          assert meta['snapshot_id']=='20260911T000000Z'
+          rows=list(csv.DictReader((root/'TOOLCHAIN_PACKAGE_LOCK.tsv').open(), delimiter='\t'))
+          assert len(rows)==79
+          for row in rows:
+              p=root/'package-debs'/row['filename']
+              data=p.read_bytes()
+              assert hashlib.sha256(data).hexdigest()==row['sha256']
+              assert len(data)==int(row['bytes'])
+              for field in ('Package','Version','Architecture'):
+                  got=subprocess.check_output(['dpkg-deb','-f',str(p),field],text=True).strip()
+                  assert got==row[field.lower()]
+          PY
+
+          mapfile -t ENGINE_DEBS < <(find "$ENGINE_EVIDENCE_DIR/package-debs" -maxdepth 1 -type f -name '*.deb' -print | LC_ALL=C sort)
+          sudo dpkg --unpack "${ENGINE_DEBS[@]}"
+          sudo dpkg --configure -a
+          test "$(sha256sum /usr/bin/buildah | awk '{print $1}')" = "303c9b0918e6dc071cee05e1c6ee7be14841176a5958aff7d2f92121603f9a0c"
+          mkdir -p "$EVIDENCE_DIR"
+          buildah version --json > "$EVIDENCE_DIR/BUILDAH_VERSION.json"
+          sha256sum /usr/bin/buildah > "$EVIDENCE_DIR/BUILDAH_BINARY.sha256"
+
+      - name: Download Fresh-audited OCI toolchain qualification evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: gateq-oci-toolchain-qualification-v01
+          path: /tmp/toolchain-evidence
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 36947817583
+
+      - name: Verify exact OCI toolchain input
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$TOOLCHAIN_EVIDENCE_DIR"
+          sha256sum -c FILES.sha256
+          test "$(cat FINAL_OCI_DIGEST.txt)" = "$TOOLCHAIN_OCI_DIGEST"
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          root=pathlib.Path('/tmp/toolchain-evidence/oci-A')
+          idx_bytes=(root/'index.json').read_bytes()
+          idx=json.loads(idx_bytes)
+          assert len(idx['manifests'])==1
+          desc=idx['manifests'][0]
+          assert desc['digest']=='sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829'
+          alg,hexv=desc['digest'].split(':',1)
+          data=(root/'blobs'/alg/hexv).read_bytes()
+          assert 'sha256:'+hashlib.sha256(data).hexdigest()==desc['digest']
+          comp=json.loads(pathlib.Path('/tmp/toolchain-evidence/OCI_A_B_COMPARISON.json').read_text())
+          assert comp['result']=='PASS'
+          assert comp['mismatches']==[]
+          assert comp['final_oci_manifest_digest']==desc['digest']
+          PY
+
+      - name: Checkout exact Microsoft WSL2 kernel source
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/WSL2-Linux-Kernel
+          ref: 14794180686c2fb6307fbe359c359bec765249f3
+          path: _kernel_source_checkout
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Freeze exact kernel source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="$GITHUB_WORKSPACE/_kernel_source_checkout"
+          test "$(git -C "$SRC" rev-parse HEAD)" = "$KERNEL_COMMIT"
+          test "$(git -C "$SRC" rev-parse HEAD^{tree})" = "$KERNEL_TREE"
+          test "$(git -C "$SRC" hash-object Microsoft/config-wsl)" = "$KERNEL_BASE_CONFIG_BLOB"
+          test -z "$(git -C "$SRC" status --porcelain)"
+
+          mkdir -p "$EVIDENCE_DIR"
+          git -C "$SRC" archive --format=tar --prefix=linux/ "$KERNEL_COMMIT" | gzip -n -9 > "$EVIDENCE_DIR/kernel-source.tar.gz"
+          sha256sum "$EVIDENCE_DIR/kernel-source.tar.gz" > "$EVIDENCE_DIR/KERNEL_SOURCE_ARCHIVE.sha256"
+
+          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.1/KERNEL_SOURCE_BINDING_V1.json" "$EVIDENCE_DIR/"
+          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.1/KERNEL_CONFIG_POLICY_V1.json" "$EVIDENCE_DIR/"
+          cp "$GITHUB_WORKSPACE/gateq/kernel-qualification/v0.1/build_kernel.sh" "$EVIDENCE_DIR/"
+          sha256sum "$EVIDENCE_DIR/KERNEL_SOURCE_BINDING_V1.json" > "$EVIDENCE_DIR/KERNEL_SOURCE_BINDING_V1.json.sha256"
+          sha256sum "$EVIDENCE_DIR/KERNEL_CONFIG_POLICY_V1.json" > "$EVIDENCE_DIR/KERNEL_CONFIG_POLICY_V1.json.sha256"
+          sha256sum "$EVIDENCE_DIR/build_kernel.sh" > "$EVIDENCE_DIR/build_kernel.sh.sha256"
+
+      - name: Build independent kernel A
+        shell: bash
+        run: |
+          set -euo pipefail
+          lane=A
+          store="/tmp/kernel-store-$lane"
+          sudo rm -rf "$store"
+          sudo mkdir -p "$store/root" "$store/runroot"
+
+          image_id="$(sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs pull "oci:$TOOLCHAIN_EVIDENCE_DIR/oci-A:gateq")"
+          ctr="$(sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs from "$image_id")"
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs copy "$ctr" "$EVIDENCE_DIR/kernel-source.tar.gz" /tmp/kernel-source.tar.gz
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs copy "$ctr" "$EVIDENCE_DIR/build_kernel.sh" /opt/gateq/build_kernel.sh
+
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs run --isolation chroot "$ctr" --             bash -lc 'set -euo pipefail; rm -rf /workspace/linux /workspace/out; mkdir -p /workspace; tar -xzf /tmp/kernel-source.tar.gz -C /workspace; chmod 755 /opt/gateq/build_kernel.sh; JOBS=2 /opt/gateq/build_kernel.sh /workspace/linux /workspace/out'             2>&1 | tee "$EVIDENCE_DIR/BUILD_A.log"
+
+          mnt="$(sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs mount "$ctr")"
+          mkdir -p "$EVIDENCE_DIR/A"
+          sudo cp -a "$mnt/workspace/out/." "$EVIDENCE_DIR/A/"
+          sudo chown -R "$USER:$USER" "$EVIDENCE_DIR/A"
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs unmount "$ctr"
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs rm "$ctr"
+
+      - name: Build independent kernel B
+        shell: bash
+        run: |
+          set -euo pipefail
+          lane=B
+          store="/tmp/kernel-store-$lane"
+          sudo rm -rf "$store"
+          sudo mkdir -p "$store/root" "$store/runroot"
+
+          image_id="$(sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs pull "oci:$TOOLCHAIN_EVIDENCE_DIR/oci-A:gateq")"
+          ctr="$(sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs from "$image_id")"
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs copy "$ctr" "$EVIDENCE_DIR/kernel-source.tar.gz" /tmp/kernel-source.tar.gz
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs copy "$ctr" "$EVIDENCE_DIR/build_kernel.sh" /opt/gateq/build_kernel.sh
+
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs run --isolation chroot "$ctr" --             bash -lc 'set -euo pipefail; rm -rf /workspace/linux /workspace/out; mkdir -p /workspace; tar -xzf /tmp/kernel-source.tar.gz -C /workspace; chmod 755 /opt/gateq/build_kernel.sh; JOBS=2 /opt/gateq/build_kernel.sh /workspace/linux /workspace/out'             2>&1 | tee "$EVIDENCE_DIR/BUILD_B.log"
+
+          mnt="$(sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs mount "$ctr")"
+          mkdir -p "$EVIDENCE_DIR/B"
+          sudo cp -a "$mnt/workspace/out/." "$EVIDENCE_DIR/B/"
+          sudo chown -R "$USER:$USER" "$EVIDENCE_DIR/B"
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs unmount "$ctr"
+          sudo buildah --root "$store/root" --runroot "$store/runroot" --storage-driver vfs rm "$ctr"
+
+      - name: Compare kernel A/B
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          ev=pathlib.Path('/tmp/gateq-kernel-evidence')
+          required=['bzImage','vmlinux','System.map','final.config']
+          auxiliary=['GNU_BUILD_ID.txt','KERNEL_RELEASE.txt','BUILD_ENV_EFFECTIVE.txt','TOOL_VERSIONS_KERNEL_BUILD.txt']
+          mismatches=[]
+          outputs={}
+          for name in required+auxiliary:
+              a=(ev/'A'/name).read_bytes()
+              b=(ev/'B'/name).read_bytes()
+              ha=hashlib.sha256(a).hexdigest()
+              hb=hashlib.sha256(b).hexdigest()
+              equal=a==b
+              outputs[name]={'A_sha256':ha,'B_sha256':hb,'equal':equal}
+              if name in required and not equal:
+                  mismatches.append(name)
+          aid=(ev/'A/GNU_BUILD_ID.txt').read_text().strip()
+          bid=(ev/'B/GNU_BUILD_ID.txt').read_text().strip()
+          build_id_equal=aid==bid and bool(aid)
+          if not build_id_equal:
+              mismatches.append('GNU_BUILD_ID')
+          result={
+              'schema':'TSUCHIMARU_KERNEL_AB_QUALIFICATION_V1',
+              'result':'PASS' if not mismatches else 'FAIL',
+              'mismatches':mismatches,
+              'outputs':outputs,
+              'gnu_build_id_A':aid,
+              'gnu_build_id_B':bid,
+              'gnu_build_id_equal':build_id_equal,
+              'toolchain_oci_manifest_digest':'sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829',
+              'kernel_commit':'14794180686c2fb6307fbe359c359bec765249f3',
+              'kernel_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99',
+              'wsl_change_authorized':False,
+              'custom_kernel_activation_authorized':False,
+              'gate_a_authorized':False,
+              'runtime_authorized':False
+          }
+          (ev/'KERNEL_A_B_COMPARISON.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Upload kernel A/B diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-ab-diagnostics
+          path: |
+            /tmp/gateq-kernel-evidence/KERNEL_A_B_COMPARISON.json
+            /tmp/gateq-kernel-evidence/BUILD_A.log
+            /tmp/gateq-kernel-evidence/BUILD_B.log
+            /tmp/gateq-kernel-evidence/A/OUTPUTS.sha256
+            /tmp/gateq-kernel-evidence/B/OUTPUTS.sha256
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Fail closed on kernel A/B mismatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib
+          p=pathlib.Path('/tmp/gateq-kernel-evidence/KERNEL_A_B_COMPARISON.json')
+          d=json.loads(p.read_text())
+          if d['result']!='PASS' or d['mismatches']:
+              raise SystemExit('kernel A/B mismatch: '+', '.join(d['mismatches']))
+          PY
+
+      - name: Freeze Kernel Attestation and evidence manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          ev=pathlib.Path('/tmp/gateq-kernel-evidence')
+          def sha(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+          ab=json.loads((ev/'KERNEL_A_B_COMPARISON.json').read_text())
+          assert ab['result']=='PASS'
+          src_archive_sha=sha(ev/'kernel-source.tar.gz')
+          att={
+              'schema':'KERNEL_ATTESTATION_V1',
+              'status':'QUALIFIED_CANDIDATE_PENDING_FRESH_AUDIT',
+              'kernel':{
+                  'repository':'microsoft/WSL2-Linux-Kernel',
+                  'release':'linux-msft-wsl-6.18.40.1',
+                  'commit':'14794180686c2fb6307fbe359c359bec765249f3',
+                  'tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99',
+                  'source_archive_sha256':src_archive_sha,
+                  'base_config_path':'Microsoft/config-wsl',
+                  'base_config_blob_sha1':'9d187c05816e5b54b6f9bdbca3bc8fd7b30d5752',
+                  'config_sha256':ab['outputs']['final.config']['A_sha256'],
+                  'bzimage_sha256':ab['outputs']['bzImage']['A_sha256'],
+                  'vmlinux_sha256':ab['outputs']['vmlinux']['A_sha256'],
+                  'system_map_sha256':ab['outputs']['System.map']['A_sha256'],
+                  'gnu_build_id':ab['gnu_build_id_A'],
+                  'expected_uname_r':(ev/'A/KERNEL_RELEASE.txt').read_text().strip()
+              },
+              'recipe':{
+                  'build_script_sha256':sha(ev/'build_kernel.sh'),
+                  'config_policy_sha256':sha(ev/'KERNEL_CONFIG_POLICY_V1.json'),
+                  'source_binding_sha256':sha(ev/'KERNEL_SOURCE_BINDING_V1.json'),
+                  'toolchain_oci_manifest_digest':'sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829',
+                  'toolchain_qualification_run_id':36947817583,
+                  'source_date_epoch':1789084800,
+                  'kbuild_build_timestamp':'2026-09-11 00:00:00 UTC',
+                  'kbuild_build_user':'tsuchimaru',
+                  'kbuild_build_host':'gateq-builder',
+                  'kbuild_build_version':'1',
+                  'ccache_disabled':True,
+                  'source_prefix':'/workspace/linux',
+                  'normalized_source_prefix':'/usr/src/linux'
+              },
+              'build_a':{k:v['A_sha256'] for k,v in ab['outputs'].items()},
+              'build_b':{k:v['B_sha256'] for k,v in ab['outputs'].items()},
+              'authorization':{
+                  'kernel_ab':True,
+                  'wsl_change':False,
+                  'wslconfig_change':False,
+                  'custom_kernel_activation':False,
+                  'gate_a':False,
+                  'runtime':False
+              }
+          }
+          (ev/'KERNEL_ATTESTATION_V1.json').write_text(json.dumps(att,indent=2,sort_keys=True)+'\n')
+          PY
+
+          cd "$EVIDENCE_DIR"
+          find . -type f ! -name FILES.sha256 -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > FILES.sha256
+          sha256sum -c FILES.sha256
+
+      - name: Upload Kernel Qualification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-qualification-v01
+          path: /tmp/gateq-kernel-evidence
+          include-hidden-files: true
+          retention-days: 7
