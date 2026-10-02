@@ -24,6 +24,7 @@ if s.count(old)!=1: raise SystemExit('F-09 source anchor mismatch; fail closed')
 src.write_text(s.replace(old,new))
 binding=r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json'; b=json.loads(binding.read_text())
 b['revision']='v0.5'; b['status']='QUALIFIED_REMEDIATED_CANDIDATE_PENDING_FRESH_REAUDIT'
+b['prior_bundle_sha256']='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092'
 b['source_sha256']=hashlib.sha256(src.read_bytes()).hexdigest()
 b['revalidation_policy']={'file_attributes':'exact equality: saved node.tag.FileAttributes == current inspect tag.FileAttributes; mismatch stops FILE_ATTRIBUTES_DRIFT','reparse_tag':'exact equality: saved node.tag.ReparseTag == current inspect tag.ReparseTag; mismatch stops REPARSE_TAG_DRIFT','fail_closed':True}
 b['prior_audit']={'revision':'v0.4','result':'FAIL','critical':0,'major':1,'minor':0,'note':1,'finding_ids':['F-09']}
@@ -51,7 +52,7 @@ r=pathlib.Path(sys.argv[1]); sha=lambda p:hashlib.sha256(p.read_bytes()).hexdige
 b=json.loads((r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').read_text()); e=json.loads((r/'evidence/A_B_BUILD_EXECUTION_V1.json').read_text())
 b.update(binary_a_sha256=sha(r/'bin/A/windows_path_chain_qualifier.exe'),binary_b_sha256=sha(r/'bin/B/windows_path_chain_qualifier.exe'),normalized_object_a_sha256=sha(r/'bin/A/qualifier.obj'),normalized_object_b_sha256=sha(r/'bin/B/qualifier.obj'),import_kernel32_lib_sha256=sha(r/'bin/A/kernel32.lib'),import_ntdll_lib_sha256=sha(r/'bin/A/ntdll.lib'),object_ab_byte_identical=True,binary_ab_byte_identical=True,build_script_sha256=sha(r/'build/build_windows_path_qualifier.sh'),rebuild_ab_script_sha256=sha(r/'build/rebuild_ab.sh'))
 (r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
-e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],result='PASS',fresh_reaudit='PENDING')
+e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='PASS',fresh_reaudit='PENDING')
 (r/'evidence/A_B_BUILD_EXECUTION_V1.json').write_text(json.dumps(e,indent=2,sort_keys=True)+'\n')
 for name in ('PE_FILE.txt','PE_IMPORTS.txt','TOOLCHAIN.txt'):
  (r/'evidence'/name).write_bytes((r/'bin/A'/name).read_bytes())

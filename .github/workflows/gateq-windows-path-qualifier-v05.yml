@@ -34,7 +34,7 @@ jobs:
           base=https://download.swift.org/swift-5.9.2-release/ubuntu2204/swift-5.9.2-RELEASE
           curl --fail --location --proto '=https' --tlsv1.2 "$base/$archive" -o "$archive"
           curl --fail --location --proto '=https' --tlsv1.2 "$base/$archive.sig" -o "$archive.sig"
-          curl --fail --location --proto '=https' --tlsv1.2 https://swift.org/keys/all-keys.asc -o swift-keys.asc
+          curl --fail --location --proto '=https' --tlsv1.2 https://www.swift.org/keys/all-keys.asc -o swift-keys.asc
           gpg --batch --import swift-keys.asc
           status=$(gpg --batch --status-fd 1 --verify "$archive.sig" "$archive" 2>&1)
           printf '%s\n' "$status"
