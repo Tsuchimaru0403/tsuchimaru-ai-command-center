@@ -74,7 +74,7 @@ context={
  'schema':'TSUCHIMARU_CURRENT_RUN_PREUPLOAD_CONTEXT_V1',
  'run_id':int(os.environ['GITHUB_RUN_ID']),
  'job_id':int(os.environ['GITHUB_JOB_ID']),
- 'head_sha':os.environ['GITHUB_HEAD_SHA'],
+ 'head_sha':os.environ['GITHUB_SHA'],
  'job_name':os.environ['GITHUB_JOB'],
  'workflow_path':'.github/workflows/gateq-windows-path-qualifier-v05.yml',
  'primary_artifact_name':'gateq-windows-path-qualifier-v0.5',
