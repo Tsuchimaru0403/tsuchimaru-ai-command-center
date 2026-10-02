@@ -52,9 +52,123 @@ for old,new in (('/usr/local/swift/usr/bin/clang','/usr/bin/clang'),('/usr/local
     if s.count(old)!=1: raise SystemExit(f'expected exactly one pinned tool path anchor: {old}')
     s=s.replace(old,new)
 s=s.replace('"$FILE_TOOL" windows_path_chain_qualifier.exe > PE_FILE.txt','"$FILE_TOOL" -f windows_path_chain_qualifier.exe > PE_FILE.txt')
+old=r"funcs=re.findall(r'^\\s*[0-9a-f]+\\s+<none>\\s+[0-9a-f]+\\s+([A-Za-z0-9_]+)\\s* ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; cat "$BUNDLE/bin/A/PE_IMPORTS.txt" 2>/dev/null || true; exit 1; fi
+{
+  printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
+  printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'build_flags=%s\n' 'Release; clang+lld; X86 only; assertions/tests/examples/benchmarks disabled'
+  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'verification=exact version and llvm commit; mismatch fails closed\n'
+} > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
+python3 - "$BUNDLE" <<'PY'
+import hashlib,json,pathlib,sys
+r=pathlib.Path(sys.argv[1]); sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+b=json.loads((r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').read_text()); e=json.loads((r/'evidence/A_B_BUILD_EXECUTION_V1.json').read_text())
+b.update(binary_a_sha256=sha(r/'bin/A/windows_path_chain_qualifier.exe'),binary_b_sha256=sha(r/'bin/B/windows_path_chain_qualifier.exe'),normalized_object_a_sha256=sha(r/'bin/A/qualifier.obj'),normalized_object_b_sha256=sha(r/'bin/B/qualifier.obj'),import_kernel32_lib_sha256=sha(r/'bin/A/kernel32.lib'),import_ntdll_lib_sha256=sha(r/'bin/A/ntdll.lib'),object_ab_byte_identical=True,binary_ab_byte_identical=True,build_script_sha256=sha(r/'build/build_windows_path_qualifier.sh'),rebuild_ab_script_sha256=sha(r/'build/rebuild_ab.sh'))
+(r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
+e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='PASS',fresh_reaudit='PENDING')
+(r/'evidence/A_B_BUILD_EXECUTION_V1.json').write_text(json.dumps(e,indent=2,sort_keys=True)+'\n')
+for name in ('PE_FILE.txt','PE_IMPORTS.txt','TOOLCHAIN.txt'):
+ (r/'evidence'/name).write_bytes((r/'bin/A'/name).read_bytes())
+keys={
+ 'source':sha(r/'src/windows_path_chain_qualifier.c'),
+ 'build_script':sha(r/'build/build_windows_path_qualifier.sh'),
+ 'rebuild_ab_script':sha(r/'build/rebuild_ab.sh'),
+ 'binding':sha(r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json'),
+ 'PE_A':sha(r/'bin/A/windows_path_chain_qualifier.exe'),
+ 'PE_B':sha(r/'bin/B/windows_path_chain_qualifier.exe'),
+ 'normalized_COFF_A':sha(r/'bin/A/qualifier.obj'),
+ 'normalized_COFF_B':sha(r/'bin/B/qualifier.obj'),
+ 'kernel32_lib':sha(r/'bin/A/kernel32.lib'),
+ 'ntdll_lib':sha(r/'bin/A/ntdll.lib'),
+}
+(r/'evidence/KEY_SHA256.txt').write_text(''.join(f'{k}={v}\n' for k,v in keys.items()))
+prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Return an independent finding-by-finding result.\n'''
+(r/'FRESH_RE_AUDIT_PROMPT_JA.md').write_text(prompt,encoding='utf-8')
+# Verify normalized bytes and hashes before packaging.
+assert (r/'bin/A/qualifier.obj').read_bytes()==(r/'bin/B/qualifier.obj').read_bytes()
+assert (r/'bin/A/windows_path_chain_qualifier.exe').read_bytes()==(r/'bin/B/windows_path_chain_qualifier.exe').read_bytes()
+files=[]
+for p in sorted(x for x in r.rglob('*') if x.is_file() and x.name!='FILES.sha256'):
+ rel=p.relative_to(r).as_posix(); files.append(f'{sha(p)}  {rel}')
+(r/'FILES.sha256').write_text('\n'.join(files)+'\n')
+PY
+AUDIT="$ROOT/FRESH_RE_AUDIT_PROMPT_JA.md"
+cp "$BUNDLE/FRESH_RE_AUDIT_PROMPT_JA.md" "$AUDIT"
+python3 - "$BUNDLE" "$ROOT/gateq-windows-path-qualifier-v0.5.zip" <<'PY'
+import pathlib,sys,zipfile
+r=pathlib.Path(sys.argv[1]); dest=pathlib.Path(sys.argv[2])
+with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+ for p in sorted(x for x in r.rglob('*') if x.is_file()):
+  rel=pathlib.Path('gateq_windows_path_qualifier_v05')/p.relative_to(r)
+  i=zipfile.ZipInfo(rel.as_posix(),(2026,1,1,0,0,0));i.compress_type=zipfile.ZIP_DEFLATED;i.create_system=3;i.external_attr=(0o100644&0xffff)<<16
+  z.writestr(i,p.read_bytes(),compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
+PY
+(cd "$ROOT" && sha256sum gateq-windows-path-qualifier-v0.5.zip > gateq-windows-path-qualifier-v0.5.zip.sha256)
+, text, re.M)"
+new=r"funcs=re.findall(r'^\\s*[0-9a-f]+\\s+(?:<none>\\s+[0-9a-f]+\\s+|[0-9]+\\s+)([A-Za-z0-9_]+)\\s* ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; cat "$BUNDLE/bin/A/PE_IMPORTS.txt" 2>/dev/null || true; exit 1; fi
+{
+  printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
+  printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'build_flags=%s\n' 'Release; clang+lld; X86 only; assertions/tests/examples/benchmarks disabled'
+  printf 'clang_version=%s\n' "$(/usr/bin/clang --version | head -1)"
+  printf 'lld_link_version=%s\n' "$(/usr/bin/lld-link --version | head -1)"
+  printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
+  printf 'verification=exact version and llvm commit; mismatch fails closed\n'
+} > "$BUNDLE/evidence/TOOLCHAIN_INSTALLATION.txt"
+python3 - "$BUNDLE" <<'PY'
+import hashlib,json,pathlib,sys
+r=pathlib.Path(sys.argv[1]); sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+b=json.loads((r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').read_text()); e=json.loads((r/'evidence/A_B_BUILD_EXECUTION_V1.json').read_text())
+b.update(binary_a_sha256=sha(r/'bin/A/windows_path_chain_qualifier.exe'),binary_b_sha256=sha(r/'bin/B/windows_path_chain_qualifier.exe'),normalized_object_a_sha256=sha(r/'bin/A/qualifier.obj'),normalized_object_b_sha256=sha(r/'bin/B/qualifier.obj'),import_kernel32_lib_sha256=sha(r/'bin/A/kernel32.lib'),import_ntdll_lib_sha256=sha(r/'bin/A/ntdll.lib'),object_ab_byte_identical=True,binary_ab_byte_identical=True,build_script_sha256=sha(r/'build/build_windows_path_qualifier.sh'),rebuild_ab_script_sha256=sha(r/'build/rebuild_ab.sh'))
+(r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json').write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
+e.update(head_commit=__import__('os').environ['GITHUB_HEAD_SHA'],run_id=int(__import__('os').environ['GITHUB_RUN_ID']),job_id=int(__import__('os').environ['GITHUB_JOB_ID']),job_name=__import__('os').environ['GITHUB_JOB'],prior_bundle_sha256='ee28c59ef131b994841f5884dac6cdcdc55625b95998893b50db547f34e2a092',result='PASS',fresh_reaudit='PENDING')
+(r/'evidence/A_B_BUILD_EXECUTION_V1.json').write_text(json.dumps(e,indent=2,sort_keys=True)+'\n')
+for name in ('PE_FILE.txt','PE_IMPORTS.txt','TOOLCHAIN.txt'):
+ (r/'evidence'/name).write_bytes((r/'bin/A'/name).read_bytes())
+keys={
+ 'source':sha(r/'src/windows_path_chain_qualifier.c'),
+ 'build_script':sha(r/'build/build_windows_path_qualifier.sh'),
+ 'rebuild_ab_script':sha(r/'build/rebuild_ab.sh'),
+ 'binding':sha(r/'WINDOWS_PATH_QUALIFIER_BINDING_V1.json'),
+ 'PE_A':sha(r/'bin/A/windows_path_chain_qualifier.exe'),
+ 'PE_B':sha(r/'bin/B/windows_path_chain_qualifier.exe'),
+ 'normalized_COFF_A':sha(r/'bin/A/qualifier.obj'),
+ 'normalized_COFF_B':sha(r/'bin/B/qualifier.obj'),
+ 'kernel32_lib':sha(r/'bin/A/kernel32.lib'),
+ 'ntdll_lib':sha(r/'bin/A/ntdll.lib'),
+}
+(r/'evidence/KEY_SHA256.txt').write_text(''.join(f'{k}={v}\n' for k,v in keys.items()))
+prompt='''# FRESH INDEPENDENT STATIC RE-AUDIT — GATE Q WINDOWS PATH QUALIFIER v0.5\n\nAudit the attached canonical v0.5 ZIP bytes independently. Recompute the ZIP SHA-256, verify ZIP integrity, entry set, and every payload in FILES.sha256. Do not trust author claims.\n\nBlocking prior finding: v0.4 F-09 only (MAJOR). Inspect `revalidate()` and verify exact, separate equality comparisons of saved `node.tag.FileAttributes` against current `current.tag.FileAttributes` and saved `node.tag.ReparseTag` against current `current.tag.ReparseTag`; verify mismatch causes fail-closed `FILE_ATTRIBUTES_DRIFT` and `REPARSE_TAG_DRIFT`.\n\nConfirm F-01–F-08 behavior and read-only boundaries remain unchanged from v0.4. Independently inspect source, scripts, build logs, A/B evidence, normalized COFF objects, PE images/imports/headers, binding, toolchain evidence, and all hashes. A/B must be separate fresh outputs and invocations; each lane must independently generate import libraries, compile, normalize only COFF header bytes 4..7 after asserting Machine 0x8664, link with /Brepro, inspect PE, and hash. Compare actual A/B normalized objects and PE bytes. Exact toolchain mismatches must fail closed.\n\nDo not execute the PE on Windows. Do not perform WSL, .wslconfig, Host Activation, Gate A, or Runtime actions. Do not infer Windows Host Qualification or Fresh Re-Audit PASS from build success. Return an independent finding-by-finding result.\n'''
+(r/'FRESH_RE_AUDIT_PROMPT_JA.md').write_text(prompt,encoding='utf-8')
+# Verify normalized bytes and hashes before packaging.
+assert (r/'bin/A/qualifier.obj').read_bytes()==(r/'bin/B/qualifier.obj').read_bytes()
+assert (r/'bin/A/windows_path_chain_qualifier.exe').read_bytes()==(r/'bin/B/windows_path_chain_qualifier.exe').read_bytes()
+files=[]
+for p in sorted(x for x in r.rglob('*') if x.is_file() and x.name!='FILES.sha256'):
+ rel=p.relative_to(r).as_posix(); files.append(f'{sha(p)}  {rel}')
+(r/'FILES.sha256').write_text('\n'.join(files)+'\n')
+PY
+AUDIT="$ROOT/FRESH_RE_AUDIT_PROMPT_JA.md"
+cp "$BUNDLE/FRESH_RE_AUDIT_PROMPT_JA.md" "$AUDIT"
+python3 - "$BUNDLE" "$ROOT/gateq-windows-path-qualifier-v0.5.zip" <<'PY'
+import pathlib,sys,zipfile
+r=pathlib.Path(sys.argv[1]); dest=pathlib.Path(sys.argv[2])
+with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+ for p in sorted(x for x in r.rglob('*') if x.is_file()):
+  rel=pathlib.Path('gateq_windows_path_qualifier_v05')/p.relative_to(r)
+  i=zipfile.ZipInfo(rel.as_posix(),(2026,1,1,0,0,0));i.compress_type=zipfile.ZIP_DEFLATED;i.create_system=3;i.external_attr=(0o100644&0xffff)<<16
+  z.writestr(i,p.read_bytes(),compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
+PY
+(cd "$ROOT" && sha256sum gateq-windows-path-qualifier-v0.5.zip > gateq-windows-path-qualifier-v0.5.zip.sha256)
+, text, re.M)"
+if s.count(old)!=1: raise SystemExit("PE import parser anchor mismatch")
+s=s.replace(old,new)
 p.write_text(s)
 PY
-printf "=== rebuild_ab.sh ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; cat "$BUNDLE/bin/A/PE_IMPORTS.txt" 2>/dev/null || true; exit 1; fi
+printf "=== rebuild_ab.sh" ===\\n" >&2; cat "$BUNDLE/build/rebuild_ab.sh" >&2; printf "=== build_windows_path_qualifier.sh ===\\n" >&2; cat "$BUNDLE/build/build_windows_path_qualifier.sh" >&2; if ! bash -x "$BUNDLE/build/rebuild_ab.sh"; then cat "$BUNDLE/evidence/BUILD_A.log" "$BUNDLE/evidence/BUILD_B.log" 2>/dev/null || true; cat "$BUNDLE/bin/A/PE_IMPORTS.txt" 2>/dev/null || true; exit 1; fi
 {
   printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
   printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
