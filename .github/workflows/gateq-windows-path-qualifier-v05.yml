@@ -1,4 +1,4 @@
-name: Gate Q Windows Path Qualifier v0.5 remediation
+name: Gate Q Windows Path Qualifier v0.5 toolchain verification
 
 on:
   push:
@@ -7,118 +7,25 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
-  build-v05:
-    name: Build v0.5 Candidate
+  verify-swift-toolchain:
+    name: Verify official Swift Linux toolchain
     runs-on: ubuntu-22.04
-    timeout-minutes: 120
     steps:
-      - name: Checkout remediation branch
-        uses: actions/checkout@v4
-
-      - name: Install exact Python 3.13.5
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13.5'
-
-      - name: Build pinned Swift LLVM Clang and LLD toolchain
+      - name: Verify exact Clang and LLD in pinned Swift image
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ca-certificates git cmake ninja-build build-essential python3 binutils file coreutils
-          source_dir="$RUNNER_TEMP/swift-llvm-project"
-          build_dir="$RUNNER_TEMP/swift-llvm-build"
-          git init "$source_dir"
-          git -C "$source_dir" remote add origin https://github.com/swiftlang/llvm-project.git
-          git -C "$source_dir" fetch --depth=1 origin 10999b6d034fe318f3d56c83bddb6572593a8bb0
-          git -C "$source_dir" checkout --detach FETCH_HEAD
-          test "$(git -C "$source_dir" rev-parse HEAD)" = 10999b6d034fe318f3d56c83bddb6572593a8bb0
-          cmake -S "$source_dir/llvm" -B "$build_dir" -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DLLVM_ENABLE_PROJECTS='clang;lld' \
-            -DLLVM_TARGETS_TO_BUILD=X86 \
-            -DLLVM_ENABLE_ASSERTIONS=OFF \
-            -DLLVM_INCLUDE_TESTS=OFF \
-            -DLLVM_INCLUDE_EXAMPLES=OFF \
-            -DLLVM_INCLUDE_BENCHMARKS=OFF
-          cmake --build "$build_dir" --target clang lld --parallel 4
-          test -x "$build_dir/bin/clang"
-          test -x "$build_dir/bin/lld-link"
-          sudo mkdir -p /usr/local/swift/usr/bin
-          sudo ln -sf "$build_dir/bin/clang" /usr/local/swift/usr/bin/clang
-          sudo ln -sf "$build_dir/bin/lld-link" /usr/local/swift/usr/bin/lld-link
-          echo "Resolved clang: $(/usr/local/swift/usr/bin/clang --version | head -1)"
-          echo "Resolved lld-link: $(/usr/local/swift/usr/bin/lld-link --version | head -1)"
-          test "$(/usr/local/swift/usr/bin/clang --version | head -1)" = 'clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
-          test "$(/usr/local/swift/usr/bin/lld-link --version | head -1)" = 'LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
-          echo "LLVM_SOURCE_COMMIT=$(git -C "$source_dir" rev-parse HEAD)" >> "$GITHUB_ENV"
-          sudo mkdir -p /opt/pyvenv
-          sudo "${pythonLocation}/bin/python" -m venv /opt/pyvenv
-          sudo ln -sf /opt/pyvenv/bin/python3 /opt/pyvenv/python3
-          test "$(/opt/pyvenv/python3 --version 2>&1)" = 'Python 3.13.5'
-
-      - name: Record actual job ID
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          job_id=$(curl --fail --silent --show-error \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H 'Accept: application/vnd.github+json' \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs" \
-            | jq -er '.jobs[] | select(.name == "Build v0.5 Candidate") | .id')
-          echo "GITHUB_JOB_ID=$job_id" >> "$GITHUB_ENV"
-
-      - name: Remediate F-09, independently rebuild A/B, and package candidate
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash gateq/windows-path-qualifier/v0.5-remediation/build_v05.sh
-
-      - name: Upload canonical v0.5 candidate
-        id: candidate
-        uses: actions/upload-artifact@v4
-        with:
-          name: gateq-windows-path-qualifier-v0.5
-          path: |
-            ${{ runner.temp }}/gateq-v05/gateq-windows-path-qualifier-v0.5.zip
-            ${{ runner.temp }}/gateq-v05/gateq-windows-path-qualifier-v0.5.zip.sha256
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 90
-
-      - name: Record GitHub artifact identity
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p "${RUNNER_TEMP}/gateq-v05/run-record"
-          curl --fail --silent --show-error \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H 'Accept: application/vnd.github+json' \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-            | jq -er --arg name 'gateq-windows-path-qualifier-v0.5' '.artifacts[] | select(.name==$name)' \
-            > "${RUNNER_TEMP}/gateq-v05/run-record/candidate-artifact.json"
-          python3 - <<'PY'
-          import json,os,pathlib,subprocess
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'gateq-v05/run-record/candidate-artifact.json'
-          a=json.loads(p.read_text())
-          job_id=int(os.environ['GITHUB_JOB_ID'])
-          rec={'schema':'TSUCHIMARU_GATEQ_ARTIFACT_RECORD_V1','artifact_name':a['name'],'artifact_id':a['id'],'artifact_size_in_bytes':a['size_in_bytes'],'github_digest':a.get('digest'),'head_commit':os.environ['GITHUB_SHA'],'run_id':int(os.environ['GITHUB_RUN_ID']),'job_id':job_id,'job_name':'Build v0.5 Candidate','artifact_url':a.get('archive_download_url'),'created_at':a.get('created_at'),'expires_at':a.get('expires_at')}
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'gateq-v05/run-record/ARTIFACT_RECORD.json'
-          out.write_text(json.dumps(rec,indent=2,sort_keys=True)+'\n')
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f: f.write('## Gate Q v0.5 artifact record\n\n```json\n'+json.dumps(rec,indent=2,sort_keys=True)+'\n```\n')
-          PY
-
-      - name: Upload artifact record
-        uses: actions/upload-artifact@v4
-        with:
-          name: gateq-windows-path-qualifier-v0.5-run-record
-          path: ${{ runner.temp }}/gateq-v05/run-record/ARTIFACT_RECORD.json
-          if-no-files-found: error
-          retention-days: 90
+          image='swift:6.2.1-jammy@sha256:6e33c70a59180c9b518f67728538312975cb3891177d20215cd2e31bdfe70791'
+          expected_clang='clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
+          expected_lld='LLD 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)'
+          docker run --platform linux/amd64 --pull=always --rm "$image" bash -lc '
+            set -euo pipefail
+            clang=$(/usr/local/swift/usr/bin/clang --version | head -1)
+            lld=$(/usr/local/swift/usr/bin/lld-link --version | head -1)
+            printf "clang=%s\n" "$clang"
+            printf "lld=%s\n" "$lld"
+            test "$clang" = "$EXPECTED_CLANG"
+            test "$lld" = "$EXPECTED_LLD"
+          '
