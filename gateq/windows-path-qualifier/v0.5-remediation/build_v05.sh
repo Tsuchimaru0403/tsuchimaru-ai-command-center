@@ -47,8 +47,9 @@ test "$(/opt/pyvenv/python3 --version 2>&1)" = 'Python 3.13.5'
 export GITHUB_HEAD_SHA="${GITHUB_SHA:?}" GITHUB_RUN_ID="${GITHUB_RUN_ID:?}" GITHUB_JOB="${GITHUB_JOB:?}" GITHUB_JOB_ID="${GITHUB_JOB_ID:?}"
 bash "$BUNDLE/build/rebuild_ab.sh"
 {
-  printf 'distribution_url=%s\n' 'https://download.swift.org/swift-5.9.2-release/ubuntu2204/swift-5.9.2-RELEASE/swift-5.9.2-RELEASE-ubuntu22.04.tar.gz'
-  printf 'distribution_sha256=%s\n' "${SWIFT_ARCHIVE_SHA256:?}"
+  printf 'source_repository=%s\n' 'https://github.com/swiftlang/llvm-project.git'
+  printf 'source_commit=%s\n' "${LLVM_SOURCE_COMMIT:?}"
+  printf 'build_flags=%s\n' 'Release; clang+lld; X86 only; assertions/tests/examples/benchmarks disabled'
   printf 'clang_version=%s\n' "$(/usr/local/swift/usr/bin/clang --version | head -1)"
   printf 'lld_link_version=%s\n' "$(/usr/local/swift/usr/bin/lld-link --version | head -1)"
   printf 'python_version=%s\n' "$(/opt/pyvenv/python3 --version 2>&1)"
