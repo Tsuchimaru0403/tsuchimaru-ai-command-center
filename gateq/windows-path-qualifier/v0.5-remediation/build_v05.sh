@@ -50,8 +50,10 @@ b['prior_audit']={'revision':'v0.4','result':'FAIL','critical':0,'major':1,'mino
 binding.write_text(json.dumps(b,indent=2,ensure_ascii=False)+'\n')
 matrix=r/'evidence/REMEDIATION_MATRIX.md'; m=matrix.read_text(encoding='utf-8')
 m=m.replace('F-09','F-10').replace('v0.4 — v0.3 Fresh Audit Remediation Matrix','v0.5 — F-10 evidence-only remediation matrix')
-.replace('v0.4 — v0.3 Fresh Audit Remediation Matrix','v0.5 — v0.4 Fresh Audit Remediation Matrix').replace('Prior Fresh Static Audit result for v0.3: FAIL — CRITICAL 0 / MAJOR 4 / MINOR 2 / NOTE 2.','Prior Fresh Static Audit result for v0.4: FAIL — CRITICAL 0 / MAJOR 1 / MINOR 0 / NOTE 1 (blocking F-09 only).')
 m += '\n| F-09 MAJOR — attribute/tag drift | `revalidate()` compares saved and current `FileAttributes` and `ReparseTag` individually using exact equality; mismatches stop as `FILE_ATTRIBUTES_DRIFT` / `REPARSE_TAG_DRIFT`. | REMEDIATED CANDIDATE / pending Fresh Re-Audit |\n\nF-01–F-08 remain as recorded in v0.4. No Windows host execution, Host Activation, Gate A, or Runtime was performed.\n'
+m=m.replace('F-09','F-10').replace('F-08 remain','F-08 remain')
+m=m.replace('v0.4 — v0.3 Fresh Audit Remediation Matrix','v0.5 — F-10 evidence-only remediation matrix')
+m=m.replace('Prior Fresh Static Audit result for v0.3: FAIL — CRITICAL 0 / MAJOR 4 / MINOR 2 / NOTE 2.','Prior Fresh Static Audit result for v0.4: FAIL — CRITICAL 0 / MAJOR 1 / MINOR 0 / NOTE 1 (F-10 only).')
 matrix.write_text(m,encoding='utf-8')
 compat_note="## Evidence-only build compatibility adjustments\n\nThe v0.5 remediation build carries two build/evidence compatibility adjustments from v0.4: `FILE_TOOL` changes from `/usr/bin/file` to `/usr/bin/objdump` (invoked with `-f` solely to record PE file-format evidence), and the import-evidence parser accepts the decimal address-column form emitted by the pinned image's objdump. These changes affect evidence collection/parsing only; they do not change F-01–F-09 implementation source, compiler inputs/options, linker inputs/options, or runtime behavior. The A/B artifacts are freshly rebuilt from identical source and their normalized COFF, PE, and import libraries are compared byte-for-byte. Independent audit should verify this scope from the bundled build scripts and logs."
 def append_once(path, marker, text):
