@@ -124,10 +124,12 @@ The canonical ZIP is uploaded as the primary artifact first. Because GitHub arti
 append_once(r/'README_JA.md','PASS result output fail-closed remediation',note)
 append_once(ev/'REMEDIATION_MATRIX.md','PASS result output fail-closed remediation',note)
 
-prompt=r/'FRESH_RE_AUDIT_PROMPT_JA.md'
-pd=prompt.read_text(encoding='utf-8')
-pd += """\n## Additional blocking findings to verify\n\nFINDING-01: verify the separately supplied current-run binding artifact records the same current run/job/HEAD/primary artifact ID/size/digest as the actual downloaded primary outer artifact, and that the primary outer artifact contains the canonical ZIP under audit. Do not require the primary ZIP to self-contain its post-upload GitHub artifact ID/digest.\n\nFINDING-02: inspect actual runtime source and verify WriteFile false or a short write sets WRITE_FAILED, and that gateq_entry checks WRITE_FAILED after the final PASS JSON write and before ExitProcess(0), exiting nonzero on output failure.\n"""
-prompt.write_text(pd,encoding='utf-8')
+(ev/'FRESH_RE_AUDIT_RESULT_OUTPUT_SUPPLEMENT.md').write_text("""# Additional blocking findings to verify
+
+FINDING-01: verify the separately supplied current-run binding artifact records the same current run/job/HEAD/primary artifact ID/size/digest as the actual downloaded primary outer artifact, and that the primary outer artifact contains the canonical ZIP under audit. Do not require the primary ZIP to self-contain its post-upload GitHub artifact ID/digest.
+
+FINDING-02: inspect actual runtime source and verify WriteFile false or a short write sets WRITE_FAILED, and that gateq_entry checks WRITE_FAILED after the final PASS JSON write and before ExitProcess(0), exiting nonzero on output failure.
+""",encoding='utf-8')
 PYRESULT
 '''
 
