@@ -33,14 +33,14 @@ jobs:
                 if path=$(command -v "$tool" 2>/dev/null); then "$path" --version 2>&1 || true; else printf "%s unavailable\\n" "$tool"; fi
               done
               printf "=== PATH-related environment ===\\n"
-              env | sort | grep -E "^(PATH|SWIFT[^=]*|LLVM[^=]*|CLANG[^=]*|LD_LIBRARY_PATH)=" || true
+              env | sort | grep -E "^(PATH|SWIFT_VERSION|SWIFT_BRANCH|SWIFT_PLATFORM|LD_LIBRARY_PATH)=" || true
               printf "=== /usr/local ===\\n"
               ls -la /usr/local 2>&1 || true
               printf "=== /usr/local/swift (when present) ===\\n"
               if test -e /usr/local/swift; then ls -la /usr/local/swift 2>&1; else printf "/usr/local/swift=NOT_FOUND\\n"; fi
               printf "=== bounded candidate paths (depth <= 7; first 80) ===\\n"
-              find /usr /opt /usr/local -maxdepth 7 -type f \\( -name clang -o -name clang-17 -o -name clang-19 -o -name lld-link -o -name ld.lld -o -name swiftc \\) -print 2>/dev/null | head -n 80 || true
-              mapfile -t clangs < <({ for t in clang clang-17 clang-19; do command -v "$t" 2>/dev/null || true; done; find /usr /opt /usr/local -maxdepth 7 -type f \\( -name clang -o -name clang-17 -o -name clang-19 \\) -print 2>/dev/null; } | sort -u | head -n 80)
+              find /usr /opt /usr/local -maxdepth 7 -type f \( -name clang -o -name clang-17 -o -name clang-19 -o -name lld-link -o -name ld.lld -o -name swiftc \) -print 2>/dev/null | head -n 80 || true
+              mapfile -t clangs < <({ for t in clang clang-17 clang-19; do command -v "$t" 2>/dev/null || true; done; find /usr /opt /usr/local -maxdepth 7 -type f \( -name clang -o -name clang-17 -o -name clang-19 \) -print 2>/dev/null; } | sort -u | head -n 80)
               mapfile -t llds < <({ command -v lld-link 2>/dev/null || true; find /usr /opt /usr/local -maxdepth 7 -type f -name lld-link -print 2>/dev/null; } | sort -u | head -n 80)
               clang_match=0
               lld_match=0
