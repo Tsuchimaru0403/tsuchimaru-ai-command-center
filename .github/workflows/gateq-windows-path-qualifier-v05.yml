@@ -170,7 +170,10 @@ jobs:
               print(f"- FILES.sha256 payload count: {len(rows)}")
               print(f"- A/B PE SHA-256: {keys.get('PE_A')} / {keys.get('PE_B')}")
               print(f"- A/B normalized COFF SHA-256: {keys.get('normalized_COFF_A')} / {keys.get('normalized_COFF_B')}")
-              print(f"- Import library A/B SHA-256: kernel32={keys.get('kernel32_lib')} / {keys.get('kernel32_lib_B')}; ntdll={keys.get('ntdll_lib')} / {keys.get('ntdll_lib_B')}")
+              def payload_hash(suffix):
+                  entry=next(n for n in names if n.endswith(suffix))
+                  return hashlib.sha256(z.read(entry)).hexdigest()
+              print(f"- Import library A/B SHA-256: kernel32={payload_hash('/bin/A/kernel32.lib')} / {payload_hash('/bin/B/kernel32.lib')}; ntdll={payload_hash('/bin/A/ntdll.lib')} / {payload_hash('/bin/B/ntdll.lib')}")
               print(f"- FILES.sha256 verification: {len(rows)}/{len(payloads)} payloads PASS; ZIP CRC PASS")
               print(f"- Toolchain fact check: pinned image, linux/amd64, /usr/bin/clang, /usr/bin/lld-link; no source build")
           PY
