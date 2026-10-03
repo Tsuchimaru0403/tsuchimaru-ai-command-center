@@ -1,0 +1,50 @@
+{
+  "Gate_Q": "HOLD",
+  "K0_control": {
+    "conf_binary_sha256": "2c38b055337f6f8ecb6798e0a8924109d358942e97a5db947e19ba7f54c7cacc",
+    "config_sha256": "08b3a6c59e53218a8c771b961f3246df2164cdc6e38ce3d37eb9f651637df03c",
+    "host_kconfig_objects": [
+      "scripts/kconfig/conf.o",
+      "scripts/kconfig/lexer.lex.o",
+      "scripts/kconfig/preprocess.o",
+      "scripts/kconfig/menu.o",
+      "scripts/kconfig/parser.tab.o",
+      "scripts/kconfig/symbol.o",
+      "scripts/kconfig/confdata.o",
+      "scripts/kconfig/util.o",
+      "scripts/kconfig/expr.o"
+    ],
+    "kernel_objects": [],
+    "kernel_outputs": [],
+    "lane": "K0_CONTROL",
+    "second_normalization_byte_identical": true
+  },
+  "K1": {
+    "conf_binary_sha256": "2c38b055337f6f8ecb6798e0a8924109d358942e97a5db947e19ba7f54c7cacc",
+    "config_sha256": "7415e92062b1fe82232e50e2d483f955c4fd80a3794e1a39191a7dc12d00f405",
+    "host_kconfig_objects": [
+      "scripts/kconfig/conf.o",
+      "scripts/kconfig/lexer.lex.o",
+      "scripts/kconfig/preprocess.o",
+      "scripts/kconfig/menu.o",
+      "scripts/kconfig/parser.tab.o",
+      "scripts/kconfig/symbol.o",
+      "scripts/kconfig/confdata.o",
+      "scripts/kconfig/util.o",
+      "scripts/kconfig/expr.o"
+    ],
+    "kernel_objects": [],
+    "kernel_outputs": [],
+    "lane": "K1",
+    "second_normalization_byte_identical": true
+  },
+  "final_module_entries": 0,
+  "kernel_build_authorized": false,
+  "qualified_toolchain_run": 36947817583,
+  "review_required": "K1 final acceptance and every dependency delta decision remain the local evidence review step.",
+  "runtime_authorized": false,
+  "source_commit": "14794180686c2fb6307fbe359c359bec765249f3",
+  "source_tree": "3b5ec33f7fd60f23d01064150f7c7020d2e6af99",
+  "status": "PASS_CONFIG_NORMALIZATION_ONLY",
+  "toolchain_oci_manifest_digest": "sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829"
+}
