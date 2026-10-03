@@ -86,7 +86,6 @@ jobs:
               assert actual==expected[tool+'_first_line'],(tool,actual,expected[tool+'_first_line'])
               p=pathlib.Path(shutil.which(tool)).resolve()
               versions[tool]={'first_line':actual,'path':str(p),'sha256':sha(p),'matches_qualified_image_identity':True}
-          # v0.8 remediation: prove the same Kconfig execution environment sees the qualified pahole.
           pahole_path=shutil.which('pahole')
           assert pahole_path, 'pahole missing from qualified rootfs PATH'
           pahole_resolved=str(pathlib.Path(pahole_path).resolve())
@@ -101,31 +100,7 @@ jobs:
           plugin_header=pathlib.Path(gcc_plugin_dir)/'include/plugin-version.h'
           package_lock=(ev/'TOOLCHAIN_PACKAGE_LOCK.tsv').read_text()
           plugin_rows=[line for line in package_lock.splitlines() if 'plugin' in line.lower()]
-          js('PAHOLE_GCC_CAPABILITY_EVIDENCE.json',{
-              'execution_environment':'same verified qualified OCI rootfs under unprivileged PRoot as Kconfig normalization',
-              'pahole':{
-                  'command_v':pahole_path,
-                  'resolved_path':pahole_resolved,
-                  'version_first_line':pahole_version,
-                  'helper_path_output':helper_path.stdout.strip(),
-                  'helper_path_exit_code':helper_path.returncode,
-                  'helper_absolute_output':helper_abs.stdout.strip(),
-                  'helper_absolute_exit_code':helper_abs.returncode,
-                  'expected_kconfig_version_integer':125
-              },
-              'gcc_plugin':{
-                  'gcc_plugin_directory':gcc_plugin_dir,
-                  'plugin_version_header':str(plugin_header),
-                  'plugin_version_header_present':plugin_header.exists(),
-                  'package_lock_plugin_rows':plugin_rows,
-                  'requires_independent_disposition':True
-              },
-              'Docker_executed':False,
-              'Buildah_executed':False,
-              'privileged_initializer_executed':False,
-              'kernel_build_authorized':False,
-              'runtime_authorized':False
-          })
+          js('PAHOLE_GCC_CAPABILITY_EVIDENCE.json',{'execution_environment':'same verified qualified OCI rootfs under unprivileged PRoot as Kconfig normalization','pahole':{'command_v':pahole_path,'resolved_path':pahole_resolved,'version_first_line':pahole_version,'helper_path_output':helper_path.stdout.strip(),'helper_path_exit_code':helper_path.returncode,'helper_absolute_output':helper_abs.stdout.strip(),'helper_absolute_exit_code':helper_abs.returncode,'expected_kconfig_version_integer':125},'gcc_plugin':{'gcc_plugin_directory':gcc_plugin_dir,'plugin_version_header':str(plugin_header),'plugin_version_header_present':plugin_header.exists(),'package_lock_plugin_rows':plugin_rows,'requires_independent_disposition':True},'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False,'kernel_build_authorized':False,'runtime_authorized':False})
           js('TOOLCHAIN_EFFECTIVE_IDENTITY.json',{'tools':versions,'qualified_tool_versions':expected,'environment':dict(os.environ),'mode':'unprivileged PRoot over verified qualified OCI rootfs; no Docker, Buildah, privileged initializer, kernel compile or runtime workload'})
           commands=[]
           def normalize(lane,data,result):
@@ -154,13 +129,7 @@ jobs:
           post=(ev/'K1_POST_OLDDEFCONFIG.config').read_bytes()
           assert not re.search(rb'^CONFIG_[A-Za-z0-9_]+=m$',post,re.M)
           assert b'CONFIG_MODULES=y' not in post
-          required_btf=[
-              b'CONFIG_PAHOLE_VERSION=125',
-              b'CONFIG_DEBUG_INFO_BTF=y',
-              b'CONFIG_PAHOLE_HAS_SPLIT_BTF=y',
-              b'CONFIG_PAHOLE_HAS_LANG_EXCLUDE=y',
-              b'CONFIG_PROBE_EVENTS_BTF_ARGS=y'
-          ]
+          required_btf=[b'CONFIG_PAHOLE_VERSION=125',b'CONFIG_DEBUG_INFO_BTF=y',b'CONFIG_PAHOLE_HAS_SPLIT_BTF=y',b'CONFIG_PAHOLE_HAS_LANG_EXCLUDE=y',b'CONFIG_PROBE_EVENTS_BTF_ARGS=y']
           missing_btf=[x.decode() for x in required_btf if x not in post]
           js('PAHOLE_BTF_NORMALIZED_ASSERTIONS.json',{'required':[x.decode() for x in required_btf],'missing':missing_btf,'pass':not missing_btf})
           assert not missing_btf,missing_btf
@@ -255,56 +224,19 @@ jobs:
           from pathlib import Path
           import hashlib, json, zipfile
           ev=Path('/tmp/gateq-kconfig-evidence')
-          readme="""# Gate Q Kconfig derivation v0.8 — Fresh Re-Audit packet
-
-State: derivation-only qualification evidence. Gate Q remains HOLD.
-
-v0.8 remediation directly verifies, inside the same qualified OCI rootfs used for Kconfig normalization:
-- pahole resolves to /usr/bin/pahole
-- pahole reports v1.25
-- scripts/pahole-version.sh returns 125 via PATH and absolute binding
-- PAHOLE=/usr/bin/pahole is passed to every K0/K1 olddefconfig command
-- normalized CONFIG_PAHOLE_VERSION=125 and core BTF capability symbols are retained
-- GCC plugin directory/header presence and package-lock rows are captured for independent disposition
-
-Preserved boundaries: no Docker, Buildah, privileged initializer, kernel build, runtime workload, Gate A, Stage 0B runtime, or production authorization.
-"""
-          prompt="""# Fresh Independent Re-Audit — Gate Q Kconfig derivation v0.8
-
-Independently audit the canonical v0.8 ZIP and manifest. Verify the ZIP digest, every REMOTE_FILES.sha256 entry, fixed source commit/tree/baseline, qualified OCI/toolchain binding, all 760 CONFIG_*=m inputs including the eight lowercase-x symbols, K0/K1 normalization and second-run byte identity, and absence of kernel objects/outputs.
-
-Specifically reassess v0.7 MAJOR #1 by checking PAHOLE_GCC_CAPABILITY_EVIDENCE.json, PAHOLE_BTF_NORMALIZED_ASSERTIONS.json, NORMALIZATION_COMMANDS.json, K0/K1 configs and logs. Confirm that the same Kconfig environment resolves /usr/bin/pahole v1.25, scripts/pahole-version.sh returns 125, make explicitly binds PAHOLE=/usr/bin/pahole, and normalized Kconfig retains CONFIG_PAHOLE_VERSION=125 plus the recorded BTF capability symbols.
-
-Reassess the GCC plugin MINOR using measured plugin header/package-lock evidence; do not assume intent beyond the evidence. Preserve the previously closed v0.7 outer-ZIP hash finding. Review semantic deltas including MD_AUTODETECT=y.
-
-Return PASS/FAIL and CRITICAL/MAJOR/MINOR/NOTE counts with remaining blockers. Do not authorize Gate A, Stage 0B runtime, production, Docker runtime, privileged initialization, or kernel runtime. Gate Q remains HOLD pending Fresh Independent Re-Audit and Human Owner acceptance.
-"""
+          readme="# Gate Q Kconfig derivation v0.8 — Fresh Re-Audit packet\\n\\nState: derivation-only qualification evidence. Gate Q remains HOLD.\\n\\nv0.8 verifies in the same qualified OCI rootfs used for Kconfig normalization: /usr/bin/pahole resolution, pahole v1.25, scripts/pahole-version.sh=125 via PATH and absolute binding, PAHOLE=/usr/bin/pahole on all K0/K1 olddefconfig commands, normalized CONFIG_PAHOLE_VERSION=125 plus core BTF capability symbols, and GCC plugin directory/header/package-lock evidence.\\n\\nNo Docker, Buildah, privileged initializer, kernel build, runtime workload, Gate A, Stage 0B runtime, or production authorization."
+          prompt="# Fresh Independent Re-Audit — Gate Q Kconfig derivation v0.8\\n\\nIndependently audit the canonical v0.8 ZIP and manifest. Verify the ZIP digest, every REMOTE_FILES.sha256 entry, fixed source commit/tree/baseline, qualified OCI/toolchain binding, all 760 module inputs including the eight lowercase-x symbols, K0/K1 normalization and second-run byte identity, and absence of kernel objects/outputs.\\n\\nReassess v0.7 MAJOR #1 using PAHOLE_GCC_CAPABILITY_EVIDENCE.json, PAHOLE_BTF_NORMALIZED_ASSERTIONS.json, NORMALIZATION_COMMANDS.json, configs and logs. Confirm same-environment /usr/bin/pahole v1.25, scripts/pahole-version.sh=125, explicit PAHOLE=/usr/bin/pahole binding, and normalized CONFIG_PAHOLE_VERSION=125 plus recorded BTF symbols. Reassess GCC plugin MINOR using measured header/package-lock evidence without assuming intent. Preserve the closed v0.7 outer-ZIP hash finding and review semantic deltas including MD_AUTODETECT=y.\\n\\nReturn PASS/FAIL and CRITICAL/MAJOR/MINOR/NOTE counts. Do not authorize Gate A, Stage 0B runtime, production, Docker runtime, privileged initialization, or kernel runtime. Gate Q remains HOLD pending Fresh Independent Re-Audit and Human Owner acceptance."
           (ev/'README_V08.md').write_text(readme)
           (ev/'FRESH_INDEPENDENT_REAUDIT_PROMPT_V08.md').write_text(prompt)
           files=[p for p in sorted(ev.rglob('*')) if p.is_file() and p.name!='REMOTE_FILES.sha256']
-          (ev/'REMOTE_FILES.sha256').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.relative_to(ev).as_posix()+'\n' for p in files))
+          (ev/'REMOTE_FILES.sha256').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.relative_to(ev).as_posix()+'\\n' for p in files))
           canonical=Path('/tmp/gateq-kconfig-derivation-v08.zip')
           with zipfile.ZipFile(canonical,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
               for p in sorted(ev.rglob('*')):
                   if p.is_file():
                       z.write(p,p.relative_to(ev).as_posix())
-          manifest={
-              'schema_version':1,
-              'project':'Gate Q Kconfig derivation v0.8',
-              'artifact':'gateq-kconfig-derivation-v08.zip',
-              'artifact_sha256':hashlib.sha256(canonical.read_bytes()).hexdigest(),
-              'artifact_size':canonical.stat().st_size,
-              'source_commit':'14794180686c2fb6307fbe359c359bec765249f3',
-              'source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99',
-              'result':'STATIC_DERIVATION_ONLY_PENDING_FRESH_INDEPENDENT_REAUDIT',
-              'Gate_Q':'HOLD',
-              'kernel_build_authorized':False,
-              'runtime_authorized':False,
-              'Docker_executed':False,
-              'Buildah_executed':False,
-              'privileged_initializer_executed':False
-          }
-          Path('/tmp/CANONICAL_ARTIFACT_MANIFEST_V08.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
+          manifest={'schema_version':1,'project':'Gate Q Kconfig derivation v0.8','artifact':'gateq-kconfig-derivation-v08.zip','artifact_sha256':hashlib.sha256(canonical.read_bytes()).hexdigest(),'artifact_size':canonical.stat().st_size,'source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99','result':'STATIC_DERIVATION_ONLY_PENDING_FRESH_INDEPENDENT_REAUDIT','Gate_Q':'HOLD','kernel_build_authorized':False,'runtime_authorized':False,'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False}
+          Path('/tmp/CANONICAL_ARTIFACT_MANIFEST_V08.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\\n')
           print('CANONICAL_V08_SHA256 '+manifest['artifact_sha256'])
           PY_PACKET
       - name: Upload canonical v0.8 re-audit packet
