@@ -215,7 +215,7 @@ cp "$OUT/A/K1_POST_OLDDEFCONFIG.config" "$OUT/K1_FINAL.config"
 # matching the canonical build recipe rather than mutating an already-normalized K1.
 src="$ROOT/linux-A"
 cp "$OUT/K0_BASELINE.config" "$src/.config"
-sed -i -E 's/^(CONFIG_[A-Za-z0-9_]+)=m$/\\1=y/' "$src/.config"
+sed -i -E 's/^(CONFIG_[A-Za-z0-9_]+)=m$/\1=y/' "$src/.config"
 "$src/scripts/config" --file "$src/.config" --disable SECURITY
 "$src/scripts/config" --file "$src/.config" --disable MODULES
 "$src/scripts/config" --file "$src/.config" --disable BPF_SYSCALL
