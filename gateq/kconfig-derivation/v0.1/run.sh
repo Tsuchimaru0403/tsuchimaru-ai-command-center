@@ -7,7 +7,7 @@ set -euo pipefail
 : "${QUALIFIED_FINAL_CONFIG_SHA256:?}"
 : "${CC:=gcc-13}"
 : "${HOSTCC:=gcc-13}"
-export ARCH=x86_64 CC HOSTCC LC_ALL=C LANG=C TZ=UTC
+export ARCH=x86 CC HOSTCC LC_ALL=C LANG=C TZ=UTC
 
 ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
 OUT="$ROOT/out"
