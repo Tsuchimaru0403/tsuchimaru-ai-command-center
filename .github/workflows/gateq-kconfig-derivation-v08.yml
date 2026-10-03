@@ -92,9 +92,10 @@ jobs:
           assert pahole_path=='/usr/bin/pahole',pahole_path
           probe=subprocess.run(['sh','-c','command -v pahole; pahole --version; scripts/pahole-version.sh pahole'],cwd=src,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=os.environ,check=False)
           probe_lines=probe.stdout.strip().splitlines()
-          (ev/'PAHOLE_PROBE_RAW.txt').write_text(probe.stdout+'\\nreturn_code='+str(probe.returncode)+'\\n')
-          assert probe.returncode==0,{'return_code':probe.returncode,'stdout':probe.stdout}
-          assert probe_lines[-1]=='125',probe.stdout
+          bound_probe=subprocess.run(['sh','-c','scripts/pahole-version.sh /usr/bin/pahole'],cwd=src,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=os.environ,check=False)
+          (ev/'PAHOLE_PROBE_RAW.txt').write_text('PATH probe (requested command):\\n'+probe.stdout+'\\nreturn_code='+str(probe.returncode)+'\\nexplicit absolute binding:\\n'+bound_probe.stdout+'\\nreturn_code='+str(bound_probe.returncode)+'\\n')
+          assert len(probe_lines)>=3 and probe_lines[0]=='/usr/bin/pahole' and probe_lines[1]=='v1.25',{'return_code':probe.returncode,'stdout':probe.stdout}
+          assert bound_probe.returncode==0 and bound_probe.stdout.strip()=='125',{'return_code':bound_probe.returncode,'stdout':bound_probe.stdout}
           gcc_plugin_dir=subprocess.check_output(['gcc','-print-file-name=plugin'],text=True).strip()
           plugin_header=pathlib.Path(gcc_plugin_dir)/'include/plugin-version.h'
           package_lock=(ev/'TOOLCHAIN_PACKAGE_LOCK.tsv').read_text()
@@ -102,7 +103,7 @@ jobs:
           assert plugin_header.exists()==plugin_package_present,{'header':str(plugin_header),'exists':plugin_header.exists(),'package_present':plugin_package_present}
           js('PAHOLE_GCC_CAPABILITY_EVIDENCE.json',{
               'execution_environment':'same verified qualified OCI rootfs under unprivileged PRoot; same sanitized environment as Kconfig',
-              'pahole':{'command_v_output':probe_lines[0],'resolved_path':pahole_path,'version_output':probe_lines[1],'scripts_pahole_version_sh_output':probe_lines[2],'expected_version_integer':125,'pass':True},
+              'pahole':{'command_v_output':probe_lines[0],'resolved_path':pahole_path,'version_output':probe_lines[1],'scripts_pahole_version_sh_output':probe_lines[2],'scripts_pahole_version_sh_explicit_binding_output':bound_probe.stdout.strip(),'path_invocation_exit_code':probe.returncode,'explicit_binding_exit_code':bound_probe.returncode,'expected_version_integer':125,'pass':True},
               'kconfig_binding':'PAHOLE=/usr/bin/pahole passed as a make variable to both K0 and K1 olddefconfig runs',
               'gcc_plugin':{'gcc_plugin_directory':gcc_plugin_dir,'plugin_version_header':str(plugin_header),'header_present':plugin_header.exists(),'qualified_package_lock_contains_gcc_13_plugin_dev':plugin_package_present,'disposition':'qualified toolchain intentionally excludes GCC plugin development capability' if not plugin_header.exists() else 'qualified toolchain includes GCC plugin development capability'},
               'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False
