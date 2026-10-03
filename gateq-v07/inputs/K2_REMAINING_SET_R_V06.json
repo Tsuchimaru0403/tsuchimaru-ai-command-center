@@ -1,0 +1,469 @@
+{
+  "status": "COMPUTED",
+  "definition": "effective config value inequality; absent distinct",
+  "k1_final_sha256": "7415e92062b1fe82232e50e2d483f955c4fd80a3794e1a39191a7dc12d00f405",
+  "reference_sha256": "c7882dfaa29493bd0247564f7a5c8870cef535c91bdef22811eaf1da0df9584a",
+  "count": 92,
+  "symbols": [
+    {
+      "symbol": "CONFIG_ARCH_SELECTS_KEXEC_FILE",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_BPF_EVENTS",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_BPF_JIT_ALWAYS_ON",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_BPF_LSM",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_BPF_PRELOAD",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_BPF_STREAM_PARSER",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_BPF_SYSCALL",
+      "k1_value": "y",
+      "reference_value": "n"
+    },
+    {
+      "symbol": "CONFIG_BPF_UNPRIV_DEFAULT_OFF",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_CEPH_FS_SECURITY_LABEL",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_CGROUP_BPF",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_CRASH_DUMP",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_CRC_CCITT",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_DEBUG_CGROUP_REF",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_SECURITY_APPARMOR",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_SECURITY_DAC",
+      "k1_value": "n",
+      "reference_value": "y"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_SECURITY_SELINUX",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_EVM",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_FUNCTION_ERROR_INJECTION",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_HAS_SECURITY_AUDIT",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_HAVE_IMA_KEXEC",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_HID_BPF",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_APPRAISE",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_HASH",
+      "k1_value": "\"sha256\"",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA1",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA256",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA512",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_TEMPLATE",
+      "k1_value": "\"ima-sig\"",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_DISABLE_HTABLE",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_KEXEC",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_LSM_RULES",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_MEASURE_ASYMMETRIC_KEYS",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_MEASURE_PCR_IDX",
+      "k1_value": "10",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_NG_TEMPLATE",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_QUEUE_EARLY_BOOT_KEYS",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_READ_POLICY",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_SIG_TEMPLATE",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IMA_WRITE_POLICY",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_INTEGRITY",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_INTEGRITY_AUDIT",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_INTEGRITY_SIGNATURE",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_SECURITY",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_SECURITY",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_KEXEC_CORE",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_KEXEC_FILE",
+      "k1_value": "y",
+      "reference_value": "n"
+    },
+    {
+      "symbol": "CONFIG_KEXEC_SIG",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_KPROBES",
+      "k1_value": "y",
+      "reference_value": "n"
+    },
+    {
+      "symbol": "CONFIG_KPROBES_ON_FTRACE",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_KPROBE_EVENTS",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_KPROBE_EVENTS_ON_NOTRACE",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_KRETPROBES",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_KRETPROBE_ON_RETHOOK",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_LSM",
+      "k1_value": "\"landlock,lockdown,yama,loadpin,safesetid,integrity,selinux,apparmor,tomoyo\"",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_LSM_MMAP_MIN_ADDR",
+      "k1_value": "65536",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_BPF_LINK",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_NETKIT",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_NETLABEL",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_NFSD_V4_SECURITY_LABEL",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_NFS_V4_SECURITY_LABEL",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_OPTPROBES",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_HAS_LANG_EXCLUDE",
+      "k1_value": "<absent>",
+      "reference_value": "y"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_HAS_SPLIT_BTF",
+      "k1_value": "<absent>",
+      "reference_value": "y"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_VERSION",
+      "k1_value": "0",
+      "reference_value": "125"
+    },
+    {
+      "symbol": "CONFIG_RETHOOK",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY",
+      "k1_value": "y",
+      "reference_value": "n"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_DEBUG",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_EXPORT_BINARY",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_HASH",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_HASH_DEFAULT",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_INTROSPECT_POLICY",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_PARANOID_LOAD",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_IPE",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_LANDLOCK",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_LOADPIN",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_LOCKDOWN_LSM",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_NETWORK",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_NETWORK_XFRM",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_PATH",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SAFESETID",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_AVC_STATS",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_BOOTPARAM",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_DEBUG",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_DEVELOP",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_SID2STR_CACHE_SIZE",
+      "k1_value": "256",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_SIDTAB_HASH_BITS",
+      "k1_value": "9",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SMACK",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_TOMOYO",
+      "k1_value": "n",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_YAMA",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_XDP_SOCKETS",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    },
+    {
+      "symbol": "CONFIG_XDP_SOCKETS_DIAG",
+      "k1_value": "y",
+      "reference_value": "<absent>"
+    }
+  ]
+}
