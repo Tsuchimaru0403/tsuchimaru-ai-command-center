@@ -124,7 +124,7 @@ PY
   "$src/scripts/config" --file "$src/.config" --disable MODULES
   cp "$src/.config" "$outdir/K1_PRE_OLDDEFCONFIG.config"
 
-  make -C "$src" olddefconfig
+  make -C "$src" CC="$CC" HOSTCC="$HOSTCC" PAHOLE="$PAHOLE" RUSTC="$RUSTC" RUSTDOC=/bin/false RUSTFMT=/bin/false BINDGEN="$BINDGEN" HOSTRUSTC=/bin/false olddefconfig
   cp "$src/.config" "$outdir/K1_POST_OLDDEFCONFIG.config"
 
   python3 - "$outdir/K0_BASELINE.config" "$outdir/K1_PRE_OLDDEFCONFIG.config" "$outdir/K1_POST_OLDDEFCONFIG.config" "$outdir/K1_M_SYMBOLS.txt" "$outdir/K1_DEPENDENCY_DELTA.json" "$outdir/K1_DELTA_DECISIONS.json" <<'PY'
@@ -237,7 +237,7 @@ sed -i -E 's/^(CONFIG_[A-Za-z0-9_]+)=m$/\1=y/' "$src/.config"
 "$src/scripts/config" --file "$src/.config" --set-str SYSTEM_REVOCATION_KEYS ""
 "$src/scripts/config" --file "$src/.config" --set-str BUILD_SALT ""
 cp "$src/.config" "$OUT/TARGET_PRE_OLDDEFCONFIG.config"
-make -C "$src" olddefconfig
+make -C "$src" CC="$CC" HOSTCC="$HOSTCC" PAHOLE="$PAHOLE" RUSTC="$RUSTC" RUSTDOC=/bin/false RUSTFMT=/bin/false BINDGEN="$BINDGEN" HOSTRUSTC=/bin/false olddefconfig
 cp "$src/.config" "$OUT/TARGET_QUALIFIED_REPLAY.config"
 actual="$(sha256sum "$OUT/TARGET_QUALIFIED_REPLAY.config" | awk '{print $1}')"
 printf '%s  TARGET_QUALIFIED_REPLAY.config\n' "$actual" > "$OUT/TARGET_QUALIFIED_REPLAY.sha256"
@@ -323,7 +323,7 @@ def construct(prefix_count):
     for symbol,value,_group in ops[:prefix_count]:
         apply_direct(symbol,value)
     pre=(SRC/'.config').read_bytes()
-    subprocess.run(['make','-C',str(SRC),'olddefconfig'],check=True,env=os.environ.copy())
+    subprocess.run(['make','-C',str(SRC),f'CC={os.environ["CC"]}',f'HOSTCC={os.environ["HOSTCC"]}',f'PAHOLE={os.environ["PAHOLE"]}',f'RUSTC={os.environ["RUSTC"]}','RUSTDOC=/bin/false','RUSTFMT=/bin/false',f'BINDGEN={os.environ["BINDGEN"]}','HOSTRUSTC=/bin/false','olddefconfig'],check=True,env=os.environ.copy())
     post=(SRC/'.config').read_bytes()
     return pre,post
 
