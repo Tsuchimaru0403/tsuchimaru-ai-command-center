@@ -1,0 +1,14 @@
+{
+  "run_id": 37109392120,
+  "job_id": 111164200112,
+  "artifact_id": 11269126869,
+  "artifact_digest": "sha256:9fe3a41426627a1cc0a5a7997af4c8f7431ae906c4325a843b6bae1cb02b8aaa",
+  "transport_zip_sha256": "6937adda6a18c0ffb3930cc4d1f8f1f2ed8d975193dd5b715b111cb3bba5ce91",
+  "qualified_toolchain_run": 36947817583,
+  "source_commit": "14794180686c2fb6307fbe359c359bec765249f3",
+  "source_tree": "3b5ec33f7fd60f23d01064150f7c7020d2e6af99",
+  "normalization": "PASS_CONFIG_NORMALIZATION_ONLY",
+  "fixed_point": true,
+  "kernel_outputs": [],
+  "Gate_Q": "HOLD"
+}
