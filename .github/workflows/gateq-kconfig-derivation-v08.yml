@@ -110,7 +110,7 @@ jobs:
           package_lock=(ev/'TOOLCHAIN_PACKAGE_LOCK.tsv').read_text()
           plugin_rows=[line for line in package_lock.splitlines() if 'plugin' in line.lower()]
           js('PAHOLE_GCC_CAPABILITY_EVIDENCE.json',{
-              'execution_environment':'same verified qualified OCI rootfs under unprivileged PRoot as Kconfig normalization',
+              'execution_environment':'same verified qualified OCI rootfs under unprivileged PRoot -0 user-id emulation as Kconfig normalization',
               'pahole':{
                   'qualified_binary':'/usr/bin/pahole',
                   'qualified_binary_resolved_path':pahole_resolved,
@@ -141,7 +141,7 @@ jobs:
               'kernel_build_authorized':False,
               'runtime_authorized':False
           })
-          js('TOOLCHAIN_EFFECTIVE_IDENTITY.json',{'tools':versions,'qualified_tool_versions':expected,'environment':dict(os.environ),'mode':'unprivileged PRoot over verified qualified OCI rootfs; no Docker, Buildah, privileged initializer, kernel compile or runtime workload'})
+          js('TOOLCHAIN_EFFECTIVE_IDENTITY.json',{'tools':versions,'qualified_tool_versions':expected,'environment':dict(os.environ),'mode':'unprivileged PRoot with -0 user-id emulation over verified qualified OCI rootfs; no host privilege escalation, Docker, Buildah, privileged initializer, kernel compile or runtime workload'})
           commands=[]
           def normalize(lane,data,result):
               d=out/lane;d.mkdir(parents=True)
@@ -238,7 +238,7 @@ jobs:
           host_run={'github_run_id':os.environ['GITHUB_RUN_ID'],'github_sha':os.environ['GITHUB_SHA'],'runner_os':os.environ['RUNNER_OS'],'runner_image':os.environ.get('ImageOS'),'runner_image_version':os.environ.get('ImageVersion'),'source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99'}
           (ev/'ACTIONS_RUN_BINDING.json').write_text(json.dumps(host_run,indent=2)+'\n')
           image_env=config['config'].get('Env',[])
-          cmd=['/tmp/gateq-proot/usr/bin/proot','-r',str(root),'-b','/dev','-b','/proc','-b',str(source)+':/tmp/gateq-kconfig-source','-b','/tmp/gateq-config-output:/tmp/gateq-config-output','-b',str(ev)+':/evidence','-w','/tmp/gateq-kconfig-source','/usr/bin/env','-i']
+          cmd=['/tmp/gateq-proot/usr/bin/proot','-0','-r',str(root),'-b','/dev','-b','/proc','-b',str(source)+':/tmp/gateq-kconfig-source','-b','/tmp/gateq-config-output:/tmp/gateq-config-output','-b',str(ev)+':/evidence','-w','/tmp/gateq-kconfig-source','/usr/bin/env','-i']
           cmd+=image_env+['ARCH=x86','SRCARCH=x86','KERNELVERSION=6.18.40.1','PWD=/tmp/gateq-kconfig-source','LD_LIBRARY_PATH=','/usr/bin/python3','/evidence/normalize_remote.py']
           subprocess.run(cmd,check=True)
           for line in (ev/'NORMALIZATION_COMMANDS.json').read_text().splitlines():pass
