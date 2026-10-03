@@ -1,0 +1,748 @@
+{
+  "status": "INSTANTIATED_R_PLAN_ONLY",
+  "executed": false,
+  "remaining_count": 92,
+  "ordering": "dependency, intended hardening, unrelated; lexical per class; one symbol per stage. Not proven dependency topology.",
+  "groups": [
+    {
+      "stage": 1,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_ARCH_SELECTS_KEXEC_FILE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 2,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_BPF_EVENTS",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 3,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_BPF_JIT_ALWAYS_ON",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 4,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_BPF_LSM",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 5,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_BPF_PRELOAD",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 6,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_BPF_STREAM_PARSER",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 7,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_BPF_SYSCALL",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 8,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_BPF_UNPRIV_DEFAULT_OFF",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 9,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_CEPH_FS_SECURITY_LABEL",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 10,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_CGROUP_BPF",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 11,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_CRASH_DUMP",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 12,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_CRC_CCITT",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 13,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_DEBUG_CGROUP_REF",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 14,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_DEFAULT_SECURITY_APPARMOR",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 15,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_DEFAULT_SECURITY_DAC",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 16,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_DEFAULT_SECURITY_SELINUX",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 17,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_EVM",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 18,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_FUNCTION_ERROR_INJECTION",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 19,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_HAS_SECURITY_AUDIT",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 20,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_HAVE_IMA_KEXEC",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 21,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_HID_BPF",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 22,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 23,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_APPRAISE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 24,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_DEFAULT_HASH",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 25,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA1",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 26,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA256",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 27,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA512",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 28,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_DEFAULT_TEMPLATE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 29,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_DISABLE_HTABLE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 30,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_KEXEC",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 31,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_LSM_RULES",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 32,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_MEASURE_ASYMMETRIC_KEYS",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 33,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_MEASURE_PCR_IDX",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 34,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_NG_TEMPLATE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 35,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_QUEUE_EARLY_BOOT_KEYS",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 36,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_READ_POLICY",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 37,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_SIG_TEMPLATE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 38,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IMA_WRITE_POLICY",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 39,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_INTEGRITY",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 40,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_INTEGRITY_AUDIT",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 41,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_INTEGRITY_SIGNATURE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 42,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IP6_NF_SECURITY",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 43,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_IP_NF_SECURITY",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 44,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KEXEC_CORE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 45,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KEXEC_FILE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 46,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KEXEC_SIG",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 47,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KPROBES",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 48,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KPROBES_ON_FTRACE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 49,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KPROBE_EVENTS",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 50,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KPROBE_EVENTS_ON_NOTRACE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 51,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KRETPROBES",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 52,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_KRETPROBE_ON_RETHOOK",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 53,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_LSM",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 54,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_LSM_MMAP_MIN_ADDR",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 55,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_NETFILTER_BPF_LINK",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 56,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_NETKIT",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 57,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_NETLABEL",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 58,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_NFSD_V4_SECURITY_LABEL",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 59,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_NFS_V4_SECURITY_LABEL",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 60,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_OPTPROBES",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 61,
+      "group": "dependency_induced",
+      "symbol": "CONFIG_PAHOLE_HAS_LANG_EXCLUDE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 62,
+      "group": "dependency_induced",
+      "symbol": "CONFIG_PAHOLE_HAS_SPLIT_BTF",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 63,
+      "group": "dependency_induced",
+      "symbol": "CONFIG_PAHOLE_VERSION",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 64,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_RETHOOK",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 65,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 66,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_APPARMOR",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 67,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_APPARMOR_DEBUG",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 68,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_APPARMOR_EXPORT_BINARY",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 69,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_APPARMOR_HASH",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 70,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_APPARMOR_HASH_DEFAULT",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 71,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_APPARMOR_INTROSPECT_POLICY",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 72,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_APPARMOR_PARANOID_LOAD",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 73,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_IPE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 74,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_LANDLOCK",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 75,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_LOADPIN",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 76,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_LOCKDOWN_LSM",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 77,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_NETWORK",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 78,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_NETWORK_XFRM",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 79,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_PATH",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 80,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SAFESETID",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 81,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SELINUX",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 82,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SELINUX_AVC_STATS",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 83,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SELINUX_BOOTPARAM",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 84,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SELINUX_DEBUG",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 85,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SELINUX_DEVELOP",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 86,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SELINUX_SID2STR_CACHE_SIZE",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 87,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SELINUX_SIDTAB_HASH_BITS",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 88,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_SMACK",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 89,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_TOMOYO",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 90,
+      "group": "intended_hardening",
+      "symbol": "CONFIG_SECURITY_YAMA",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 91,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_XDP_SOCKETS",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    },
+    {
+      "stage": 92,
+      "group": "unrelated_or_environment_drift",
+      "symbol": "CONFIG_XDP_SOCKETS_DIAG",
+      "status": "PLANNED_NOT_EXECUTED",
+      "operation": "change one symbol to reference value and normalize only",
+      "fallback": "deterministic sorted bisection then singleton/interaction delta debugging from same accepted parent"
+    }
+  ],
+  "fallback": "sorted bisection; isolate singleton; minimize interaction subset/complement from same accepted parent",
+  "Gate_Q": "HOLD",
+  "build_authorized": false,
+  "runtime_authorized": false
+}
