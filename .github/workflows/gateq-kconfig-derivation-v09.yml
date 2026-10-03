@@ -294,7 +294,7 @@ jobs:
           set -euo pipefail
           python3 - <<'PY_PACKET'
           from pathlib import Path
-          import hashlib, json, zipfile
+          import hashlib, json, zipfile, subprocess
           ev=Path('/tmp/gateq-kconfig-evidence')
           readme = """# Gate Q Kconfig derivation v0.9 — Fresh Re-Audit packet
           State: derivation-only qualification evidence. Gate Q remains HOLD.
