@@ -38,6 +38,33 @@ export RUSTC=/bin/false
 export BINDGEN=/bin/false
 export KRUSTFLAGS=""
 
+# Bind the exact control bytes and GitHub execution identity into the evidence.
+CONTROL_ROOT="$ROOT/control"
+mkdir -p "$OUT/control"
+cp "$CONTROL_ROOT/gateq/kconfig-derivation/v0.1/run.sh" "$OUT/control/run.sh"
+cp "$CONTROL_ROOT/.github/workflows/gateq-kconfig-derivation-v0.1.yml" "$OUT/control/workflow.yml"
+python3 - "$OUT/RUN_BINDING.json" <<'PY'
+import json, os, pathlib, subprocess, sys
+root=pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+control=root/"control"
+def git(*args):
+    return subprocess.check_output(["git","-C",str(control),*args],text=True).strip()
+obj={
+  "schema":"TSUCHIMARU_KCONFIG_DERIVATION_RUN_BINDING_V1",
+  "repository":os.environ.get("GITHUB_REPOSITORY"),
+  "ref_name":os.environ.get("GITHUB_REF_NAME"),
+  "run_id":os.environ.get("GITHUB_RUN_ID"),
+  "run_attempt":os.environ.get("GITHUB_RUN_ATTEMPT"),
+  "job":os.environ.get("GITHUB_JOB"),
+  "control_commit":git("rev-parse","HEAD"),
+  "control_tree":git("rev-parse","HEAD^{tree}"),
+  "workflow_path":".github/workflows/gateq-kconfig-derivation-v0.1.yml",
+  "runner_path":"gateq/kconfig-derivation/v0.1/run.sh",
+  "main_merge_performed":False
+}
+pathlib.Path(sys.argv[1]).write_text(json.dumps(obj,indent=2,sort_keys=True)+"\n")
+PY
+
 python3 - "$OUT/KCONFIG_SEMANTIC_ENVIRONMENT.json" <<'PY'
 import json, os, pathlib, subprocess, sys
 def first(cmd):
