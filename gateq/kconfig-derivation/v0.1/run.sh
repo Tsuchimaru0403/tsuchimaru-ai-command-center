@@ -11,10 +11,59 @@ export ARCH=x86_64 CC HOSTCC LC_ALL=C LANG=C TZ=UTC
 
 ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
 OUT="$ROOT/out"
-mkdir -p "$OUT"
+SEMANTIC_BIN="$OUT/kconfig-semantic-bin"
+mkdir -p "$OUT" "$SEMANTIC_BIN"
 
 command -v "$CC"
 command -v make
+command -v as
+command -v ld
+
+# Kconfig semantic probes must match the already-qualified build environment.
+# This does NOT pretend to provide the qualified toolchain bytes: it only
+# reproduces the olddefconfig-visible tool predicates.  Exact provenance is
+# recorded below and the final replay must byte-match the canonical final.config.
+cat > "$SEMANTIC_BIN/pahole" <<'EOF'
+#!/usr/bin/env sh
+if [ "${1:-}" = "--version" ]; then
+  echo "v1.25"
+  exit 0
+fi
+echo "semantic-version-probe-only: unsupported pahole invocation" >&2
+exit 97
+EOF
+chmod +x "$SEMANTIC_BIN/pahole"
+export PAHOLE="$SEMANTIC_BIN/pahole"
+export RUSTC=/bin/false
+export BINDGEN=/bin/false
+export KRUSTFLAGS=""
+
+python3 - "$OUT/KCONFIG_SEMANTIC_ENVIRONMENT.json" <<'PY'
+import json, os, pathlib, subprocess, sys
+def first(cmd):
+    return subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT).splitlines()[0]
+obj={
+  "schema":"TSUCHIMARU_KCONFIG_SEMANTIC_ENVIRONMENT_V1",
+  "purpose":"olddefconfig semantic reproduction only; not a claim of qualified toolchain byte identity",
+  "gcc":first([os.environ["CC"],"--version"]),
+  "make":first(["make","--version"]),
+  "assembler":first(["as","--version"]),
+  "linker":first(["ld","--version"]),
+  "pahole":{
+    "mode":"semantic_version_probe_only",
+    "reported_version":first([os.environ["PAHOLE"],"--version"]),
+    "qualified_environment_expected_version":"v1.25"
+  },
+  "rust":{
+    "mode":"explicitly_unavailable_for_kconfig_semantics",
+    "RUSTC":os.environ["RUSTC"],
+    "BINDGEN":os.environ["BINDGEN"],
+    "qualified_environment_expected_rustc_version":0,
+    "qualified_environment_expected_rustc_llvm_version":0
+  }
+}
+pathlib.Path(sys.argv[1]).write_text(json.dumps(obj,indent=2,sort_keys=True)+"\n")
+PY
 
 {
   echo "authorization=KCONFIG_DERIVATION_ONLY"
@@ -161,10 +210,14 @@ cp "$OUT/A/K1_POST_OLDDEFCONFIG.config" "$OUT/K1_FINAL.config"
   sha256sum "$OUT/B/K1_POST_OLDDEFCONFIG.config"
 } > "$OUT/K1_AB_SHA256.txt"
 
-# Replay exact historical qualified config policy, config-only.
+# Replay the exact historical qualified config recipe from the K0 baseline.
+# Important: all direct edits are applied BEFORE the single olddefconfig,
+# matching the canonical build recipe rather than mutating an already-normalized K1.
 src="$ROOT/linux-A"
-cp "$OUT/K1_FINAL.config" "$src/.config"
+cp "$OUT/K0_BASELINE.config" "$src/.config"
+sed -i -E 's/^(CONFIG_[A-Za-z0-9_]+)=m$/\\1=y/' "$src/.config"
 "$src/scripts/config" --file "$src/.config" --disable SECURITY
+"$src/scripts/config" --file "$src/.config" --disable MODULES
 "$src/scripts/config" --file "$src/.config" --disable BPF_SYSCALL
 "$src/scripts/config" --file "$src/.config" --disable KPROBES
 "$src/scripts/config" --file "$src/.config" --disable LIVEPATCH
@@ -196,6 +249,7 @@ import json, pathlib, re, subprocess, os, hashlib
 ROOT=pathlib.Path(os.environ['GITHUB_WORKSPACE'])
 SRC=ROOT/'linux-A'
 OUT=ROOT/'out'
+K0=OUT/'K0_BASELINE.config'
 K1=OUT/'K1_FINAL.config'
 TARGET=OUT/'TARGET_QUALIFIED_REPLAY.config'
 
@@ -204,7 +258,8 @@ def parse(path):
     for raw in pathlib.Path(path).read_text().splitlines():
         m=re.match(r'^(CONFIG_[A-Za-z0-9_]+)=(.*)$',raw)
         if m:
-            d[m.group(1)]=m.group(2); continue
+            d[m.group(1)]=m.group(2)
+            continue
         m=re.match(r'^# (CONFIG_[A-Za-z0-9_]+) is not set$',raw)
         if m:
             d[m.group(1)]='n'
@@ -248,31 +303,59 @@ for s in sorted(set(k1)|set(target)):
  "entries":r
 },indent=2,sort_keys=True)+"\n")
 
-current=K1.read_bytes()
+def apply_direct(symbol, value):
+    short=symbol.removeprefix('CONFIG_')
+    cmd=[str(SRC/'scripts/config'),'--file',str(SRC/'.config')]
+    if value=='n':
+        cmd += ['--disable',short]
+    elif value=='y':
+        cmd += ['--enable',short]
+    else:
+        cmd += ['--set-str',short,'']
+    subprocess.run(cmd,check=True)
+
+def construct(prefix_count):
+    # Every stage starts from exact K0 and receives the K1 direct edits first.
+    text=K0.read_text()
+    text=re.sub(r'^(CONFIG_[A-Za-z0-9_]+)=m$',r'\1=y',text,flags=re.M)
+    (SRC/'.config').write_text(text)
+    subprocess.run([str(SRC/'scripts/config'),'--file',str(SRC/'.config'),'--disable','MODULES'],check=True)
+    for symbol,value,_group in ops[:prefix_count]:
+        apply_direct(symbol,value)
+    pre=(SRC/'.config').read_bytes()
+    subprocess.run(['make','-C',str(SRC),'olddefconfig'],check=True,env=os.environ.copy())
+    post=(SRC/'.config').read_bytes()
+    return pre,post
+
+# Independent reconstruction of K1 itself must byte-match the A/B K1 result.
+_k1_pre,k1_reconstructed=construct(0)
+if hashlib.sha256(k1_reconstructed).hexdigest()!=hashlib.sha256(K1.read_bytes()).hexdigest():
+    raise SystemExit("independent K1 reconstruction mismatch")
+
+previous=K1.read_bytes()
 stages=[]
 stage_dir=OUT/'K2_STAGES'
 stage_dir.mkdir(exist_ok=True)
 for idx,(symbol,value,group) in enumerate(ops,1):
-    (SRC/'.config').write_bytes(current)
-    before=parse(SRC/'.config')
-    short=symbol.removeprefix('CONFIG_')
-    if value=='n':
-        subprocess.run([str(SRC/'scripts/config'),'--file',str(SRC/'.config'),'--disable',short],check=True)
-    elif value=='y':
-        subprocess.run([str(SRC/'scripts/config'),'--file',str(SRC/'.config'),'--enable',short],check=True)
-    else:
-        subprocess.run([str(SRC/'scripts/config'),'--file',str(SRC/'.config'),'--set-str',short,''],check=True)
-    pre=(SRC/'.config').read_bytes()
-    subprocess.run(['make','-C',str(SRC),'olddefconfig'],check=True,env=os.environ.copy())
-    post=(SRC/'.config').read_bytes()
-    after=parse(SRC/'.config')
+    pre,post=construct(idx)
+    before=parse_bytes=previous
+    prev_path=stage_dir/'_previous.config'
+    prev_path.write_bytes(previous)
+    before_map=parse(prev_path)
+    post_path=stage_dir/'_current.config'
+    post_path.write_bytes(post)
+    after_map=parse(post_path)
     delta=[]
-    for s in sorted(set(before)|set(after)):
-        a=before.get(s,'ABSENT')
-        b=after.get(s,'ABSENT')
+    for s in sorted(set(before_map)|set(after_map)):
+        a=before_map.get(s,'ABSENT')
+        b=after_map.get(s,'ABSENT')
         if a!=b:
-            delta.append({"symbol":s,"before":a,"after":b,"classification":"direct" if s==symbol else "dependency_induced"})
-    effective=(post!=current)
+            delta.append({
+              "symbol":s,
+              "before":a,
+              "after":b,
+              "classification":"direct" if s==symbol else "dependency_induced"
+            })
     name=f"K2_{idx:02d}_{symbol}"
     (stage_dir/f"{name}_PRE.config").write_bytes(pre)
     (stage_dir/f"{name}_POST.config").write_bytes(post)
@@ -282,28 +365,34 @@ for idx,(symbol,value,group) in enumerate(ops,1):
       "symbol":symbol,
       "requested":value,
       "group":group,
-      "effective_change":effective,
+      "construction":"K0 + K1 direct edits + cumulative hardening prefix + one olddefconfig",
+      "effective_change":post!=previous,
       "pre_sha256":hashlib.sha256(pre).hexdigest(),
       "post_sha256":hashlib.sha256(post).hexdigest(),
       "delta_count":len(delta),
       "delta_file":f"K2_STAGES/{name}_DELTA.json"
     })
-    current=post
+    previous=post
 
-final_hash=hashlib.sha256(current).hexdigest()
+for tmp in [stage_dir/'_previous.config',stage_dir/'_current.config']:
+    if tmp.exists():
+        tmp.unlink()
+
+final_hash=hashlib.sha256(previous).hexdigest()
 if final_hash!=os.environ['QUALIFIED_FINAL_CONFIG_SHA256']:
-    raise SystemExit('sequential progression final config does not match canonical qualified final config hash')
+    raise SystemExit('cumulative K2 final config does not match canonical qualified final config hash')
 
 plan={
- "schema":"TSUCHIMARU_K2_PROGRESSION_TREE_V1",
+ "schema":"TSUCHIMARU_K2_PROGRESSION_TREE_V2",
  "base":"K1_FINAL.config",
- "strategy":"one registered direct operation per normalization stage in exact historical policy order",
+ "stage_construction":"each stage independently reconstructs from K0; no normalized-stage state is reused",
+ "strategy":"one registered direct operation per stage in exact historical policy order; cumulative prefix is normalized once",
  "stages":stages,
  "runtime_failure_fallback":{
-   "step_1":"Stop immediately at first boot/runtime FAIL; no later stage is eligible.",
+   "step_1":"Stop immediately at first future boot/runtime FAIL; no later stage is eligible.",
    "step_2":"Re-test the failing direct operation alone from K1 in a separately authorized future build/boot candidate.",
-   "step_3":"If failing operation alone PASSes, classify as interaction and hold that operation fixed while binary-searching the previously active direct-operation set.",
-   "step_4":"For a multi-symbol dependency closure, do not manipulate dependency-induced symbols directly; the registered direct operation is the intervention boundary.",
+   "step_3":"If the failing operation alone PASSes, classify as an interaction candidate and hold that operation fixed while binary-searching the previously active direct-operation set.",
+   "step_4":"Dependency-induced symbols are observations, not intervention variables; do not edit them directly unless a later separately audited plan reclassifies them.",
    "step_5":"No causal attribution is allowed until the minimal failing direct-operation subset is reproduced."
  },
  "final_sha256":final_hash
