@@ -1,0 +1,400 @@
+name: Gate Q Kconfig Derivation Remediation v0.9
+
+on:
+  push:
+    branches: [gateq-kconfig-derivation-v09-20261004]
+    paths: [.github/workflows/gateq-kconfig-derivation-v09.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  derive-config-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Download exact qualified toolchain evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: gateq-oci-toolchain-qualification-v01
+          path: /tmp/gateq-toolchain
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 36947817583
+      - name: Checkout exact source only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: microsoft/WSL2-Linux-Kernel
+          ref: 14794180686c2fb6307fbe359c359bec765249f3
+          path: _kconfig_source
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Prepare unprivileged qualified-rootfs Kconfig execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(id -u)" -ne 0
+          mkdir -p /tmp/gateq-kconfig-evidence /tmp/gateq-config-output
+          mv "$GITHUB_WORKSPACE/_kconfig_source" /tmp/gateq-kconfig-source
+          sha256sum /usr/bin/env /usr/bin/python3 > /tmp/gateq-kconfig-evidence/HOST_LAUNCHER.sha256
+          cat > /tmp/gateq-kconfig-evidence/normalize_remote.py <<'PY_NORMALIZE'
+          import pathlib, subprocess, json, os, hashlib, re, shutil
+          rootfs=pathlib.Path(os.environ['GATEQ_ROOTFS'])
+          ev=pathlib.Path(os.environ['GATEQ_EVIDENCE_DIR'])
+          src=pathlib.Path(os.environ['GATEQ_SOURCE_DIR'])
+          out=pathlib.Path(os.environ['GATEQ_OUTPUT_DIR'])
+          def sha(p):
+              with open(p,'rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
+          def js(n,d):(ev/n).write_text(json.dumps(d,indent=2,sort_keys=True)+'\n')
+          baseline=(src/'Microsoft/config-wsl').read_bytes()
+          assert hashlib.sha256(baseline).hexdigest()=='4e1eb0e493bc9e1b8dba715084834119743eb509e6c43773ce6cd74e19cf1139'
+          assert os.readlink(src/'Microsoft/config-wsl')=='../arch/x86/configs/config-wsl'
+          modules=re.findall(rb'^(CONFIG_[A-Za-z0-9_]+)=m$',baseline,re.M)
+          assert len(modules)==len(set(modules))==760
+          legacy_modules=re.findall(rb'^(CONFIG_[A-Z0-9_]+)=m$',baseline,re.M)
+          missed=sorted(set(modules)-set(legacy_modules))
+          expected_missed={
+              b'CONFIG_MT76x02_LIB',b'CONFIG_MT76x02_USB',b'CONFIG_MT792x_LIB',b'CONFIG_MT792x_USB',
+              b'CONFIG_MT76x0_COMMON',b'CONFIG_MT76x0U',b'CONFIG_MT76x2_COMMON',b'CONFIG_MT76x2U'
+          }
+          assert len(legacy_modules)==752 and set(missed)==expected_missed
+          js('V06_REGEX_GAP_REMEDIATION.json',{
+              'status':'CLOSED_BY_CASE_CORRECT_ENUMERATION',
+              'baseline_raw_m_count':len(modules),
+              'v06_uppercase_regex_count':len(legacy_modules),
+              'missed_count':len(missed),
+              'missed_symbols':[x.decode() for x in missed],
+              'cause':'v0.6 regex [A-Z0-9_] excluded lowercase x in valid Kconfig symbol names',
+              'v0.9_regex':'[A-Za-z0-9_]+',
+              'Gate_Q':'HOLD'
+          })
+          pre=re.sub(rb'^(CONFIG_[A-Za-z0-9_]+)=m$',rb'\1=y',baseline,flags=re.M)
+          pre=re.sub(rb'^CONFIG_MODULES=y$',b'CONFIG_MODULES=n',pre,flags=re.M)
+          pre_sha256=hashlib.sha256(pre).hexdigest()
+          (ev/'K0_BASELINE.config').write_bytes(baseline)
+          (ev/'K1_PRE_OLDDEFCONFIG.config').write_bytes(pre)
+          (ev/'K1_M_SYMBOLS.txt').write_text(''.join(x.decode()+'\n' for x in modules))
+          expected=json.loads((rootfs/'usr/local/share/gateq/TOOL_VERSIONS.json').read_text())
+          versions={}
+          for tool in ['gcc','ld','as','make','bison','flex','pahole']:
+              actual=subprocess.check_output([tool,'--version'],text=True,stderr=subprocess.STDOUT).splitlines()[0]
+              assert actual==expected[tool+'_first_line'],(tool,actual,expected[tool+'_first_line'])
+              p0=pathlib.Path(shutil.which(tool))
+              p=p0.resolve()
+              assert p.is_relative_to(rootfs),{'tool':tool,'which':str(p0),'resolved':str(p),'rootfs':str(rootfs)}
+              image_path='/' + p.relative_to(rootfs).as_posix()
+              versions[tool]={'first_line':actual,'host_materialized_path':str(p),'image_path':image_path,'sha256':sha(p),'matches_qualified_image_identity':True}
+          pahole_path=shutil.which('pahole')
+          assert pahole_path, 'pahole missing from qualified rootfs PATH'
+          pahole_resolved=str(pathlib.Path(pahole_path).resolve())
+          assert pathlib.Path(pahole_resolved).is_relative_to(rootfs),pahole_resolved
+          pahole_image_path='/' + pathlib.Path(pahole_resolved).relative_to(rootfs).as_posix()
+          assert pahole_image_path=='/usr/bin/pahole',pahole_image_path
+          pahole_version=subprocess.check_output([pahole_resolved,'--version'],text=True,stderr=subprocess.STDOUT).splitlines()[0]
+          assert pahole_version=='v1.25',pahole_version
+
+          # PRoot exposes the qualified binary and it executes correctly, but the kernel helper's
+          # test -x check on that image path can return false. Bind Kconfig to a deterministic
+          # regular executable wrapper that delegates only to the already-qualified binary.
+          raw_helper=subprocess.run([str(src/'scripts/pahole-version.sh'),pahole_resolved],cwd=src,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=os.environ,check=False)
+          wrapper=ev/'gateq-pahole-qualified-wrapper'
+          wrapper.write_text('#!/bin/sh\nexec '+pahole_resolved+' "$@"\n')
+          wrapper.chmod(0o755)
+          assert wrapper.exists(),str(wrapper)
+          wrapper_test=subprocess.run(['sh','-c','test -x /tmp/gateq-kconfig-evidence/gateq-pahole-qualified-wrapper'],text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=os.environ,check=False)
+          assert wrapper_test.returncode==0,wrapper_test.stdout
+          helper_wrapper=subprocess.run([str(src/'scripts/pahole-version.sh'),str(wrapper)],cwd=src,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=os.environ,check=False)
+          assert helper_wrapper.returncode==0 and helper_wrapper.stdout.strip()=='125',{'rc':helper_wrapper.returncode,'stdout':helper_wrapper.stdout}
+
+          gcc_plugin_dir=subprocess.check_output(['gcc','-print-file-name=plugin'],text=True).strip()
+          plugin_header=pathlib.Path(gcc_plugin_dir)/'include/plugin-version.h'
+          package_lock=(ev/'TOOLCHAIN_PACKAGE_LOCK.tsv').read_text()
+          plugin_rows=[line for line in package_lock.splitlines() if 'plugin' in line.lower()]
+          js('PAHOLE_GCC_CAPABILITY_EVIDENCE.json',{
+              'execution_environment':'host-native Kconfig process using exact binaries materialized from the verified qualified OCI rootfs; no chroot/container runtime',
+              'pahole':{
+                  'qualified_image_path':pahole_image_path,
+                  'qualified_binary_resolved_path':pahole_resolved,
+                  'qualified_binary_sha256':sha(pathlib.Path(pahole_resolved)),
+                  'version_first_line':pahole_version,
+                  'raw_helper_output':raw_helper.stdout.strip(),
+                  'raw_helper_exit_code':raw_helper.returncode,
+                  'wrapper_path':str(wrapper),
+                  'wrapper_sha256':sha(wrapper),
+                  'wrapper_mode':oct(wrapper.stat().st_mode & 0o777),
+                  'wrapper_content':wrapper.read_text(),
+                  'wrapper_test_x_exit_code':wrapper_test.returncode,
+                  'wrapper_helper_output':helper_wrapper.stdout.strip(),
+                  'wrapper_helper_exit_code':helper_wrapper.returncode,
+                  'expected_kconfig_version_integer':125,
+                  'binding_reason':'deterministic wrapper delegates only to exact qualified /usr/bin/pahole; evidence bind mount supplies executable-access semantics while delegating only to exact qualified /usr/bin/pahole'
+              },
+              'gcc_plugin':{
+                  'gcc_plugin_directory':gcc_plugin_dir,
+                  'plugin_version_header':str(plugin_header),
+                  'plugin_version_header_present':plugin_header.exists(),
+                  'package_lock_plugin_rows':plugin_rows,
+                  'requires_independent_disposition':False,
+              'disposition':'INTENTIONAL_QUALIFIED_TOOLCHAIN_BOUNDARY',
+              'gcc_plugin_support_provided':False,
+              'plugin_header_absent_expected':True,
+              'plugin_packages_absent_expected':True,
+              'toolchain_package_addition_authorized':False,
+              'rationale':'Kconfig derivation does not require GCC plugins; the qualified toolchain intentionally supplies no GCC plugin development capability.',
+              },
+              'Docker_executed':False,
+              'Buildah_executed':False,
+              'privileged_initializer_executed':False,
+              'kernel_build_authorized':False,
+              'runtime_authorized':False
+          })
+          js('TOOLCHAIN_EFFECTIVE_IDENTITY.json',{'tools':versions,'qualified_tool_versions':expected,'environment':dict(os.environ),'mode':'host-native execution of exact binaries materialized from verified qualified OCI rootfs; no Docker, Buildah, privileged initializer, kernel compile or runtime workload'})
+          commands=[]
+          def normalize(lane,data,result):
+              d=out/lane;d.mkdir(parents=True)
+              (d/'.config').write_bytes(data)
+              command=['make','-C',str(src),'O='+str(d),'ARCH=x86','PAHOLE=/tmp/gateq-kconfig-evidence/gateq-pahole-qualified-wrapper','olddefconfig']
+              for attempt in [1,2]:
+                  r=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+                  (ev/(lane+'_OLDDEFCONFIG_'+str(attempt)+'.log')).write_text(r.stdout)
+                  commands.append({'lane':lane,'iteration':attempt,'argv':command,'exit_code':r.returncode,'log':lane+'_OLDDEFCONFIG_'+str(attempt)+'.log'})
+                  js('NORMALIZATION_COMMANDS.json',commands)
+                  assert r.returncode==0,r.stdout[-3000:]
+                  config=(d/'.config').read_bytes()
+                  if attempt==1:(ev/result).write_bytes(config)
+                  else:assert config==(ev/result).read_bytes(),'not a byte fixed point'
+              # olddefconfig host helper objects are permitted; kernel objects are not.
+              objects=[p.relative_to(d).as_posix() for p in d.rglob('*.o')]
+              forbidden=[p for p in objects if not p.startswith('scripts/kconfig/')]
+              artifacts=[p.relative_to(d).as_posix() for p in d.rglob('*') if p.is_file() and p.name in ['bzImage','vmlinux','System.map']]
+              assert not forbidden and not artifacts,(forbidden,artifacts)
+              return {'lane':lane,'config_sha256':sha(ev/result),'second_normalization_byte_identical':True,'host_kconfig_objects':objects,'kernel_objects':forbidden,'kernel_outputs':artifacts,'conf_binary_sha256':sha(d/'scripts/kconfig/conf')}
+          # Normalize untouched K0 as a control: isolates source/toolchain default drift
+          # from changes induced specifically by the approved module-free transformation.
+          k0=normalize('K0_CONTROL',baseline,'K0_NORMALIZED_CONTROL.config')
+          k1=normalize('K1',pre,'K1_POST_OLDDEFCONFIG.config')
+          post=(ev/'K1_POST_OLDDEFCONFIG.config').read_bytes()
+          assert not re.search(rb'^CONFIG_[A-Za-z0-9_]+=m$',post,re.M)
+          assert b'CONFIG_MODULES=y' not in post
+          required_btf=[b'CONFIG_PAHOLE_VERSION=125',b'CONFIG_DEBUG_INFO_BTF=y',b'CONFIG_PAHOLE_HAS_SPLIT_BTF=y',b'CONFIG_PAHOLE_HAS_LANG_EXCLUDE=y',b'CONFIG_PROBE_EVENTS_BTF_ARGS=y']
+          missing_btf=[x.decode() for x in required_btf if x not in post]
+          js('PAHOLE_BTF_NORMALIZED_ASSERTIONS.json',{'required':[x.decode() for x in required_btf],'missing':missing_btf,'pass':not missing_btf})
+          assert not missing_btf,missing_btf
+          js('NORMALIZATION_RESULT.json',{'status':'PASS_CONFIG_NORMALIZATION_ONLY','source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99','qualified_toolchain_run':36947817583,'toolchain_oci_manifest_digest':'sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829','K0_control':k0,'K1':k1,'baseline_module_entries':len(modules),'v06_uppercase_regex_entries':len(legacy_modules),'v06_regex_gap_count':len(missed),'pre_config_sha256':pre_sha256,'final_module_entries':0,'Gate_Q':'HOLD','kernel_build_authorized':False,'runtime_authorized':False,'review_required':'K1 final acceptance and every dependency delta decision remain the local evidence review step.'})
+          PY_NORMALIZE
+          cat > /tmp/gateq-kconfig-evidence/prepare_rootfs.py <<'PY_PREPARE'
+          import pathlib,json,hashlib,tarfile,subprocess,shutil,os
+          tool=pathlib.Path('/tmp/gateq-toolchain')
+          root=pathlib.Path('/tmp/gateq-rootfs');root.mkdir()
+          ev=pathlib.Path('/tmp/gateq-kconfig-evidence');ev.mkdir(exist_ok=True)
+          def sha(p):
+              with open(p,'rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
+          for line in (tool/'FILES.sha256').read_text().splitlines():
+              h,name=line.split(None,1);p=tool/name.strip().lstrip('*')
+              assert p.resolve().is_relative_to(tool.resolve())
+              assert sha(p)==h,(name,h)
+          assert (tool/'FINAL_OCI_DIGEST.txt').read_text().strip()=='sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829'
+          oci=tool/'oci-A';index=json.loads((oci/'index.json').read_text());desc=index['manifests'][0]
+          assert len(index['manifests'])==1 and desc['digest']=='sha256:2d8a55a5ec3bc314c60e0e606571fb8759bc5100d56686762766595028cce829'
+          def content(d):
+              alg,h=d['digest'].split(':');assert alg=='sha256'
+              p=oci/'blobs'/alg/h;assert p.stat().st_size==d['size'] and sha(p)==h
+              return p
+          manifest=json.loads(content(desc).read_text());config=json.loads(content(manifest['config']).read_text())
+          assert config['architecture']=='amd64' and config['os']=='linux'
+          layers=[]
+          for layer,diffid in zip(manifest['layers'],config['rootfs']['diff_ids'],strict=True):
+              p=content(layer)
+              import gzip
+              with open(p,'rb') as f:
+                  header=f.read(2)
+              opener=gzip.open if header==b'\x1f\x8b' else open
+              with opener(p,'rb') as f:assert 'sha256:'+hashlib.file_digest(f,'sha256').hexdigest()==diffid
+              with tarfile.open(p) as t:
+                  members=t.getmembers()
+                  for m in members:
+                      name=pathlib.PurePosixPath(m.name)
+                      assert not name.is_absolute() and '..' not in name.parts
+                      target=root/m.name
+                      if name.name.startswith('.wh.'):
+                          if name.name=='.wh..wh..opq':
+                              parent=target.parent
+                              assert parent.resolve().is_relative_to(root.resolve())
+                              if parent.exists():
+                                  for child in parent.iterdir():
+                                      if child.is_symlink() or child.is_file():child.unlink()
+                                      elif child.is_dir():shutil.rmtree(child)
+                          else:
+                              victim=target.with_name(name.name[4:])
+                              assert victim.parent.resolve().is_relative_to(root.resolve())
+                              if victim.is_symlink() or victim.is_file():victim.unlink()
+                              elif victim.is_dir():shutil.rmtree(victim)
+                  safe=[m for m in members if not pathlib.PurePosixPath(m.name).name.startswith('.wh.') and not m.isdev() and not m.isfifo()]
+                  # OCI layer names are verified above; preserve image symlink bytes and
+                  # regular executable modes. No chown, xattr or ACL operation is issued.
+                  t.extractall(root,members=safe,filter='fully_trusted')
+              layers.append({'digest':layer['digest'],'size':layer['size'],'diff_id':diffid})
+          for p in ['tmp/gateq-kconfig-source','tmp/gateq-config-output','evidence','tmp']:(root/p).mkdir(parents=True,exist_ok=True)
+          (ev/'OCI_MATERIALIZATION.json').write_text(json.dumps({'status':'PASS','qualified_run':36947817583,'manifest_digest':desc['digest'],'layers':layers,'config_digest':manifest['config']['digest'],'image_env':config['config'].get('Env',[]),'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False},indent=2)+'\n')
+          for name in ['OCI_TOOLCHAIN_ATTESTATION_V1.json','OCI_A_B_COMPARISON.json','TOOLCHAIN_PACKAGE_LOCK.tsv','REPRODUCIBILITY_POLICY.json']:
+              shutil.copy2(tool/name,ev/name)
+          source=pathlib.Path('/tmp/gateq-kconfig-source')
+          assert subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()=='14794180686c2fb6307fbe359c359bec765249f3'
+          assert subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD^{tree}'],text=True).strip()=='3b5ec33f7fd60f23d01064150f7c7020d2e6af99'
+          subprocess.run(['git','-C',str(source),'diff','--exit-code'],check=True)
+          host_run={'github_run_id':os.environ['GITHUB_RUN_ID'],'github_sha':os.environ['GITHUB_SHA'],'runner_os':os.environ['RUNNER_OS'],'runner_image':os.environ.get('ImageOS'),'runner_image_version':os.environ.get('ImageVersion'),'source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99'}
+          (ev/'ACTIONS_RUN_BINDING.json').write_text(json.dumps(host_run,indent=2)+'\n')
+          image_env=config['config'].get('Env',[])
+          root_prefixes=[
+              str(root/'usr/local/sbin'),str(root/'usr/local/bin'),str(root/'usr/sbin'),
+              str(root/'usr/bin'),str(root/'sbin'),str(root/'bin')
+          ]
+          env=os.environ.copy()
+          for item in image_env:
+              if '=' in item:
+                  k,v=item.split('=',1)
+                  if k!='PATH': env[k]=v
+          env.update({
+              'PATH':':'.join(root_prefixes),
+              'ARCH':'x86','SRCARCH':'x86','KERNELVERSION':'6.18.40.1',
+              'PWD':str(source),
+              'GATEQ_ROOTFS':str(root),
+              'GATEQ_EVIDENCE_DIR':str(ev),
+              'GATEQ_SOURCE_DIR':str(source),
+              'GATEQ_OUTPUT_DIR':'/tmp/gateq-config-output',
+              'LD_LIBRARY_PATH':':'.join([str(root/'lib/x86_64-linux-gnu'),str(root/'usr/lib/x86_64-linux-gnu'),str(root/'lib64'),str(root/'usr/lib64')])
+          })
+          (ev/'HOST_NATIVE_EXECUTION_PLAN.json').write_text(json.dumps({
+              'mode':'host-native exact materialized OCI binaries',
+              'path':env['PATH'],
+              'ld_library_path':env['LD_LIBRARY_PATH'],
+              'host_uid':os.getuid(),'host_euid':os.geteuid(),
+              'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False
+          },indent=2)+'\n')
+          subprocess.run([str(root/'usr/bin/python3'),str(ev/'normalize_remote.py')],env=env,cwd=source,check=True)
+          for line in (ev/'NORMALIZATION_COMMANDS.json').read_text().splitlines():pass
+          subprocess.run(['git','-C',str(source),'diff','--exit-code'],check=True)
+          (ev/'REMOTE_FILES.sha256').write_text(''.join(sha(p)+'  '+p.relative_to(ev).as_posix()+'\n' for p in sorted(ev.rglob('*')) if p.is_file() and p.name!='REMOTE_FILES.sha256'),encoding='utf-8',newline='\n')
+          import zipfile,base64
+          transport=pathlib.Path('/tmp/gateq-kconfig-log-transport.zip')
+          with zipfile.ZipFile(transport,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+              for p in sorted(ev.rglob('*')):
+                  if p.is_file():z.write(p,p.relative_to(ev).as_posix())
+          print('GATEQ_TRANSPORT_SHA256 '+sha(transport),flush=True)
+          print('GATEQ_TRANSPORT_BASE64_BEGIN',flush=True)
+          encoded=base64.b64encode(transport.read_bytes()).decode()
+          for i in range(0,len(encoded),100):print(encoded[i:i+100],flush=True)
+          print('GATEQ_TRANSPORT_BASE64_END',flush=True)
+          PY_PREPARE
+          python3 /tmp/gateq-kconfig-evidence/prepare_rootfs.py
+      - name: Build canonical v0.9 re-audit packet
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY_PACKET'
+          from pathlib import Path
+          import hashlib, json, zipfile
+          ev=Path('/tmp/gateq-kconfig-evidence')
+          readme = """# Gate Q Kconfig derivation v0.9 — Fresh Re-Audit packet
+State: derivation-only qualification evidence. Gate Q remains HOLD.
+
+The qualified GCC toolchain intentionally does not provide GCC plugin development support: plugin-version.h and plugin packages are absent by design for this Kconfig-only scope. No plugin package was added. Evidence records the expected boundary and rationale.
+
+The run preserves v0.8 pahole/BTF closure, 760 module inputs including eight lowercase-x symbols, K0/K1 second-normalization byte identity, final =m count zero, CONFIG_PAHOLE_VERSION=125, and required BTF symbols. CONFIG_MD_AUTODETECT=y and dependency deltas remain pending Human Owner acceptance.
+
+No Docker, Buildah, privileged initializer, kernel build, runtime workload, Gate A, Stage 0B runtime, or production authorization."""
+          prompt = """# Fresh Independent Re-Audit — Gate Q Kconfig derivation v0.9
+
+Independently audit the canonical v0.9 ZIP and manifest. Verify the ZIP digest, every REMOTE_FILES.sha256 entry with sha256sum -c, fixed source commit/tree/baseline, qualified OCI/toolchain binding, all 760 module inputs including eight lowercase-x symbols, K0/K1 normalization and second-run byte identity, final =m count zero, and absence of kernel objects/outputs.
+
+Confirm v0.8 pahole/BTF closure: exact qualified pahole v1.25, wrapper helper result 125, explicit PAHOLE binding on all four K0/K1 olddefconfig runs, CONFIG_PAHOLE_VERSION=125, and required BTF symbols. Confirm the qualified-toolchain GCC plugin boundary using measured header/package evidence and explicit disposition; do not add packages.
+
+Verify machine-readable run-bound manifest and handoff identities against GitHub run ID, head SHA, artifact ID/name, upload digest, and canonical inner ZIP SHA-256. Review CONFIG_MD_AUTODETECT=y and dependency delta decisions; Human Owner acceptance remains pending. Return PASS/FAIL plus CRITICAL/MAJOR/MINOR/NOTE counts.
+
+Gate Q stays HOLD. Do not authorize or execute Gate A, Stage 0B runtime, production, Docker runtime, privileged initialization, kernel build, or kernel runtime."""
+          (ev/'README_V09.md').write_text(readme)
+          (ev/'FRESH_INDEPENDENT_REAUDIT_PROMPT_V09.md').write_text(prompt)
+          files=[p for p in sorted(ev.rglob('*')) if p.is_file() and p.name!='REMOTE_FILES.sha256']
+          (ev/'REMOTE_FILES.sha256').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.relative_to(ev).as_posix()+'\n' for p in files))
+          subprocess.run(['sha256sum','-c','REMOTE_FILES.sha256'],cwd=ev,check=True)
+          canonical=Path('/tmp/gateq-kconfig-derivation-v09.zip')
+          with zipfile.ZipFile(canonical,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+              for p in sorted(ev.rglob('*')):
+                  if p.is_file():
+                      z.write(p,p.relative_to(ev).as_posix())
+          manifest={'schema_version':1,'project':'Gate Q Kconfig derivation v0.9','artifact':'gateq-kconfig-derivation-v09.zip','artifact_sha256':hashlib.sha256(canonical.read_bytes()).hexdigest(),'artifact_size':canonical.stat().st_size,'source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99','result':'STATIC_DERIVATION_ONLY_PENDING_FRESH_INDEPENDENT_REAUDIT','Gate_Q':'HOLD','kernel_build_authorized':False,'runtime_authorized':False,'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False}
+          Path('/tmp/CANONICAL_ARTIFACT_MANIFEST_V09.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\\n')
+          print('CANONICAL_V09_SHA256 '+manifest['artifact_sha256'])
+          PY_PACKET
+      - name: Upload canonical v0.9 re-audit packet
+        id: canonical
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: gateq-kconfig-derivation-v09-canonical
+          path: |
+            /tmp/gateq-kconfig-derivation-v09.zip
+            /tmp/CANONICAL_ARTIFACT_MANIFEST_V09.json
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - name: Write run-bound handoff and artifact manifest
+        id: provenance
+        shell: bash
+        env:
+          CANONICAL_ARTIFACT_ID: ${{ steps.canonical.outputs.artifact-id }}
+          CANONICAL_ARTIFACT_DIGEST: ${{ steps.canonical.outputs.artifact-digest }}
+          CANONICAL_ARTIFACT_URL: ${{ steps.canonical.outputs.artifact-url }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY_PROVENANCE'
+          from pathlib import Path
+          import hashlib,json,os
+          zip_path=Path('/tmp/gateq-kconfig-derivation-v09.zip')
+          manifest={'schema_version':1,'project':'Gate Q Kconfig derivation v0.9',
+            'canonical_inner_zip':zip_path.name,
+            'canonical_inner_zip_sha256':hashlib.sha256(zip_path.read_bytes()).hexdigest(),
+            'github_artifact_upload_digest':os.environ['CANONICAL_ARTIFACT_DIGEST'],
+            'github_run_id':os.environ['GITHUB_RUN_ID'],'head_sha':os.environ['GITHUB_SHA'],
+            'artifact_id':os.environ['CANONICAL_ARTIFACT_ID'],
+            'artifact_name':'gateq-kconfig-derivation-v09-canonical',
+            'artifact_url':os.environ['CANONICAL_ARTIFACT_URL'],
+            'Gate_Q':'HOLD','result':'PENDING_FRESH_INDEPENDENT_REAUDIT',
+            'human_owner_acceptance':'PENDING for CONFIG_MD_AUTODETECT=y and dependency deltas',
+            'kernel_build_authorized':False,'runtime_authorized':False,
+            'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False}
+          Path('/tmp/CANONICAL_ARTIFACT_MANIFEST_V09.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
+          Path('/tmp/FRESH_REAUDIT_HANDOFF_V09.md').write_text(
+            '# Fresh Independent Re-Audit handoff — Gate Q v0.9\n\n'
+            f"Canonical inner ZIP: {manifest['canonical_inner_zip']}\n\n"
+            f"Canonical inner ZIP SHA-256: {manifest['canonical_inner_zip_sha256']}\n\n"
+            f"GitHub Actions run ID: {manifest['github_run_id']}\n\n"
+            f"Head SHA: {manifest['head_sha']}\n\n"
+            f"GitHub artifact name: {manifest['artifact_name']}\n\n"
+            f"GitHub artifact ID: {manifest['artifact_id']}\n\n"
+            f"GitHub artifact upload digest: {manifest['github_artifact_upload_digest']}\n\n"
+            f"GitHub artifact URL: {manifest['artifact_url']}\n\n"
+            'REMOTE_FILES.sha256 was checked with sha256sum -c; the workflow fails closed on mismatch. GCC plugin development capability is intentionally outside the qualified toolchain boundary; no package was added.\n\n'
+            'CONFIG_MD_AUTODETECT=y acceptance remains pending Human Owner review. Gate Q stays HOLD. No Gate A, Stage 0B runtime, production, Docker runtime, privileged initializer, kernel build, or runtime workload was authorized or executed.\n')
+          PY_PROVENANCE
+      - name: Upload run-bound manifest and audit handoff
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: gateq-kconfig-derivation-v09-audit-handoff
+          path: |
+            /tmp/CANONICAL_ARTIFACT_MANIFEST_V09.json
+            /tmp/FRESH_REAUDIT_HANDOFF_V09.md
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - name: Upload config derivation evidence only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: gateq-kconfig-derivation-v09
+          path: /tmp/gateq-kconfig-evidence
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
+
