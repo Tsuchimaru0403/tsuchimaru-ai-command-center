@@ -11,28 +11,40 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   package:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout exact branch commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Assert static-only boundary
         shell: bash
         run: |
           set -euo pipefail
           echo "Gate Q=HOLD"
+          echo "Static package assembly only"
           echo "No kernel build / no WSL / no activation / no runtime"
 
-      - name: Assemble v0.7 candidate
+      - name: Download corrected v0.7 config derivation evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: gateq-kconfig-derivation-v07
+          path: /tmp/gateq-kconfig-derivation-v07
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 37116020695
+
+      - name: Assemble corrected v0.7 candidate
         shell: bash
         run: |
           set -euo pipefail
-          python3 gateq-v07/generate_v07.py
+          python3 gateq-v07/generate_v07_corrected.py /tmp/gateq-kconfig-derivation-v07
 
       - name: Show sidecar
         shell: bash
@@ -41,7 +53,7 @@ jobs:
           cat gateq-v07/dist/GateQ-Kernel-Compatibility-Requalification-v0.7-candidate.zip.sha256
 
       - name: Upload v0.7 candidate artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: gateq-kernel-compat-v07-static-candidate
           path: |
@@ -49,3 +61,4 @@ jobs:
             gateq-v07/dist/GateQ-Kernel-Compatibility-Requalification-v0.7-candidate.zip.sha256
           if-no-files-found: error
           retention-days: 30
+          compression-level: 6
