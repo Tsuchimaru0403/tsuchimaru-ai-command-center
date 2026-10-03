@@ -46,8 +46,8 @@ jobs:
           cat > /tmp/gateq-kconfig-evidence/normalize_remote.py <<'PY_NORMALIZE'
           import pathlib, subprocess, json, os, hashlib, re, shutil
           ev=pathlib.Path('/evidence')
-          src=pathlib.Path('/workspace/linux')
-          out=pathlib.Path('/workspace/out')
+          src=pathlib.Path('/tmp/gateq-kconfig-source')
+          out=pathlib.Path('/tmp/gateq-config-output')
           def sha(p):
               with open(p,'rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
           def js(n,d):(ev/n).write_text(json.dumps(d,indent=2,sort_keys=True)+'\n')
@@ -151,7 +151,7 @@ jobs:
                   # regular executable modes. No chown, xattr or ACL operation is issued.
                   t.extractall(root,members=safe,filter='fully_trusted')
               layers.append({'digest':layer['digest'],'size':layer['size'],'diff_id':diffid})
-          for p in ['workspace/linux','workspace/out','evidence','tmp']:(root/p).mkdir(parents=True,exist_ok=True)
+          for p in ['tmp/gateq-kconfig-source','tmp/gateq-config-output','evidence','tmp']:(root/p).mkdir(parents=True,exist_ok=True)
           (ev/'OCI_MATERIALIZATION.json').write_text(json.dumps({'status':'PASS','qualified_run':36947817583,'manifest_digest':desc['digest'],'layers':layers,'config_digest':manifest['config']['digest'],'image_env':config['config'].get('Env',[]),'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False},indent=2)+'\n')
           for name in ['OCI_TOOLCHAIN_ATTESTATION_V1.json','OCI_A_B_COMPARISON.json','TOOLCHAIN_PACKAGE_LOCK.tsv','REPRODUCIBILITY_POLICY.json']:
               shutil.copy2(tool/name,ev/name)
@@ -162,12 +162,22 @@ jobs:
           host_run={'github_run_id':os.environ['GITHUB_RUN_ID'],'github_sha':os.environ['GITHUB_SHA'],'runner_os':os.environ['RUNNER_OS'],'runner_image':os.environ.get('ImageOS'),'runner_image_version':os.environ.get('ImageVersion'),'source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99'}
           (ev/'ACTIONS_RUN_BINDING.json').write_text(json.dumps(host_run,indent=2)+'\n')
           image_env=config['config'].get('Env',[])
-          cmd=['/tmp/gateq-proot/usr/bin/proot','-r',str(root),'-b','/dev','-b','/proc','-b',str(source)+':/workspace/linux','-b','/tmp/gateq-config-output:/workspace/out','-b',str(ev)+':/evidence','-w','/workspace/linux','/usr/bin/env','-i']
-          cmd+=image_env+['ARCH=x86','SRCARCH=x86','KERNELVERSION=6.18.40.1','LD_LIBRARY_PATH=','/usr/bin/python3','/evidence/normalize_remote.py']
+          cmd=['/tmp/gateq-proot/usr/bin/proot','-r',str(root),'-b','/dev','-b','/proc','-b',str(source)+':/tmp/gateq-kconfig-source','-b','/tmp/gateq-config-output:/tmp/gateq-config-output','-b',str(ev)+':/evidence','-w','/tmp/gateq-kconfig-source','/usr/bin/env','-i']
+          cmd+=image_env+['ARCH=x86','SRCARCH=x86','KERNELVERSION=6.18.40.1','PWD=/tmp/gateq-kconfig-source','LD_LIBRARY_PATH=','/usr/bin/python3','/evidence/normalize_remote.py']
           subprocess.run(cmd,check=True)
           for line in (ev/'NORMALIZATION_COMMANDS.json').read_text().splitlines():pass
           subprocess.run(['git','-C',str(source),'diff','--exit-code'],check=True)
           (ev/'REMOTE_FILES.sha256').write_text(''.join(sha(p)+'  '+p.relative_to(ev).as_posix()+'\n' for p in sorted(ev.rglob('*')) if p.is_file() and p.name!='REMOTE_FILES.sha256'))
+          import zipfile,base64
+          transport=pathlib.Path('/tmp/gateq-kconfig-log-transport.zip')
+          with zipfile.ZipFile(transport,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+              for p in sorted(ev.rglob('*')):
+                  if p.is_file():z.write(p,p.relative_to(ev).as_posix())
+          print('GATEQ_TRANSPORT_SHA256 '+sha(transport),flush=True)
+          print('GATEQ_TRANSPORT_BASE64_BEGIN',flush=True)
+          encoded=base64.b64encode(transport.read_bytes()).decode()
+          for i in range(0,len(encoded),100):print(encoded[i:i+100],flush=True)
+          print('GATEQ_TRANSPORT_BASE64_END',flush=True)
           PY_PREPARE
           python3 /tmp/gateq-kconfig-evidence/prepare_rootfs.py
       - name: Upload config derivation evidence only
