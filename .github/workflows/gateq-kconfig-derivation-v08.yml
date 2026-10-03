@@ -90,8 +90,10 @@ jobs:
           assert pahole_path, 'pahole missing from qualified rootfs PATH'
           pahole_path=str(pathlib.Path(pahole_path).resolve())
           assert pahole_path=='/usr/bin/pahole',pahole_path
-          probe=subprocess.run(['sh','-c','command -v pahole; pahole --version; scripts/pahole-version.sh pahole'],cwd=src,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=os.environ,check=True)
+          probe=subprocess.run(['sh','-c','command -v pahole; pahole --version; scripts/pahole-version.sh pahole'],cwd=src,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=os.environ,check=False)
           probe_lines=probe.stdout.strip().splitlines()
+          (ev/'PAHOLE_PROBE_RAW.txt').write_text(probe.stdout+'\\nreturn_code='+str(probe.returncode)+'\\n')
+          assert probe.returncode==0,{'return_code':probe.returncode,'stdout':probe.stdout}
           assert probe_lines[-1]=='125',probe.stdout
           gcc_plugin_dir=subprocess.check_output(['gcc','-print-file-name=plugin'],text=True).strip()
           plugin_header=pathlib.Path(gcc_plugin_dir)/'include/plugin-version.h'
