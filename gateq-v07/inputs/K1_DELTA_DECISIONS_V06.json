@@ -1,0 +1,727 @@
+{
+  "status": "ALL_SYMBOLS_DECIDED_REVIEW_REQUIRED",
+  "accept_count": 24,
+  "reject_count": 48,
+  "decisions": [
+    {
+      "symbol": "CONFIG_ACPI_TINY_POWER_BUTTON",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_ARCH_HAS_EXECMEM_ROX",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_ASM_MODVERSIONS",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_AS_VERSION",
+      "pre_value": "24100",
+      "post_value": "24200",
+      "k0_baseline_value": "24100",
+      "k0_control_value": "24200",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_BASIC_MODVERSIONS",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_CC_HAS_ASM_GOTO_OUTPUT",
+      "pre_value": "<absent>",
+      "post_value": "y",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "y",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_CC_HAS_ASM_GOTO_TIED_OUTPUT",
+      "pre_value": "<absent>",
+      "post_value": "y",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "y",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_CC_VERSION_TEXT",
+      "pre_value": "\"gcc (GCC) 13.2.0\"",
+      "post_value": "\"gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\"",
+      "k0_baseline_value": "\"gcc (GCC) 13.2.0\"",
+      "k0_control_value": "\"gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\"",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEBUG_INFO_BTF",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEBUG_INFO_BTF_MODULES",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_BBR",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_BIC",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_CDG",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_DCTCP",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_HTCP",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_HYBLA",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_VEGAS",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_VENO",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_WESTWOOD",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_EXTENDED_MODVERSIONS",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_FUNCTION_TRACE_ARGS",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_GCC_ASM_GOTO_OUTPUT_BROKEN",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_GCC_PLUGINS",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_GCC_PLUGIN_LATENT_ENTROPY",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_GCC_VERSION",
+      "pre_value": "130200",
+      "post_value": "130300",
+      "k0_baseline_value": "130200",
+      "k0_control_value": "130300",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_GENDWARFKSYMS",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_GENKSYMS",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_I2C_STUB",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_INTEL_SOC_PMIC",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_INTEL_SOC_PMIC_CHTDC_TI",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_INTEL_SOC_PMIC_CHTWC",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_KPROBE_EVENT_GEN_TEST",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_KSTACK_ERASE",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_LD_VERSION",
+      "pre_value": "24100",
+      "post_value": "24200",
+      "k0_baseline_value": "24100",
+      "k0_control_value": "24200",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_LIVEPATCH",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MDIO_MSCC_MIIM",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "n",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MD_AUTODETECT",
+      "pre_value": "<absent>",
+      "post_value": "y",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MEDIA_ATTACH",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODPROBE_PATH",
+      "pre_value": "\"/sbin/modprobe\"",
+      "post_value": "<absent>",
+      "k0_baseline_value": "\"/sbin/modprobe\"",
+      "k0_control_value": "\"/sbin/modprobe\"",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULES_TREE_LOOKUP",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_ALLOW_BTF_MISMATCH",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_ALLOW_MISSING_NAMESPACE_IMPORTS",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_COMPRESS",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_DEBUG",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_FORCE_LOAD",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_FORCE_UNLOAD",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_SIG",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_SRCVERSION_ALL",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_UNLOAD",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODULE_UNLOAD_TAINT_TRACKING",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_MODVERSIONS",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_BPF",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_NVDIMM_KEYS",
+      "pre_value": "<absent>",
+      "post_value": "y",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_NVDIMM_SECURITY_TEST",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_HAS_LANG_EXCLUDE",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_HAS_SPLIT_BTF",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_VERSION",
+      "pre_value": "125",
+      "post_value": "0",
+      "k0_baseline_value": "125",
+      "k0_control_value": "0",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_PCI_NPEM",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_PREEMPTIRQ_DELAY_TEST",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_PROBE_EVENTS_BTF_ARGS",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_RANDSTRUCT_FULL",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_RANDSTRUCT_PERFORMANCE",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_SCHED_CLASS_EXT",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "<absent>",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_SND_HDA_INTEL",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "n",
+      "decision": "ACCEPT_PROVISIONAL_COMMON_K0_NORMALIZATION",
+      "reason": "Observed identically in K0 control; provisional normalization fact.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_STRICT_MODULE_RWX",
+      "pre_value": "y",
+      "post_value": "<absent>",
+      "k0_baseline_value": "y",
+      "k0_control_value": "y",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_SYNTH_EVENT_GEN_TEST",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_TEST_ASYNC_DRIVER_PROBE",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_TEST_LOCKUP",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_TRIM_UNUSED_KSYMS",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_USB_KBD",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_USB_MOUSE",
+      "pre_value": "n",
+      "post_value": "<absent>",
+      "k0_baseline_value": "n",
+      "k0_control_value": "n",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_CONSOLE",
+      "pre_value": "<absent>",
+      "post_value": "n",
+      "k0_baseline_value": "<absent>",
+      "k0_control_value": "<absent>",
+      "decision": "REJECT_PENDING_SOURCE_ATTRIBUTION",
+      "reason": "K1-only change lacks causal/source attribution; reject pending Kconfig audit.",
+      "Gate_Q": "HOLD"
+    }
+  ]
+}
