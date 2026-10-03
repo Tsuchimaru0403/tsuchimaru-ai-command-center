@@ -1,0 +1,932 @@
+{
+  "status": "ALL_R_SYMBOLS_CLASSIFIED_REVIEW_REQUIRED",
+  "count": 92,
+  "class_counts": {
+    "dependency_induced": 3,
+    "intended_hardening": 56,
+    "unrelated_or_environment_drift": 33
+  },
+  "all_symbols_covered": true,
+  "classifications": [
+    {
+      "symbol": "CONFIG_ARCH_SELECTS_KEXEC_FILE",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_BPF_EVENTS",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_BPF_JIT_ALWAYS_ON",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_BPF_LSM",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_BPF_PRELOAD",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_BPF_STREAM_PARSER",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_BPF_SYSCALL",
+      "k1_value": "y",
+      "reference_value": "n",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_BPF_UNPRIV_DEFAULT_OFF",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_CEPH_FS_SECURITY_LABEL",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_CGROUP_BPF",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_CRASH_DUMP",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_CRC_CCITT",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_DEBUG_CGROUP_REF",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_SECURITY_APPARMOR",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_SECURITY_DAC",
+      "k1_value": "n",
+      "reference_value": "y",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_SECURITY_SELINUX",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_EVM",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_FUNCTION_ERROR_INJECTION",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_HAS_SECURITY_AUDIT",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_HAVE_IMA_KEXEC",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_HID_BPF",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_APPRAISE",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_HASH",
+      "k1_value": "\"sha256\"",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA1",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA256",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_HASH_SHA512",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_DEFAULT_TEMPLATE",
+      "k1_value": "\"ima-sig\"",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_DISABLE_HTABLE",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_KEXEC",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_LSM_RULES",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_MEASURE_ASYMMETRIC_KEYS",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_MEASURE_PCR_IDX",
+      "k1_value": "10",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_NG_TEMPLATE",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_QUEUE_EARLY_BOOT_KEYS",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_READ_POLICY",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_SIG_TEMPLATE",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IMA_WRITE_POLICY",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_INTEGRITY",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_INTEGRITY_AUDIT",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_INTEGRITY_SIGNATURE",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_SECURITY",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_SECURITY",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KEXEC_CORE",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KEXEC_FILE",
+      "k1_value": "y",
+      "reference_value": "n",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KEXEC_SIG",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KPROBES",
+      "k1_value": "y",
+      "reference_value": "n",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KPROBES_ON_FTRACE",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KPROBE_EVENTS",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KPROBE_EVENTS_ON_NOTRACE",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KRETPROBES",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_KRETPROBE_ON_RETHOOK",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_LSM",
+      "k1_value": "\"landlock,lockdown,yama,loadpin,safesetid,integrity,selinux,apparmor,tomoyo\"",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_LSM_MMAP_MIN_ADDR",
+      "k1_value": "65536",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_BPF_LINK",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_NETKIT",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_NETLABEL",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_NFSD_V4_SECURITY_LABEL",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_NFS_V4_SECURITY_LABEL",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_OPTPROBES",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_HAS_LANG_EXCLUDE",
+      "k1_value": "<absent>",
+      "reference_value": "y",
+      "classification": "dependency_induced",
+      "evidence": "measured pre/post delta",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "dependency_induced",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_HAS_SPLIT_BTF",
+      "k1_value": "<absent>",
+      "reference_value": "y",
+      "classification": "dependency_induced",
+      "evidence": "measured pre/post delta",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "dependency_induced",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_PAHOLE_VERSION",
+      "k1_value": "0",
+      "reference_value": "125",
+      "classification": "dependency_induced",
+      "evidence": "measured pre/post delta",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "dependency_induced",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_RETHOOK",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY",
+      "k1_value": "y",
+      "reference_value": "n",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_DEBUG",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_EXPORT_BINARY",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_HASH",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_HASH_DEFAULT",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_INTROSPECT_POLICY",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_APPARMOR_PARANOID_LOAD",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_IPE",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_LANDLOCK",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_LOADPIN",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_LOCKDOWN_LSM",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_NETWORK",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_NETWORK_XFRM",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_PATH",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SAFESETID",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_AVC_STATS",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_BOOTPARAM",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_DEBUG",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_DEVELOP",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_SID2STR_CACHE_SIZE",
+      "k1_value": "256",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SELINUX_SIDTAB_HASH_BITS",
+      "k1_value": "9",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_SMACK",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_TOMOYO",
+      "k1_value": "n",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_SECURITY_YAMA",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "intended_hardening",
+      "evidence": "symbol/value match to K2 policy (triage only)",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "intended_hardening",
+      "decision": "PROVISIONAL_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_XDP_SOCKETS",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    },
+    {
+      "symbol": "CONFIG_XDP_SOCKETS_DIAG",
+      "k1_value": "y",
+      "reference_value": "<absent>",
+      "classification": "unrelated_or_environment_drift",
+      "evidence": "no positive policy/dependency evidence",
+      "Kconfig_context": "source semantic audit pending",
+      "group": "unrelated_or_environment_drift",
+      "decision": "QUARANTINE_PENDING_AUDIT"
+    }
+  ]
+}
