@@ -1,0 +1,3784 @@
+{
+  "schema": "gateq-k1-transform-v06",
+  "status": "NORMALIZED_CANDIDATE_REVIEW_REQUIRED",
+  "source_commit": "14794180686c2fb6307fbe359c359bec765249f3",
+  "source_tree": "3b5ec33f7fd60f23d01064150f7c7020d2e6af99",
+  "baseline_sha256": "4e1eb0e493bc9e1b8dba715084834119743eb509e6c43773ce6cd74e19cf1139",
+  "pre_olddefconfig_sha256": "6ef416bdb66cc87141a4d7cdedc9b8d8d7feb91a752012313f7ded78fe69e3c1",
+  "post_olddefconfig_sha256": "7415e92062b1fe82232e50e2d483f955c4fd80a3794e1a39191a7dc12d00f405",
+  "final_config_sha256": "7415e92062b1fe82232e50e2d483f955c4fd80a3794e1a39191a7dc12d00f405",
+  "module_symbol_count": 752,
+  "changes": [
+    {
+      "symbol": "CONFIG_IKHEADERS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_X86_MSR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_AC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_BATTERY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_BUTTON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_VIDEO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_FAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_THERMAL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_PLATFORM_PROFILE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_NFIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_APEI_ERST_DEBUG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CPU_FREQ_GOV_POWERSAVE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CPU_FREQ_GOV_USERSPACE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CPU_FREQ_GOV_ONDEMAND",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CPU_FREQ_GOV_CONSERVATIVE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_X86_PCC_CPUFREQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_X86_ACPI_CPUFREQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_X86_AMD_FREQ_SENSITIVITY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HAVE_KVM_IRQ_BYPASS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_KVM_X86",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_KVM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_KVM_INTEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_KVM_AMD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IOSCHED_BFQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ZSMALLOC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PACKET_DIAG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_UNIX_DIAG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TLS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_XFRM_ALGO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_XFRM_USER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_XFRM_AH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_XFRM_ESP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_XFRM_IPCOMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_KEY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_XDP_SOCKETS_DIAG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_IPIP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_IPGRE_DEMUX",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_IPGRE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_IPVTI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_FOU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET_AH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET_ESP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET_ESP_OFFLOAD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET_IPCOMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET_XFRM_TUNNEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET_TUNNEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_BIC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_WESTWOOD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_HTCP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_HSTCP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_HYBLA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_VEGAS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_NV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_SCALABLE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_LP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_VENO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_YEAH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_ILLINOIS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_DCTCP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_CDG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCP_CONG_BBR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET6_AH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET6_ESP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET6_ESP_OFFLOAD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET6_IPCOMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IPV6_MIP6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET6_XFRM_TUNNEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET6_TUNNEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IPV6_VTI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IPV6_SIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IPV6_TUNNEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IPV6_GRE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IPV6_FOU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IPV6_FOU_TUNNEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_NETFILTER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_NETLINK_ACCT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_NETLINK_QUEUE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_NETLINK_OSF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_LOG_SYSLOG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_CONNCOUNT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_AMANDA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_FTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_H323",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_IRC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_BROADCAST",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_NETBIOS_NS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_SNMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_PPTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_SANE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_SIP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CONNTRACK_TFTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CT_NETLINK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_CT_NETLINK_TIMEOUT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_NAT_AMANDA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_NAT_FTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_NAT_IRC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_NAT_SIP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_NAT_TFTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_SYNPROXY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_NUMGEN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_CT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_CONNLIMIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_LOG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_LIMIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_REDIR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_TUNNEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_QUEUE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_QUOTA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_REJECT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_REJECT_INET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_COMPAT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_HASH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_FIB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_FIB_INET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_TPROXY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_FIB_NETDEV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_CONNMARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_SET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_AUDIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_CHECKSUM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_CLASSIFY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_CONNMARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_CONNSECMARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_CT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_DSCP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_HL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_HMARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_IDLETIMER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_LOG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_MARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_NAT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_NETMAP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_NFLOG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_NFQUEUE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_NOTRACK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_REDIRECT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_MASQUERADE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_TEE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_TPROXY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_TRACE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_SECMARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_BPF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_CGROUP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_CLUSTER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_COMMENT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_CONNBYTES",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_CONNLABEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_CONNLIMIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_CONNMARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_CONNTRACK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_CPU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_DCCP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_DEVGROUP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_ECN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_ESP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_HASHLIMIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_HELPER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_IPCOMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_IPRANGE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_IPVS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_LENGTH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_LIMIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_MAC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_MARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_MULTIPORT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_NFACCT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_OSF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_OWNER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_POLICY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_PHYSDEV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_PKTTYPE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_QUOTA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_REALM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_RECENT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_SCTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_SOCKET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_STATE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_STATISTIC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_STRING",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_TCPMSS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_TIME",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETFILTER_XT_MATCH_U32",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_BITMAP_IP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_BITMAP_IPMAC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_BITMAP_PORT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_IP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_IPMARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_IPPORT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_IPPORTIP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_IPPORTNET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_IPMAC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_MAC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_NETPORTNET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_NET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_NETNET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_NETPORT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_HASH_NETIFACE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SET_LIST_SET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_RR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_WRR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_LC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_WLC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_LBLC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_LBLCR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_DH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_SH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_MH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_SED",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_NQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_FTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_VS_PE_SIP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_IPTABLES_LEGACY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_SOCKET_IPV4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_TPROXY_IPV4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_REJECT_IPV4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_DUP_IPV4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_FIB_IPV4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_DUP_IPV4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_LOG_ARP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_LOG_IPV4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_REJECT_IPV4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_NAT_SNMP_BASIC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_NAT_PPTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_NAT_H323",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_IPTABLES",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_MATCH_AH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_MATCH_ECN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_MATCH_RPFILTER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_MATCH_TTL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_FILTER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_TARGET_REJECT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_TARGET_SYNPROXY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_NAT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_TARGET_MASQUERADE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_TARGET_NETMAP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_TARGET_REDIRECT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_MANGLE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_TARGET_ECN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_TARGET_TTL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_RAW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_SECURITY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_ARPTABLES",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_COMPAT_ARP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_ARPFILTER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_NF_ARP_MANGLE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_IPTABLES_LEGACY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_SOCKET_IPV6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_TPROXY_IPV6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_REJECT_IPV6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_DUP_IPV6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFT_FIB_IPV6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_DUP_IPV6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_REJECT_IPV6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NF_LOG_IPV6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_IPTABLES",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_AH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_EUI64",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_FRAG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_OPTS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_HL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_IPV6HEADER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_MH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_RPFILTER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MATCH_RT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_TARGET_HL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_FILTER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_TARGET_REJECT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_TARGET_SYNPROXY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_MANGLE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_RAW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_SECURITY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_NAT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_TARGET_MASQUERADE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP6_NF_TARGET_NPT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_NF_EBTABLES",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_802_3",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_AMONG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_ARP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_IP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_IP6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_LIMIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_MARK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_PKTTYPE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_STP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_VLAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_ARPREPLY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_DNAT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_MARK_T",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_REDIRECT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_SNAT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_LOG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE_EBT_NFLOG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IP_SCTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INET_SCTP_DIAG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_STP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_GARP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MRP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BRIDGE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VLAN_8021Q",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_LLC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_HTB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_HFSC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_PRIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_MULTIQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_RED",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_SFB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_SFQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_TEQL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_TBF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_ETF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_MQPRIO_LIB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_GRED",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_NETEM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_DRR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_MQPRIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_CHOKE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_QFQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_CODEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_FQ_CODEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_FQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_INGRESS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_SCH_PLUG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_BASIC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_ROUTE4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_FW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_U32",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_FLOW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_CGROUP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_BPF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_FLOWER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_CLS_MATCHALL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_EMATCH_CMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_EMATCH_NBYTE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_EMATCH_U32",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_EMATCH_META",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_EMATCH_TEXT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_EMATCH_IPSET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_POLICE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_GACT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_MIRRED",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_NAT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_PEDIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_SKBEDIT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_CSUM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_BPF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_ACT_TUNNEL_KEY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DNS_RESOLVER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_OPENVSWITCH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_OPENVSWITCH_GRE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_OPENVSWITCH_VXLAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_OPENVSWITCH_GENEVE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VSOCKETS_DIAG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VSOCKETS_LOOPBACK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIRTIO_VSOCKETS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIRTIO_VSOCKETS_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_MPLS_GSO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_NSH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_RAW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_BCM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_GW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_J1939",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_ISOTP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT_RFCOMM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT_BNEP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT_HIDP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT_INTEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT_BCM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT_RTL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT_HCIBTUSB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BT_HCIBCM203X",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CFG80211",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MAC80211",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CEPH_LIB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HOTPLUG_PCI_ACPI_IBM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_REGMAP_I2C",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ZRAM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BLK_DEV_NBD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIRTIO_BLK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BLK_DEV_RBD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NVME_FABRICS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NVME_FC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NVME_TCP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NVME_TARGET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NVME_TARGET_LOOP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NVME_TARGET_TCP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_EEPROM_93CX6",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ISCSI_TCP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ISCSI_BOOT_SYSFS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BLK_DEV_MD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MD_LINEAR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MD_RAID0",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MD_RAID1",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MD_RAID10",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MD_RAID456",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_BIO_PRISON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_PERSISTENT_DATA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_CRYPT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_SNAPSHOT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_THIN_PROVISIONING",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_MIRROR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_RAID",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_ZERO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_MULTIPATH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_MULTIPATH_QL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_MULTIPATH_ST",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_MULTIPATH_HST",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_MULTIPATH_IOA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_DELAY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DM_FLAKEY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TARGET_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCM_IBLOCK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCM_FILEIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCM_PSCSI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCM_USER2",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_LOOPBACK_TARGET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ISCSI_TARGET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MII",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BONDING",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DUMMY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_WIREGUARD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IFB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MACVLAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MACVTAP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IPVLAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_GENEVE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NETCONSOLE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TUN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TAP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NET_VRF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VSOCKMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PHYLINK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_AX88796B_PHY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MICROCHIP_PHY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_DEV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_VCAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_SLCAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_8DEV_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_EMS_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_ESD_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_ETAS_ES58X",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_F81604",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_GS_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_KVASER_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_MCBA_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_PEAK_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CAN_UCAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_DRIVERS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_LAN78XX",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_USBNET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_AX8817X",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_AX88179_178A",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_CDCETHER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_CDC_NCM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_HUAWEI_CDC_NCM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_CDC_MBIM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_NET1080",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_CDC_SUBSET_ENABLE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_CDC_SUBSET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_ZAURUS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_NET_QMI_WWAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_RTL8153_ECM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT7601U",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT76_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT76_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT76_CONNAC_LIB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT7615_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT7663_USB_SDIO_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT7663U",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT7921_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT7921U",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT7925_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MT7925U",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTL8187",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTL_CARDS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTL8192CU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTL8192DU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTLWIFI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTLWIFI_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTL8192C_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTL8192D_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTL8XXXU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8822B",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8822C",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8723X",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8723D",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8821C",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_88XXA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8821A",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8812A",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8814A",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8822BU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8822CU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8723DU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8821CU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8821AU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8812AU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW88_8814AU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW89",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW89_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW89_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW89_8851B",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW89_8852B_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW89_8852B",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW89_8851BU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RTW89_8852BU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RSI_91X",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RSI_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ZD1211RW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INPUT_LEDS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INPUT_FF_MEMLESS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INPUT_SPARSEKMAP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INPUT_MOUSEDEV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INPUT_JOYDEV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INPUT_EVDEV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MOUSE_PS2",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INPUT_UINPUT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SERIAL_8250_DW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SERIAL_8250_LPSS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SERIAL_8250_MID",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HW_RANDOM_TIMERIOMEM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HW_RANDOM_INTEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HW_RANDOM_AMD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HW_RANDOM_VIA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HW_RANDOM_VIRTIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NVRAM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HANGCHECK_TIMER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCG_TIS_I2C_ATMEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCG_TIS_I2C_INFINEON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCG_TIS_I2C_NUVOTON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCG_NSC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCG_ATMEL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TCG_INFINEON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_CHARDEV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_SMBUS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_AMD756",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_AMD8111",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_I801",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_PIIX4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_DESIGNWARE_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_DESIGNWARE_PLATFORM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PTP_1588_CLOCK_VMCLOCK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_GPIO_GENERIC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_GPIO_GENERIC_PLATFORM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_GPIO_ICH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_GPIO_SCH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SENSORS_K8TEMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SENSORS_K10TEMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SENSORS_FAM15H_POWER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SENSORS_DELL_SMM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SENSORS_CORETEMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_X86_PKG_TEMP_THERMAL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SOFT_WATCHDOG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ITCO_WDT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SSB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MFD_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_LPC_ICH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_LPC_SCH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MFD_INTEL_LPSS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MFD_INTEL_LPSS_ACPI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MFD_INTEL_LPSS_PCI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MEDIA_SUPPORT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIDEO_DEV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DVB_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_V4L2_FWNODE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_V4L2_ASYNC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_GSPCA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_VIDEO_CLASS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RADIO_ADAPTERS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_UVC_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIDEOBUF2_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIDEOBUF2_V4L2",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIDEOBUF2_MEMOPS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIDEOBUF2_VMALLOC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MEDIA_TUNER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_FB_HYPERV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SOUND",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SND",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SND_TIMER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SND_PCM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SND_HWDEP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SND_RAWMIDI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SND_USB_AUDIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_GENERIC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_A4TECH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_APPLE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_BELKIN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_CHERRY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_EZKEY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_LOGITECH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_LOGITECH_DJ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_LOGITECH_HIDPP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_MICROSOFT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_MONTEREY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HID_HYPERV_MOUSE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_I2C_HID",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_HID",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_COMMON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_MON",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_ACM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_PRINTER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_WDM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_STORAGE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_UAS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USBIP_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USBIP_VHCI_HCD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USBIP_HOST",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_CH341",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_CP210X",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_FTDI_SIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_PL2303",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_QUALCOMM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_WWAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_OPTION",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_LEDS_CLASS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_LEDS_CLASS_MULTICOLOR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SPEAKUP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SPEAKUP_SYNTH_SOFT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DMA_VIRTUAL_CHANNELS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INTEL_IDMA64",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HSU_DMA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_UIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_UIO_PCI_GENERIC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_UIO_HV_GENERIC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IRQ_BYPASS_MANAGER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VIRTIO_MEM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VHOST_IOTLB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VHOST",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VHOST_NET",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_VHOST_VSOCK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ACPI_WMI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_WMI_BMOF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MXM_WMI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DCDBAS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_RBU",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_PC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_SMBIOS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_SMO8800",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_WMI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_WMI_AIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_WMI_DESCRIPTOR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_WMI_DDV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_WMI_LED",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DELL_WMI_SYSMAN",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_INTEL_PUNIT_IPC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_FW_ATTR_CLASS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DEVFREQ_GOV_SIMPLE_ONDEMAND",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_BUFFER_CB",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_KFIFO_BUF",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_TRIGGERED_BUFFER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_ST_ACCEL_3AXIS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_ST_ACCEL_I2C_3AXIS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_ST_SENSORS_I2C",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_ST_SENSORS_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HTS221",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_HTS221_I2C",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_ST_PRESS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_IIO_ST_PRESS_I2C",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PWM_LPSS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PWM_LPSS_PCI",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PWM_LPSS_PLATFORM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_AMD_ATL",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RAS_FMPM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DEV_DAX",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DEV_DAX_PMEM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DEV_DAX_KMEM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_BTRFS_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_F2FS_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_QUOTA_TREE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_QFMT_V2",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_AUTOFS_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CUSE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ISO9660_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MSDOS_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_EXFAT_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRAMFS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_EROFS_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFS_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFS_V2",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFS_V3",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFS_V4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PNFS_FILE_LAYOUT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PNFS_BLOCK",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_PNFS_FLEXFILE_LAYOUT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFSD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_GRACE_PERIOD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_LOCKD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NFS_ACL_SUPPORT",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SUNRPC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SUNRPC_GSS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RPCSEC_GSS_KRB5",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CEPH_FS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CIFS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_SMBFS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_NLS_UCS2_UTILS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_DLM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TRUSTED_KEYS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ENCRYPTED_KEYS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_XOR_BLOCKS",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ASYNC_CORE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ASYNC_MEMCPY",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ASYNC_XOR",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ASYNC_PQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ASYNC_RAID6_RECOV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_KPP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_USER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_AUTHENC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_ENGINE",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_DH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_ECC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_ECDH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_DES",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_ARC4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_LRW",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_CCM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_ECHAINIV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_ESSIV",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_BLAKE2B",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_CMAC",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_MD4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_XXHASH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_ANSI_CPRNG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_USER_API",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_USER_API_HASH",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_USER_API_SKCIPHER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_USER_API_RNG",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_USER_API_AEAD",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_DEV_VIRTIO",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_RAID6_PQ",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_LIB_ARC4",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_LIB_CHACHA",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_LIB_CURVE25519",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_LIB_DES",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_LIB_POLY1305",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_CRYPTO_LIB_CHACHA20POLY1305",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TEXTSEARCH_KMP",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TEXTSEARCH_BM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_TEXTSEARCH_FSM",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_ASN1_ENCODER",
+      "from": "m",
+      "to": "y"
+    },
+    {
+      "symbol": "CONFIG_MODULES",
+      "from": "y",
+      "to": "n"
+    }
+  ],
+  "post_olddefconfig_available": true,
+  "final_config_available": true,
+  "qualified_run": 37109392120,
+  "qualified_toolchain_run": 36947817583,
+  "normalization_fixed_point": true,
+  "review_note": "K1 final is actual olddefconfig output; reject-pending attribution decisions remain unresolved. Gate Q HOLD."
+}
