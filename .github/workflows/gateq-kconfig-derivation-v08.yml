@@ -3,7 +3,7 @@ name: Gate Q Kconfig Derivation Remediation v0.8
 on:
   push:
     branches: [gateq-kconfig-derivation-v08-20261003]
-    paths: [.github/workflows/gateq-kconfig-derivation-v07.yml]
+    paths: [.github/workflows/gateq-kconfig-derivation-v08.yml]
 
 permissions:
   contents: read
@@ -250,7 +250,7 @@ jobs:
               if p.is_file() and p.name not in ['CANONICAL_ARTIFACT_MANIFEST_V08.json']:
                   entries.append({'path':p.relative_to(ev).as_posix(),'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'size':p.stat().st_size})
           manifest={'schema_version':1,'project':'Gate Q Kconfig derivation v0.8','artifact':'gateq-kconfig-derivation-v08.zip','artifact_sha256':hashlib.sha256(canonical.read_bytes()).hexdigest(),'artifact_size':canonical.stat().st_size,'source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99','entries':entries,'result':'STATIC_DERIVATION_ONLY_PENDING_FRESH_INDEPENDENT_REAUDIT','Gate_Q':'HOLD','kernel_build_authorized':False,'runtime_authorized':False,'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False}
-          (ev/'CANONICAL_ARTIFACT_MANIFEST_V08.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\\n')
+          (ev/'CANONICAL_ARTIFACT_MANIFEST_V08.json').write_text(json.dumps(manifest,indent=2,sort_keys=True))
           PY_PACKET
       - name: Upload canonical v0.8 re-audit packet
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
