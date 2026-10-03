@@ -1,0 +1,300 @@
+{
+  "schema": "gateq-v07-source-attribution-map",
+  "source_commit": "14794180686c2fb6307fbe359c359bec765249f3",
+  "group_counts": {
+    "MODULES_SCOPE_OR_DEPENDENCY": 20,
+    "MODULES_INDIRECT_ARCH_EFFECT": 2,
+    "MODULE_ONLY_DEPENDS_ON_M": 6,
+    "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y": 20
+  },
+  "entries": [
+    {
+      "symbol": "CONFIG_ASM_MODVERSIONS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_BASIC_MODVERSIONS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_EXTENDED_MODVERSIONS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_GENDWARFKSYMS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_GENKSYMS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODPROBE_PATH",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULES_TREE_LOOKUP",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_ALLOW_MISSING_NAMESPACE_IMPORTS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_COMPRESS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_DEBUG",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_FORCE_LOAD",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_FORCE_UNLOAD",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_SIG",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_SRCVERSION_ALL",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_UNLOAD",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODULE_UNLOAD_TAINT_TRACKING",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_MODVERSIONS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_TRIM_UNUSED_KSYMS",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/module/Kconfig",
+      "source_condition": "module-specific symbol within MODULES scope"
+    },
+    {
+      "symbol": "CONFIG_LIVEPATCH",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "kernel/livepatch/Kconfig",
+      "source_condition": "depends on MODULES"
+    },
+    {
+      "symbol": "CONFIG_MEDIA_ATTACH",
+      "group": "MODULES_SCOPE_OR_DEPENDENCY",
+      "source_path": "drivers/media/Kconfig",
+      "source_condition": "depends on MODULES"
+    },
+    {
+      "symbol": "CONFIG_STRICT_MODULE_RWX",
+      "group": "MODULES_INDIRECT_ARCH_EFFECT",
+      "source_path": "arch/Kconfig",
+      "source_condition": "depends on ARCH_HAS_STRICT_MODULE_RWX && MODULES"
+    },
+    {
+      "symbol": "CONFIG_ARCH_HAS_EXECMEM_ROX",
+      "group": "MODULES_INDIRECT_ARCH_EFFECT",
+      "source_path": "arch/x86/Kconfig",
+      "source_condition": "selected for x86_64 only when STRICT_MODULE_RWX is enabled"
+    },
+    {
+      "symbol": "CONFIG_I2C_STUB",
+      "group": "MODULE_ONLY_DEPENDS_ON_M",
+      "source_path": "drivers/i2c/Kconfig",
+      "source_condition": "depends on m"
+    },
+    {
+      "symbol": "CONFIG_KPROBE_EVENT_GEN_TEST",
+      "group": "MODULE_ONLY_DEPENDS_ON_M",
+      "source_path": "kernel/trace/Kconfig",
+      "source_condition": "depends on m"
+    },
+    {
+      "symbol": "CONFIG_PREEMPTIRQ_DELAY_TEST",
+      "group": "MODULE_ONLY_DEPENDS_ON_M",
+      "source_path": "kernel/trace/Kconfig",
+      "source_condition": "depends on m"
+    },
+    {
+      "symbol": "CONFIG_SYNTH_EVENT_GEN_TEST",
+      "group": "MODULE_ONLY_DEPENDS_ON_M",
+      "source_path": "kernel/trace/Kconfig",
+      "source_condition": "depends on m"
+    },
+    {
+      "symbol": "CONFIG_TEST_ASYNC_DRIVER_PROBE",
+      "group": "MODULE_ONLY_DEPENDS_ON_M",
+      "source_path": "drivers/base/test/Kconfig",
+      "source_condition": "depends on m"
+    },
+    {
+      "symbol": "CONFIG_TEST_LOCKUP",
+      "group": "MODULE_ONLY_DEPENDS_ON_M",
+      "source_path": "lib/Kconfig.debug",
+      "source_condition": "depends on m"
+    },
+    {
+      "symbol": "CONFIG_ACPI_TINY_POWER_BUTTON",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/acpi/Kconfig",
+      "source_condition": "ACPI_BUTTON m->y makes depends on !ACPI_BUTTON false"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_BBR",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_BBR m->y exposes DEFAULT_BBR choice"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_BIC",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_BIC m->y exposes DEFAULT_BIC choice"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_CDG",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_CDG m->y exposes DEFAULT_CDG choice"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_DCTCP",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_DCTCP m->y exposes DEFAULT_DCTCP choice"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_HTCP",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_HTCP m->y exposes DEFAULT_HTCP choice"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_HYBLA",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_HYBLA m->y exposes DEFAULT_HYBLA choice"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_VEGAS",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_VEGAS m->y exposes DEFAULT_VEGAS choice"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_VENO",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_VENO m->y exposes DEFAULT_VENO choice"
+    },
+    {
+      "symbol": "CONFIG_DEFAULT_WESTWOOD",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "net/ipv4/Kconfig",
+      "source_condition": "TCP_CONG_WESTWOOD m->y exposes DEFAULT_WESTWOOD choice"
+    },
+    {
+      "symbol": "CONFIG_INTEL_SOC_PMIC",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/mfd/Kconfig",
+      "source_condition": "I2C_DESIGNWARE_PLATFORM m->y satisfies dependency"
+    },
+    {
+      "symbol": "CONFIG_INTEL_SOC_PMIC_CHTDC_TI",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/mfd/Kconfig",
+      "source_condition": "I2C_DESIGNWARE_PLATFORM m->y satisfies dependency"
+    },
+    {
+      "symbol": "CONFIG_INTEL_SOC_PMIC_CHTWC",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/mfd/Kconfig",
+      "source_condition": "I2C_DESIGNWARE_PLATFORM m->y satisfies dependency"
+    },
+    {
+      "symbol": "CONFIG_MD_AUTODETECT",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/md/Kconfig",
+      "source_condition": "BLK_DEV_MD m->y exposes/defaults MD_AUTODETECT"
+    },
+    {
+      "symbol": "CONFIG_NVDIMM_KEYS",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/nvdimm/Kconfig",
+      "source_condition": "ENCRYPTED_KEYS m->y with LIBNVDIMM=y satisfies equality"
+    },
+    {
+      "symbol": "CONFIG_NVDIMM_SECURITY_TEST",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/nvdimm/Kconfig",
+      "source_condition": "visible because NVDIMM_KEYS becomes y"
+    },
+    {
+      "symbol": "CONFIG_PCI_NPEM",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/pci/Kconfig",
+      "source_condition": "LEDS_CLASS m->y satisfies LEDS_CLASS=y"
+    },
+    {
+      "symbol": "CONFIG_USB_KBD",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/hid/usbhid/Kconfig",
+      "source_condition": "USB_HID m->y hides boot-protocol menu"
+    },
+    {
+      "symbol": "CONFIG_USB_MOUSE",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/hid/usbhid/Kconfig",
+      "source_condition": "USB_HID m->y hides boot-protocol menu"
+    },
+    {
+      "symbol": "CONFIG_USB_SERIAL_CONSOLE",
+      "group": "VISIBILITY_OR_DEFAULT_CHANGE_AFTER_M_TO_Y",
+      "source_path": "drivers/usb/serial/Kconfig",
+      "source_condition": "USB_SERIAL m->y exposes console option"
+    }
+  ]
+}
