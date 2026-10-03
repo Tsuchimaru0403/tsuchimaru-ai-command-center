@@ -17,8 +17,8 @@ jobs:
       SOURCE_TREE: 3b5ec33f7fd60f23d01064150f7c7020d2e6af99
       K0_CONFIG_SHA256: 4e1eb0e493bc9e1b8dba715084834119743eb509e6c43773ce6cd74e19cf1139
       QUALIFIED_FINAL_CONFIG_SHA256: c7882dfaa29493bd0247564f7a5c8870cef535c91bdef22811eaf1da0df9584a
-      CC: gcc-13
-      HOSTCC: gcc-13
+      CC: gcc
+      HOSTCC: gcc
       LC_ALL: C
       LANG: C
       TZ: UTC
