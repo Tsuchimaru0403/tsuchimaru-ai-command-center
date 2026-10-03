@@ -35,14 +35,12 @@ jobs:
         run: |
           set -euo pipefail
           test "$(id -u)" -ne 0
-          mkdir -p /tmp/gateq-kconfig-evidence /tmp/gateq-config-output /tmp/gateq-proot
+          mkdir -p /tmp/gateq-kconfig-evidence /tmp/gateq-config-output
           mv "$GITHUB_WORKSPACE/_kconfig_source" /tmp/gateq-kconfig-source
-          cd /tmp/gateq-proot
-          apt-get download proot libtalloc2
-          for pkg in ./*.deb; do dpkg-deb -x "$pkg" .; done
-          sha256sum ./*.deb ./usr/bin/proot > /tmp/gateq-kconfig-evidence/PROOT_LAUNCHER.sha256
-          export LD_LIBRARY_PATH=/tmp/gateq-proot/usr/lib/x86_64-linux-gnu
-          /tmp/gateq-proot/usr/bin/proot --version > /tmp/gateq-kconfig-evidence/PROOT_VERSION.txt
+          sha256sum /usr/bin/unshare /usr/bin/mount /usr/sbin/chroot > /tmp/gateq-kconfig-evidence/USERNS_LAUNCHER.sha256
+          /usr/bin/unshare --version > /tmp/gateq-kconfig-evidence/USERNS_VERSION.txt
+          /usr/bin/unshare --user --map-root-user /usr/bin/id -u > /tmp/gateq-kconfig-evidence/USERNS_UID_PREFLIGHT.txt
+          test "$(cat /tmp/gateq-kconfig-evidence/USERNS_UID_PREFLIGHT.txt)" = "0"
           cat > /tmp/gateq-kconfig-evidence/normalize_remote.py <<'PY_NORMALIZE'
           import pathlib, subprocess, json, os, hashlib, re, shutil
           ev=pathlib.Path('/evidence')
@@ -110,7 +108,7 @@ jobs:
           package_lock=(ev/'TOOLCHAIN_PACKAGE_LOCK.tsv').read_text()
           plugin_rows=[line for line in package_lock.splitlines() if 'plugin' in line.lower()]
           js('PAHOLE_GCC_CAPABILITY_EVIDENCE.json',{
-              'execution_environment':'same verified qualified OCI rootfs under unprivileged PRoot -0 user-id emulation as Kconfig normalization',
+              'execution_environment':'same verified qualified OCI rootfs under unprivileged Linux user+mount namespace chroot as Kconfig normalization',
               'pahole':{
                   'qualified_binary':'/usr/bin/pahole',
                   'qualified_binary_resolved_path':pahole_resolved,
@@ -126,7 +124,7 @@ jobs:
                   'wrapper_helper_output':helper_wrapper.stdout.strip(),
                   'wrapper_helper_exit_code':helper_wrapper.returncode,
                   'expected_kconfig_version_integer':125,
-                  'binding_reason':'PRoot image path executes correctly but helper test -x may report non-executable; deterministic wrapper delegates only to exact qualified /usr/bin/pahole'
+                  'binding_reason':'deterministic wrapper delegates only to exact qualified /usr/bin/pahole; namespace chroot preserves native executable-access semantics'
               },
               'gcc_plugin':{
                   'gcc_plugin_directory':gcc_plugin_dir,
@@ -141,7 +139,7 @@ jobs:
               'kernel_build_authorized':False,
               'runtime_authorized':False
           })
-          js('TOOLCHAIN_EFFECTIVE_IDENTITY.json',{'tools':versions,'qualified_tool_versions':expected,'environment':dict(os.environ),'mode':'unprivileged PRoot with -0 user-id emulation over verified qualified OCI rootfs; no host privilege escalation, Docker, Buildah, privileged initializer, kernel compile or runtime workload'})
+          js('TOOLCHAIN_EFFECTIVE_IDENTITY.json',{'tools':versions,'qualified_tool_versions':expected,'environment':dict(os.environ),'mode':'unprivileged Linux user+mount namespace chroot over verified qualified OCI rootfs; no host privilege escalation, Docker, Buildah, privileged initializer, kernel compile or runtime workload'})
           commands=[]
           def normalize(lane,data,result):
               d=out/lane;d.mkdir(parents=True)
@@ -238,8 +236,21 @@ jobs:
           host_run={'github_run_id':os.environ['GITHUB_RUN_ID'],'github_sha':os.environ['GITHUB_SHA'],'runner_os':os.environ['RUNNER_OS'],'runner_image':os.environ.get('ImageOS'),'runner_image_version':os.environ.get('ImageVersion'),'source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99'}
           (ev/'ACTIONS_RUN_BINDING.json').write_text(json.dumps(host_run,indent=2)+'\n')
           image_env=config['config'].get('Env',[])
-          cmd=['/tmp/gateq-proot/usr/bin/proot','-0','-r',str(root),'-b','/dev','-b','/proc','-b',str(source)+':/tmp/gateq-kconfig-source','-b','/tmp/gateq-config-output:/tmp/gateq-config-output','-b',str(ev)+':/evidence','-w','/tmp/gateq-kconfig-source','/usr/bin/env','-i']
-          cmd+=image_env+['ARCH=x86','SRCARCH=x86','KERNELVERSION=6.18.40.1','PWD=/tmp/gateq-kconfig-source','LD_LIBRARY_PATH=','/usr/bin/python3','/evidence/normalize_remote.py']
+          ns_script=pathlib.Path('/tmp/gateq-userns-launch.sh')
+          env_args=' '.join(__import__('shlex').quote(x) for x in image_env+['ARCH=x86','SRCARCH=x86','KERNELVERSION=6.18.40.1','PWD=/tmp/gateq-kconfig-source','LD_LIBRARY_PATH='])
+          ns_script.write_text(f'''#!/bin/bash
+          set -euo pipefail
+          ROOT={root}
+          mount --bind {source} "$ROOT/tmp/gateq-kconfig-source"
+          mount --bind /tmp/gateq-config-output "$ROOT/tmp/gateq-config-output"
+          mount --bind {ev} "$ROOT/evidence"
+          mount -t proc proc "$ROOT/proc"
+          exec /usr/sbin/chroot "$ROOT" /usr/bin/env -i {env_args} /usr/bin/python3 /evidence/normalize_remote.py
+          ''')
+          ns_script.chmod(0o755)
+          js_path=ev/'USERNS_EXECUTION_PLAN.json'
+          js_path.write_text(json.dumps({'launcher':'/usr/bin/unshare','args':['--user','--map-root-user','--mount','--pid','--fork'],'script_sha256':sha(ns_script),'host_uid':os.getuid(),'host_euid':os.geteuid(),'privileged_initializer_executed':False,'Docker_executed':False,'Buildah_executed':False},indent=2)+'\n')
+          cmd=['/usr/bin/unshare','--user','--map-root-user','--mount','--pid','--fork',str(ns_script)]
           subprocess.run(cmd,check=True)
           for line in (ev/'NORMALIZATION_COMMANDS.json').read_text().splitlines():pass
           subprocess.run(['git','-C',str(source),'diff','--exit-code'],check=True)
@@ -264,7 +275,7 @@ jobs:
           from pathlib import Path
           import hashlib, json, zipfile
           ev=Path('/tmp/gateq-kconfig-evidence')
-          readme="# Gate Q Kconfig derivation v0.8 — Fresh Re-Audit packet\\n\\nState: derivation-only qualification evidence. Gate Q remains HOLD.\\n\\nv0.8 verifies in the same qualified OCI rootfs used for Kconfig normalization: /usr/bin/pahole resolution, pahole v1.25, scripts/pahole-version.sh=125 via PATH and absolute binding, PAHOLE=/tmp/gateq-pahole-qualified-wrapper on all K0/K1 olddefconfig commands, normalized CONFIG_PAHOLE_VERSION=125 plus core BTF capability symbols, and GCC plugin directory/header/package-lock evidence.\\n\\nNo Docker, Buildah, privileged initializer, kernel build, runtime workload, Gate A, Stage 0B runtime, or production authorization."
+          readme="# Gate Q Kconfig derivation v0.8 — Fresh Re-Audit packet\\n\\nState: derivation-only qualification evidence. Gate Q remains HOLD.\\n\\nv0.8 verifies in the same qualified OCI rootfs used for Kconfig normalization via an unprivileged Linux user+mount namespace chroot: /usr/bin/pahole resolution, pahole v1.25, scripts/pahole-version.sh=125 via PATH and absolute binding, PAHOLE=/tmp/gateq-pahole-qualified-wrapper on all K0/K1 olddefconfig commands, normalized CONFIG_PAHOLE_VERSION=125 plus core BTF capability symbols, and GCC plugin directory/header/package-lock evidence.\\n\\nNo Docker, Buildah, privileged initializer, kernel build, runtime workload, Gate A, Stage 0B runtime, or production authorization."
           prompt="# Fresh Independent Re-Audit — Gate Q Kconfig derivation v0.8\\n\\nIndependently audit the canonical v0.8 ZIP and manifest. Verify the ZIP digest, every REMOTE_FILES.sha256 entry, fixed source commit/tree/baseline, qualified OCI/toolchain binding, all 760 module inputs including the eight lowercase-x symbols, K0/K1 normalization and second-run byte identity, and absence of kernel objects/outputs.\\n\\nReassess v0.7 MAJOR #1 using PAHOLE_GCC_CAPABILITY_EVIDENCE.json, PAHOLE_BTF_NORMALIZED_ASSERTIONS.json, NORMALIZATION_COMMANDS.json, configs and logs. Confirm same-environment /usr/bin/pahole v1.25, deterministic executable wrapper delegating only to that binary, scripts/pahole-version.sh(wrapper)=125, explicit PAHOLE=/tmp/gateq-pahole-qualified-wrapper binding, and normalized CONFIG_PAHOLE_VERSION=125 plus recorded BTF symbols. Reassess GCC plugin MINOR using measured header/package-lock evidence without assuming intent. Preserve the closed v0.7 outer-ZIP hash finding and review semantic deltas including MD_AUTODETECT=y.\\n\\nReturn PASS/FAIL and CRITICAL/MAJOR/MINOR/NOTE counts. Do not authorize Gate A, Stage 0B runtime, production, Docker runtime, privileged initialization, or kernel runtime. Gate Q remains HOLD pending Fresh Independent Re-Audit and Human Owner acceptance."
           (ev/'README_V08.md').write_text(readme)
           (ev/'FRESH_INDEPENDENT_REAUDIT_PROMPT_V08.md').write_text(prompt)
