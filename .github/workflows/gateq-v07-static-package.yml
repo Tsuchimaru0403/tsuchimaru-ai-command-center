@@ -1,0 +1,51 @@
+name: Gate Q v0.7 Static Package
+
+on:
+  push:
+    branches:
+      - gateq-kernel-compat-v07-static-package-20261003
+    paths:
+      - 'gateq-v07/**'
+      - '.github/workflows/gateq-v07-static-package.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact branch commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Assert static-only boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Gate Q=HOLD"
+          echo "No kernel build / no WSL / no activation / no runtime"
+
+      - name: Assemble v0.7 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 gateq-v07/generate_v07.py
+
+      - name: Show sidecar
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat gateq-v07/dist/GateQ-Kernel-Compatibility-Requalification-v0.7-candidate.zip.sha256
+
+      - name: Upload v0.7 candidate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateq-kernel-compat-v07-static-candidate
+          path: |
+            gateq-v07/dist/GateQ-Kernel-Compatibility-Requalification-v0.7-candidate.zip
+            gateq-v07/dist/GateQ-Kernel-Compatibility-Requalification-v0.7-candidate.zip.sha256
+          if-no-files-found: error
+          retention-days: 30
