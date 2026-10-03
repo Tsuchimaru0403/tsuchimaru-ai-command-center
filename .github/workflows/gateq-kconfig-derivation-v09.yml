@@ -297,22 +297,22 @@ jobs:
           import hashlib, json, zipfile
           ev=Path('/tmp/gateq-kconfig-evidence')
           readme = """# Gate Q Kconfig derivation v0.9 — Fresh Re-Audit packet
-State: derivation-only qualification evidence. Gate Q remains HOLD.
-
-The qualified GCC toolchain intentionally does not provide GCC plugin development support: plugin-version.h and plugin packages are absent by design for this Kconfig-only scope. No plugin package was added. Evidence records the expected boundary and rationale.
-
-The run preserves v0.8 pahole/BTF closure, 760 module inputs including eight lowercase-x symbols, K0/K1 second-normalization byte identity, final =m count zero, CONFIG_PAHOLE_VERSION=125, and required BTF symbols. CONFIG_MD_AUTODETECT=y and dependency deltas remain pending Human Owner acceptance.
-
-No Docker, Buildah, privileged initializer, kernel build, runtime workload, Gate A, Stage 0B runtime, or production authorization."""
+          State: derivation-only qualification evidence. Gate Q remains HOLD.
+          
+          The qualified GCC toolchain intentionally does not provide GCC plugin development support: plugin-version.h and plugin packages are absent by design for this Kconfig-only scope. No plugin package was added. Evidence records the expected boundary and rationale.
+          
+          The run preserves v0.8 pahole/BTF closure, 760 module inputs including eight lowercase-x symbols, K0/K1 second-normalization byte identity, final =m count zero, CONFIG_PAHOLE_VERSION=125, and required BTF symbols. CONFIG_MD_AUTODETECT=y and dependency deltas remain pending Human Owner acceptance.
+          
+          No Docker, Buildah, privileged initializer, kernel build, runtime workload, Gate A, Stage 0B runtime, or production authorization."""
           prompt = """# Fresh Independent Re-Audit — Gate Q Kconfig derivation v0.9
-
-Independently audit the canonical v0.9 ZIP and manifest. Verify the ZIP digest, every REMOTE_FILES.sha256 entry with sha256sum -c, fixed source commit/tree/baseline, qualified OCI/toolchain binding, all 760 module inputs including eight lowercase-x symbols, K0/K1 normalization and second-run byte identity, final =m count zero, and absence of kernel objects/outputs.
-
-Confirm v0.8 pahole/BTF closure: exact qualified pahole v1.25, wrapper helper result 125, explicit PAHOLE binding on all four K0/K1 olddefconfig runs, CONFIG_PAHOLE_VERSION=125, and required BTF symbols. Confirm the qualified-toolchain GCC plugin boundary using measured header/package evidence and explicit disposition; do not add packages.
-
-Verify machine-readable run-bound manifest and handoff identities against GitHub run ID, head SHA, artifact ID/name, upload digest, and canonical inner ZIP SHA-256. Review CONFIG_MD_AUTODETECT=y and dependency delta decisions; Human Owner acceptance remains pending. Return PASS/FAIL plus CRITICAL/MAJOR/MINOR/NOTE counts.
-
-Gate Q stays HOLD. Do not authorize or execute Gate A, Stage 0B runtime, production, Docker runtime, privileged initialization, kernel build, or kernel runtime."""
+          
+          Independently audit the canonical v0.9 ZIP and manifest. Verify the ZIP digest, every REMOTE_FILES.sha256 entry with sha256sum -c, fixed source commit/tree/baseline, qualified OCI/toolchain binding, all 760 module inputs including eight lowercase-x symbols, K0/K1 normalization and second-run byte identity, final =m count zero, and absence of kernel objects/outputs.
+          
+          Confirm v0.8 pahole/BTF closure: exact qualified pahole v1.25, wrapper helper result 125, explicit PAHOLE binding on all four K0/K1 olddefconfig runs, CONFIG_PAHOLE_VERSION=125, and required BTF symbols. Confirm the qualified-toolchain GCC plugin boundary using measured header/package evidence and explicit disposition; do not add packages.
+          
+          Verify machine-readable run-bound manifest and handoff identities against GitHub run ID, head SHA, artifact ID/name, upload digest, and canonical inner ZIP SHA-256. Review CONFIG_MD_AUTODETECT=y and dependency delta decisions; Human Owner acceptance remains pending. Return PASS/FAIL plus CRITICAL/MAJOR/MINOR/NOTE counts.
+          
+          Gate Q stays HOLD. Do not authorize or execute Gate A, Stage 0B runtime, production, Docker runtime, privileged initialization, kernel build, or kernel runtime."""
           (ev/'README_V09.md').write_text(readme)
           (ev/'FRESH_INDEPENDENT_REAUDIT_PROMPT_V09.md').write_text(prompt)
           files=[p for p in sorted(ev.rglob('*')) if p.is_file() and p.name!='REMOTE_FILES.sha256']
@@ -324,7 +324,7 @@ Gate Q stays HOLD. Do not authorize or execute Gate A, Stage 0B runtime, product
                   if p.is_file():
                       z.write(p,p.relative_to(ev).as_posix())
           manifest={'schema_version':1,'project':'Gate Q Kconfig derivation v0.9','artifact':'gateq-kconfig-derivation-v09.zip','artifact_sha256':hashlib.sha256(canonical.read_bytes()).hexdigest(),'artifact_size':canonical.stat().st_size,'source_commit':'14794180686c2fb6307fbe359c359bec765249f3','source_tree':'3b5ec33f7fd60f23d01064150f7c7020d2e6af99','result':'STATIC_DERIVATION_ONLY_PENDING_FRESH_INDEPENDENT_REAUDIT','Gate_Q':'HOLD','kernel_build_authorized':False,'runtime_authorized':False,'Docker_executed':False,'Buildah_executed':False,'privileged_initializer_executed':False}
-          Path('/tmp/CANONICAL_ARTIFACT_MANIFEST_V09.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\\n')
+          Path('/tmp/CANONICAL_ARTIFACT_MANIFEST_V09.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
           print('CANONICAL_V09_SHA256 '+manifest['artifact_sha256'])
           PY_PACKET
       - name: Upload canonical v0.9 re-audit packet
@@ -397,4 +397,3 @@ Gate Q stays HOLD. Do not authorize or execute Gate A, Stage 0B runtime, product
           if-no-files-found: error
           retention-days: 7
           compression-level: 6
-
