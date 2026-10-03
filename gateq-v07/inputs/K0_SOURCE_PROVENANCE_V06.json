@@ -1,0 +1,29 @@
+{
+  "schema": "gateq-k0-source-provenance-v1",
+  "repository": "https://github.com/microsoft/WSL2-Linux-Kernel",
+  "source_commit": "14794180686c2fb6307fbe359c359bec765249f3",
+  "tree_sha": "3b5ec33f7fd60f23d01064150f7c7020d2e6af99",
+  "release": "linux-msft-wsl-6.18.40.1",
+  "commit_timestamp_utc": "2026-08-01T00:26:41Z",
+  "archive_path": "inputs/K0-K1/WSL2-Linux-Kernel-14794180686c2fb6307fbe359c359bec765249f3.tar.gz",
+  "archive_size_bytes": 255982592,
+  "archive_sha256": "d472baf81cd0514d30f1b29904c5cb57a77ce09bba1c22ab523648cb1f0ac451",
+  "archive_format": "GitHub codeload source tar.gz at immutable commit",
+  "inventory_path": "inputs/K0-K1/SOURCE_FILE_MANIFEST.json",
+  "inventory_size_bytes": 20403693,
+  "inventory_sha256": "d9993b7549c703d8142196b67c3c5a24d655e852b2f5c99c3fa1c8284a898e66",
+  "inventory_entry_count": 97267,
+  "regular_file_count": 91128,
+  "symlink_count": 88,
+  "baseline_link": {
+    "path": "Microsoft/config-wsl",
+    "type": "symlink",
+    "target": "../arch/x86/configs/config-wsl",
+    "dereferenced_path": "arch/x86/configs/config-wsl",
+    "dereferenced_config_size_bytes": 193240,
+    "dereferenced_config_sha256": "4e1eb0e493bc9e1b8dba715084834119743eb509e6c43773ce6cd74e19cf1139"
+  },
+  "inventory_semantics": "Manifest hashes every regular-file payload in the downloaded commit archive; also enumerates directories and symlink targets. Git archive omits .git internals and generated/untracked files. The recursive GitHub API response was truncated at 72,522 entries; archive inventory is bound to the exact codeload commit URL, and Fresh Auditor should note this independent tree-enumeration limitation. No submodule payload was substituted.",
+  "source_archive_gzip_integrity": "PASS: complete stream decompression and tar-member hashing completed without gzip CRC error",
+  "build_authorized": false
+}
