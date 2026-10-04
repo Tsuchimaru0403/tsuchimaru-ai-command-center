@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "record_type": "human_owner_trust_anchor",
+  "status": "candidate",
+  "purpose": "Authorize detached CMS/PKCS#7 Gate Q runtime authorization for Windows Host Runtime Controller v1.0; this anchor record alone confers no runtime authorization.",
+  "certificate": {
+    "file": "TSUCHIMARU_HUMAN_OWNER_RUNTIME_TRUST_ANCHOR.cer",
+    "encoding": "DER X.509",
+    "sha256": "729B541F49C5C9A762BBF988E5642E3E290B4D407F19D2A2A8A051186F1D726F",
+    "subject": "CN=Tsuchimaru AI Command Center Human Owner Runtime Authorization",
+    "thumbprint_sha1": "455C20DCD8DEB26DC342B932DC722EFC26DA4E1D",
+    "serial_hex": "13EC7C4B835D2B8945271339184FB5FD",
+    "not_before_local": "2026-10-04T13:04:11+09:00",
+    "not_after_local": "2029-10-04T13:14:11+09:00",
+    "public_key_algorithm": "RSA",
+    "public_key_bits": 3072,
+    "certificate_signature_algorithm": "sha256WithRSAEncryption",
+    "key_usage": [
+      "digitalSignature"
+    ],
+    "extended_key_usage": [
+      "codeSigning (1.3.6.1.5.5.7.3.3)"
+    ],
+    "private_key_included": false
+  },
+  "source_identity": {
+    "owner_name": "Tsuchimaru",
+    "source": "Public DER certificate attached to referenced AI司令室6 conversation; exact SHA-256 independently verified locally.",
+    "conversation_id": "6ac0e147-1c74-83ec-9a79-10a2c561ffaa",
+    "independent_identity_attestation": "not supplied"
+  },
+  "provenance": {
+    "repository": "https://github.com/Tsuchimaru0403/tsuchimaru-ai-command-center",
+    "branch": "gate-q-v1.0-trust-anchor",
+    "commit_sha": "PINNED_EXTERNALLY_BY_CONTROLLER_AFTER_READBACK",
+    "record_path": "HUMAN_OWNER_TRUST_ANCHOR.json",
+    "certificate_path": "TSUCHIMARU_HUMAN_OWNER_RUNTIME_TRUST_ANCHOR.cer",
+    "binding": "both files are committed atomically; controller pins resulting immutable commit SHA"
+  },
+  "owner_approval": {
+    "adoption_instruction": "User requested creation of a new independent v1.0 lineage rooted in this public certificate.",
+    "approved_by": "Tsuchimaru (current user instruction)",
+    "approval_date_local": "2026-10-04",
+    "cryptographic_approval_signature": null,
+    "approval_scope": "Trust-anchor candidate adoption only; not host mutation, WSL operations, or runtime qualification."
+  },
+  "constraints": {
+    "private_key_or_pfx_received": false,
+    "runtime_authorized": false,
+    "gate_q": "HOLD",
+    "lineage": "new_independent_v1.0"
+  }
+}
