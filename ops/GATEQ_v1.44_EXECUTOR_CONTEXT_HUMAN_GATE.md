@@ -1,88 +1,66 @@
-# Gate Q v1.44 — Executor Context Remediation Human Gate
+# Gate Q v1.44 — Dedicated Executor Profile Human Gate
 
-Status: AWAITING HUMAN OWNER DECISION  
+Status: EXECUTOR CONTEXT CHANGE NOT APPLIED — AWAITING HUMAN ACTION  
 Finding: `MAJOR-RT-CHILD-CREATE-ACCESS-01`  
-Root cause: `WINDOWS_EFFECTIVE_ACCESS_BLOCKER`
+Root cause: `WINDOWS_EFFECTIVE_ACCESS_BLOCKER`  
+Static status: `v1.44 Fresh Independent Static Audit PASS — STATIC ONLY; PRESERVED`  
+Runtime status: `FAIL-CLOSED`
 
-## Proven cause
+## Current state
 
-The frozen v1.44 controller and static ACL policy are not the blocker.
+The single authorized v1.44 Runtime Qualification attempt stopped at qualification-child creation with access denied. Read-only diagnostics proved that the current Codex `workspace-write` restricted token lacks effective child-create access to the frozen ExecutionRoot. The read-only handle check returned Win32 error `5` / HRESULT `0x80070005`.
 
-The actual Codex Runtime executor used a restricted `workspace-write` token. Its writable roots excluded:
+The current desktop executor cannot change its writable roots or relaunch itself into a new profile. No executor-context change has been applied. The Human Gate remains pending until a Human Owner launches a new Codex executor with the narrowly scoped profile below.
 
-- `C:\GateQ\v1.42\ExecutionRoot`
-- `C:\GateQ\v1.42\Replay`
+The static ACL policy passed, and no ACL or owner repair is indicated. v1.44 Candidate, Controller, Manifest, Runtime paths, and existing ACLs/owners remain frozen. No Replay Ledger commit occurred. Gate Q remains NOT LOCKED.
 
-Read-only effective-access testing against the existing ExecutionRoot returned:
+## Next Human action
 
-- Win32: `5`
-- HRESULT: `0x80070005`
-
-The current user SID has an explicit Full Control ACE in the frozen DACL, but the restricted token's restricting SID set does not satisfy that Allow ACE. Therefore the actual Runtime process cannot create the qualification child.
-
-No ACL repair is indicated.
-
-## Proposed minimal remediation
-
-Permit a new executor/sandbox context for the frozen v1.44 Runtime Qualification whose additional writable scope is limited to exactly:
+Create or use a dedicated `workspace-write` profile that adds exactly these two writable roots, and launch a new Codex executor with that profile:
 
 - `C:\GateQ\v1.42\ExecutionRoot`
 - `C:\GateQ\v1.42\Replay`
 
-Do not authorize a general unrestricted filesystem context.
+These are the only additional writable roots authorized for this remediation.
 
-Do not authorize ACL/owner changes.
+Do not select `danger-full-access`, elevated/Administrator execution, broad `C:\` or `C:\GateQ` writable scopes, or make ACL/owner changes. If the profile cannot express exactly the two approved roots, stop and report the available alternatives for Human Owner review.
 
-Do not authorize Administrator elevation merely to bypass this blocker.
+The existing desktop executor must not attempt to mutate its own configuration or relaunch itself; it cannot perform those actions from this session.
 
-If the execution system cannot express these exact writable roots without a materially broader permission expansion, STOP and return the supported permission alternatives for Human Owner review.
+## New executor: read-only readiness only
 
-## Human Owner approval covers only
+After launching the new executor, perform read-only checks and report:
 
-1. changing the executor/sandbox writable-root context so the two frozen Runtime paths above are writable;
-2. restarting/relaunching the local Codex execution context if required for that scoped configuration to take effect;
-3. read-only verification of the new token/context and effective access after the change.
+- executor/sandbox mode and exact writable roots
+- process user SID, restricted-token status, and integrity level
+- effective child-create access to the existing ExecutionRoot
+- controller-required write access to the existing Replay directory
+- ExecutionRoot and Replay owner, DACL, reparse status, and ancestry unchanged
+- ledger, lock, tmp, and qualification child absent
+- filesystem and ACL/owner mutations during verification: NONE
 
-## Not authorized by this gate
+Do not create a test directory or child. Do not create or modify a ledger, lock, or tmp file.
 
-- private-key access
-- signing
-- live authorization generation
-- Runtime Qualification execution
-- Replay Ledger commit
-- test child creation
-- ACL/owner changes
-- Defender/CFA changes
-- unrestricted sandbox disable
-- Administrator elevation
-- Candidate/controller modification
-- Gate Q LOCK
-- WSL/.wslconfig
-- Gate A
-- Stage 0B
-- Production
-
-## Required result after approved context change
-
-Before any new signing/runtime authorization, report:
-
-- executor/sandbox mode
-- exact writable roots
-- process user SID
-- restricted-token status
-- integrity level
-- effective access result for child creation on ExecutionRoot
-- effective access result for controller-required Replay writes
-- ExecutionRoot / Replay owner and DACL unchanged
-- ledger / lock / tmp / qualification child absent
-- filesystem mutations during verification: NONE
-
-Successful terminal state:
+If all checks pass, stop at:
 
 `EXECUTOR CONTEXT READY — RETURN TO READINESS / SIGNING FLOW`
 
-A new live authorization must be generated later. The expired/consumed authorization record:
+This status only returns the project to read-only readiness. It does not authorize live authorization generation, private-key access, signing, or Runtime Qualification execution.
+
+## Explicitly prohibited
+
+- unrestricted/full-access sandbox disable or broader writable scope
+- elevated or Administrator execution
+- ACL/owner changes, takeown, or permission grants
+- Defender/CFA changes
+- Candidate, Controller, Manifest, or frozen Runtime path changes
+- test child or Replay Ledger/lock/tmp creation
+- private-key access, authorization generation, or CMS signing
+- Runtime Qualification execution or Replay Ledger commit
+- Gate Q LOCK, WSL/.wslconfig changes, Gate A, Stage 0B, or Production
+
+The expired and consumed authorization record:
 
 `GQv144-c50877e336da4668ad9dcf1f078b5c35`
 
-must never be reused.
+must never be reused. Any later signing and Runtime attempt requires separate Human Owner authorization at its respective gate.
