@@ -32,6 +32,16 @@
       "closed_in": "Gate Q v1.44 restaged Fresh Independent Static Audit",
       "machine_check": "Before semantic Fresh Audit, require readable Candidate, Fresh Audit Packet and Complete Audit Bundle plus exact frozen hash equality.",
       "invariant": "Do not start or score a Fresh Audit until audit input access and artifact transfer integrity both PASS."
+    },
+    {
+      "id": "MAJOR-RT-CHILD-CREATE-ACCESS-01",
+      "project_id": "ai-command-center",
+      "classification": "runtime-only-pending-root-cause",
+      "status": "OPEN",
+      "first_seen": "Gate Q v1.44 Runtime Qualification",
+      "closed_in": null,
+      "machine_check": "PENDING ROOT CAUSE. Do not promote to a deterministic regression until the access-denied mechanism is proven.",
+      "invariant": "The authorized Runtime executor that passes frozen path/ACL/ancestry checks must be able to create the controller-owned qualification child under C:\\GateQ\\v1.42\\ExecutionRoot, or fail closed before any Replay Ledger commit."
     }
   ]
 }
