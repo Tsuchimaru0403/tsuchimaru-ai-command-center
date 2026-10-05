@@ -2,7 +2,7 @@
   "version": 1,
   "project_id": "minecraft-koshien",
   "display_name": "Minecraft 甲子園",
-  "as_of": "2026-10-05",
+  "as_of": "2026-10-06",
   "risk_tier": "MEDIUM",
   "current_stage": "B090-B094 LOCK済み / B095-B099 READY FOR HUMAN RUNTIME",
   "status": "ACTIVE",
@@ -12,12 +12,13 @@
   "last_pass": "B090-B094 runtime qualification PASS and LOCK.",
   "open_findings": [],
   "next_action": [
-    "B095-B099はMachine Preflight済み成果物を起点にし、Human Runtime Gateでのみ停止する。",
-    "施工後はruntime verification結果を状態ファイルへ反映する。",
-    "同じ静的不具合が再発した場合はtransplant/preflight回帰テストへ追加する。"
+    "Use the overnight 15-batch mode for the next three consecutive 5-batch windows from the current unlocked batch when explicitly authorized before sleep.",
+    "Do not pause between the three windows if all defined preflight/runtime verification checks PASS.",
+    "On the first FAIL or authority boundary, stop immediately and preserve evidence/rollback state.",
+    "After 15 batches PASS, update PROJECT_STATE and stop at the Human Owner review/LOCK gate."
   ],
   "human_approval_required": true,
-  "audit_mode": "MACHINE_PREFLIGHT_THEN_RUNTIME_VERIFY_THEN_HUMAN_GATE",
+  "audit_mode": "OVERNIGHT: 5-BATCH PREFLIGHT -> AUTHORIZED RUNTIME -> VERIFY, repeat x3; STOP ON FIRST FAIL; HUMAN REVIEW/LOCK AFTER 15 BATCHES",
   "model_route": {
     "routine": "Instant/Low",
     "analysis": "Medium",
@@ -27,5 +28,29 @@
     "Notion:02｜Minecraft 甲子園",
     "甲子園最新 chat for evidence until migrated"
   ],
-  "migration_note": "Past locked windows stay immutable. New rules start with B095-B099."
+  "migration_note": "Past locked windows stay immutable. Overnight 5x3 is the standard forward mode after explicit nightly authorization.",
+  "operating_mode": {
+    "standard_daytime": "5-batch window",
+    "standard_overnight": "3 consecutive 5-batch windows (15 batches total)",
+    "authorization_model": "Human Owner authorizes the overnight 15-batch run before sleep. No intermediate Human Gate is required between the three windows if every window passes all defined checks.",
+    "per_window_sequence": [
+      "machine/static preflight",
+      "fresh backup / rollback readiness check",
+      "authorized runtime execution for exactly 5 batches",
+      "runtime verification",
+      "evidence capture",
+      "continue to next 5-batch window only on PASS"
+    ],
+    "stop_conditions": [
+      "any preflight FAIL",
+      "any runtime verification FAIL",
+      "unexpected world/state delta",
+      "rollback/backup evidence unavailable",
+      "scope would exceed the pre-authorized 15 batches",
+      "permission/authority expansion is required",
+      "same-stage failure reaches retry limit"
+    ],
+    "retry_limit": "Maximum 3 attempts for the same low-risk deterministic stage; then stop and switch to Root Cause Review.",
+    "end_gate": "After all 3 windows PASS, stop at Human Owner review/LOCK gate and provide one consolidated Japanese summary."
+  }
 }
