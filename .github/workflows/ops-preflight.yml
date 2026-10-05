@@ -1,0 +1,27 @@
+name: Ops Preflight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ops/**"
+      - ".github/workflows/ops-preflight.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "ops/**"
+      - ".github/workflows/ops-preflight.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Validate project states and regression registry
+        run: python ops/preflight.py
