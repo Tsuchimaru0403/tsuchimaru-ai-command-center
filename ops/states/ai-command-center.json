@@ -4,19 +4,21 @@
   "display_name": "AI司令室 / Gate Q",
   "as_of": "2026-10-05",
   "risk_tier": "HIGH",
-  "current_stage": "Gate Q v1.44 — post-static-pass Runtime preparation",
-  "status": "STATIC_PASS_RUNTIME_READINESS_RETRY_PREPARED",
-  "canonical": "Latest Gate Q qualification state: v1.44 Fresh Independent Static Audit PASS — STATIC ONLY. Candidate SHA-256 8AC30EB6D1F280FCC8AE7AFC159A12833B45655F3809F5AEB97A6644434EF3BD; Controller SHA-256 C5B06C5DAD120D65DAD5A933DF122B015DF1646369FCA31542BE56B3D7BA37B5; Manifest SHA-256 A273792F549F76596568AA0A38C3D4C19117F9B11AFBACEAE1D3A47B5F958A14. Frozen Runtime paths remain C:\\GateQ\\v1.42\\ExecutionRoot and C:\\GateQ\\v1.42\\Replay\\gateq-v1.42.ledger. Historical architecture/design approvals remain authoritative; this state update does not LOCK Gate Q.",
+  "current_stage": "Gate Q v1.44 — Runtime Qualification fail-closed diagnostic",
+  "status": "RUNTIME_QUALIFICATION_FAIL_CLOSED_DIAGNOSTIC_REQUIRED",
+  "canonical": "Latest Gate Q qualification state: v1.44 Fresh Independent Static Audit PASS — STATIC ONLY remains valid, but the single authorized v1.44 Runtime Qualification attempt FAILED CLOSED with controller exit code 2 during qualification-child creation. Frozen Candidate SHA-256 8AC30EB6D1F280FCC8AE7AFC159A12833B45655F3809F5AEB97A6644434EF3BD; Controller SHA-256 C5B06C5DAD120D65DAD5A933DF122B015DF1646369FCA31542BE56B3D7BA37B5; Manifest SHA-256 A273792F549F76596568AA0A38C3D4C19117F9B11AFBACEAE1D3A47B5F958A14. Runtime attempt used record_id GQv144-c50877e336da4668ad9dcf1f078b5c35 and reached C:\\GateQ\\v1.42\\ExecutionRoot\\gateq-v1.44-df96090192694c4094afdb37fd4ec088, where child creation returned access denied. Replay Ledger was not committed and no child/lock/tmp remained. Gate Q is NOT LOCKED.",
   "locked": true,
   "lock_ref": "Existing Human Owner approved/LOCKed architecture and design artifacts only. Gate Q v1.44 itself is NOT LOCKED.",
-  "last_pass": "Gate Q v1.44 Fresh Independent Static Audit: PASS — STATIC ONLY; CRITICAL 0 / MAJOR 0 / MINOR 0 / NOTE 0; 14/14 static fixtures independently acceptable; MAJOR-RT-PATH-PIN-01 CLOSED; MAJOR-RT-JSON-NULL-SENTINEL-01 CLOSED; audit input access and artifact transfer integrity PASS.",
-  "open_findings": [],
+  "last_pass": "Gate Q v1.44 Fresh Independent Static Audit remains PASS — STATIC ONLY (CRITICAL 0 / MAJOR 0 / MINOR 0 / NOTE 0). Runtime readiness preflight also passed before the authorized attempt. The later Runtime Qualification itself did NOT pass.",
+  "open_findings": [
+    "MAJOR-RT-CHILD-CREATE-ACCESS-01 — Runtime-only: controller passed frozen path/ancestry/ACL preflight but access to create the qualification child under C:\\GateQ\\v1.42\\ExecutionRoot was denied. Root cause not yet established."
+  ],
   "next_action": [
-    "Resume the v1.44 Runtime Readiness Completion Contract at commit 2b6811c713430db5d8733cf9fe1d276f26345d28; do not re-audit v1.44.",
-    "Restage the exact frozen v1.44 Candidate/audit artifacts from C:\\Users\\Hirok\\Documents\\Codex\\2026-10-05\\files-pasted-by-the-user-tsuchimaru-3\\outputs or another prior Codex output location only after exact frozen hash verification.",
-    "Use System.IO.DriveInfo, not Get-Volume, for the controller-equivalent C: Ready/Fixed/NTFS check; then complete live read-only ACL/reparse/ancestry and Runtime-artifact absence checks.",
-    "Stage exact CandidateZip/controller/Manifest and frozen CLI path inputs without creating a live authorization.",
-    "If readiness passes, STOP only at READY FOR HUMAN OWNER SIGNING GATE. Private-key use, detached CMS signing and Runtime execution remain separate Human Gates."
+    "Do not re-audit or rebuild v1.44 solely because of this runtime failure; preserve all frozen identities and the static PASS.",
+    "Do not reuse the expired/consumed signed authorization GQv144-c50877e336da4668ad9dcf1f078b5c35 and do not rerun Runtime.",
+    "Run the read-only MAJOR-RT-CHILD-CREATE-ACCESS-01 diagnostic completion contract: inspect the exact controller failure/log, process token restrictions/integrity/AppContainer state, effective ACL/token relationship, Codex sandbox/workspace restrictions, and Defender Controlled Folder Access evidence.",
+    "Use no filesystem creation/deletion/ACL mutation during diagnosis. Stop only if a true Human Gate is needed for a controlled write probe or remediation.",
+    "After root cause is proven, decide whether the fix is environment/executor configuration only or requires a new controller candidate and Fresh Audit."
   ],
   "human_approval_required": true,
   "audit_mode": "MACHINE_PREFLIGHT_THEN_AI_SEMANTIC_THEN_FRESH_AUDIT_FOR_NEW_HIGH_RISK_CANDIDATES_THEN_HUMAN_GATE; DO_NOT_REAUDIT_EXISTING_PASS_WITHOUT_NEW_EVIDENCE_OR_CHANGE",
@@ -31,5 +33,5 @@
     "Gate Q v1.44 Fresh Independent Static Audit PASS reported 2026-10-05",
     "Notion:01｜AI司令室・自動化基盤"
   ],
-  "migration_note": "AI OPERATING EFFICIENCY POLICY v1 is active. v1.44 static PASS remains accepted. The first Runtime-readiness attempt exposed preparation-only blockers (artifact staging and non-controller Get-Volume access denial); the completion contract was corrected at commit 2b6811c713430db5d8733cf9fe1d276f26345d28. Continue automatically through read-only preparation and stop only at a true Human Gate or a frozen identity/security mismatch."
+  "migration_note": "AI OPERATING EFFICIENCY POLICY v1 remains active. v1.44 static PASS is not reopened. Runtime-only failures are diagnosed read-only before any new signing or execution authorization. The failed authorization was consumed once and expired without Replay Ledger commit."
 }
