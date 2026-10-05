@@ -18,7 +18,7 @@
     "Once READY, use the overnight 15-batch mode: three consecutive 5-batch windows, stopping on first FAIL and at Human Owner review/LOCK after 15 PASS."
   ],
   "human_approval_required": true,
-  "audit_mode": "OVERNIGHT: 5-BATCH PREFLIGHT -> AUTHORIZED RUNTIME -> VERIFY, repeat x3; STOP ON FIRST FAIL; HUMAN REVIEW/LOCK AFTER 15 BATCHES",
+  "audit_mode": "OVERNIGHT: PRE-SLEEP READY GATE -> 5-BATCH PREFLIGHT -> ONE AUTHORIZED RUNTIME -> VERIFY, repeat x3 only after PASS; NO RUNTIME RETRY/ROLLBACK/REPAIR; HUMAN REVIEW/LOCK AFTER 15 BATCHES",
   "model_route": {
     "routine": "Instant/Low",
     "analysis": "Medium",
@@ -50,7 +50,6 @@
       "permission/authority expansion is required",
       "same-stage failure reaches retry limit"
     ],
-    "retry_limit": "Maximum 3 attempts for the same low-risk deterministic stage; then stop and switch to Root Cause Review.",
     "end_gate": "After all 3 windows PASS, stop at Human Owner review/LOCK gate and provide one consolidated Japanese summary.",
     "pre_sleep_readiness_gate": [
       "The execution mode/environment must support the whole delegated run without relying on a closed ordinary chat session.",
@@ -59,6 +58,12 @@
       "The first 5-batch window must be READY rather than BLOCKED before counting the task as an overnight runtime run."
     ],
     "session_persistence_rule": "Do not promise overnight continuation from an ordinary chat session. Overnight execution requires a persistent Work/task environment or an already-running execution context capable of continuing the delegated task.",
-    "artifact_rule": "A README/SHA record proving that an artifact once existed is not a substitute for the canonical artifact bytes when exact-byte binding is required."
+    "artifact_rule": "A README/SHA record proving that an artifact once existed is not a substitute for the canonical artifact bytes when exact-byte binding is required.",
+    "retry_policy": {
+      "preparation_preflight": "Low-risk deterministic preparation/preflight may be retried up to 3 times if it cannot alter the Minecraft world or canonical LOCK state.",
+      "runtime": "NO AUTO RETRY. Any runtime execution anomaly or verification FAIL stops immediately.",
+      "rollback": "NO AUTO ROLLBACK.",
+      "repair": "NO AUTO REPAIR of world/runtime state."
+    }
   }
 }
