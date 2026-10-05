@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "project_id": "income-work",
+  "display_name": "在宅収入・配達・求職",
+  "as_of": "2026-10-05",
+  "risk_tier": "MEDIUM",
+  "current_stage": "在宅案件の受注・継続化を優先 / 配達は自転車復帰待ち",
+  "status": "ACTIVE",
+  "canonical": "案件ごとに条件・納期・報酬・連絡履歴を正本化し、AIは応募・制作・確認を支援する。",
+  "locked": false,
+  "lock_ref": null,
+  "last_pass": "ココナラ案件対応・CrowdWorks案件運用を継続中。",
+  "open_findings": [
+    "単発作業への時間投入に対して収益性が低い案件は、継続可否を定期評価する。"
+  ],
+  "next_action": [
+    "案件ごとにdone_whenと時給下限を明示する。",
+    "応募文・確認・納品チェックはテンプレート化し、3往復超の反復を減らす。",
+    "低リスクの案件探索・整理はInstant/Low、条件比較はMedium、契約や重要判断のみHigh/Human確認へ上げる。"
+  ],
+  "human_approval_required": true,
+  "audit_mode": "AI_SELF_CHECK_OR_MACHINE_CHECK; HUMAN_GATE_FOR_CONTRACT_SEND_MONEY_OR_EXTERNAL_COMMITMENT",
+  "model_route": {
+    "routine": "Instant/Low",
+    "analysis": "Medium",
+    "final_gate": "High only for ambiguous contract/risk decisions"
+  },
+  "source_of_truth": [
+    "Notion:06｜在宅収入・配達・求職",
+    "Gmail/CrowdWorks/Coconala messages for source evidence"
+  ],
+  "migration_note": "Ongoing applications are not restarted. Apply the new contract/checklist at the next reply, delivery, or new application."
+}
