@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "project_id": "minecraft-koshien",
+  "display_name": "Minecraft 甲子園",
+  "as_of": "2026-10-05",
+  "risk_tier": "MEDIUM",
+  "current_stage": "B090-B094 LOCK済み / B095-B099 READY FOR HUMAN RUNTIME",
+  "status": "ACTIVE",
+  "canonical": "5-batch Human Gate施工方式; fresh backup + runtime verification + Human Owner LOCK.",
+  "locked": true,
+  "lock_ref": "B090-B094 Human Owner runtime qualification PASS / LOCK.",
+  "last_pass": "B090-B094 runtime qualification PASS and LOCK.",
+  "open_findings": [],
+  "next_action": [
+    "B095-B099はMachine Preflight済み成果物を起点にし、Human Runtime Gateでのみ停止する。",
+    "施工後はruntime verification結果を状態ファイルへ反映する。",
+    "同じ静的不具合が再発した場合はtransplant/preflight回帰テストへ追加する。"
+  ],
+  "human_approval_required": true,
+  "audit_mode": "MACHINE_PREFLIGHT_THEN_RUNTIME_VERIFY_THEN_HUMAN_GATE",
+  "model_route": {
+    "routine": "Instant/Low",
+    "analysis": "Medium",
+    "final_gate": "High only for anomalous runtime or lock decision"
+  },
+  "source_of_truth": [
+    "Notion:02｜Minecraft 甲子園",
+    "甲子園最新 chat for evidence until migrated"
+  ],
+  "migration_note": "Past locked windows stay immutable. New rules start with B095-B099."
+}
