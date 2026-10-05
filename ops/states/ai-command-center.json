@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "project_id": "ai-command-center",
+  "display_name": "AI司令室 / Gate Q",
+  "as_of": "2026-10-05",
+  "risk_tier": "HIGH",
+  "current_stage": "Stage 0B / Gate Q qualification",
+  "status": "HOLD_FOR_QUALIFICATION",
+  "canonical": "Architecture / Implementation Design / approved plan artifacts remain authoritative; operational efficiency layer is additive only.",
+  "locked": true,
+  "lock_ref": "Existing Human Owner approved/LOCKed architecture and design artifacts; do not rewrite historical evidence.",
+  "last_pass": "Plan-level approvals remain valid; Gate Q overall is not yet approved.",
+  "open_findings": [
+    "Gate Q qualification remains incomplete; current branch-specific qualification/audit must finish before Gate A or Runtime."
+  ],
+  "next_action": [
+    "Run machine preflight before every new Fresh Audit package.",
+    "Convert every deterministic repeat finding into a regression check.",
+    "Stop only at a defined Human Gate or unresolved major unknown."
+  ],
+  "human_approval_required": true,
+  "audit_mode": "MACHINE_PREFLIGHT_THEN_AI_SEMANTIC_THEN_FRESH_AUDIT_THEN_HUMAN_GATE",
+  "model_route": {
+    "routine": "Instant/Low",
+    "analysis": "Medium",
+    "final_gate": "High"
+  },
+  "source_of_truth": [
+    "GitHub:Tsuchimaru0403/tsuchimaru-ai-command-center",
+    "Notion:01｜AI司令室・自動化基盤"
+  ],
+  "migration_note": "Apply from the next touched task. Do not reopen historical PASS/LOCK solely for this migration."
+}
