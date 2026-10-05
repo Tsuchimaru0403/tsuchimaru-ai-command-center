@@ -36,12 +36,13 @@
     {
       "id": "MAJOR-RT-CHILD-CREATE-ACCESS-01",
       "project_id": "ai-command-center",
-      "classification": "runtime-only-pending-root-cause",
-      "status": "OPEN",
+      "classification": "runtime-only-environment",
+      "status": "ROOT_CAUSE_PROVEN_AWAITING_HUMAN_REMEDIATION",
       "first_seen": "Gate Q v1.44 Runtime Qualification",
       "closed_in": null,
-      "machine_check": "PENDING ROOT CAUSE. Do not promote to a deterministic regression until the access-denied mechanism is proven.",
-      "invariant": "The authorized Runtime executor that passes frozen path/ACL/ancestry checks must be able to create the controller-owned qualification child under C:\\GateQ\\v1.42\\ExecutionRoot, or fail closed before any Replay Ledger commit."
+      "machine_check": "Before any future Gate Q Runtime attempt, machine-check executor/token context and require effective child-create access to the exact frozen ExecutionRoot while preserving the frozen DACL. Do not satisfy this by ACL repair.",
+      "invariant": "Runtime executor must have effective child-create access to C:\\GateQ\\v1.42\\ExecutionRoot and controller-required write access to C:\\GateQ\\v1.42\\Replay without broadening the frozen ACL contract.",
+      "root_cause": "WINDOWS_EFFECTIVE_ACCESS_BLOCKER caused by Codex workspace-write restricted token; C:\\GateQ is outside writable roots. Static DACL policy passes but actual restricted-token access check for FILE_ADD_SUBDIRECTORY returns Win32 5."
     }
   ]
 }
