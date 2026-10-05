@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-05",
+  "policy": "Deterministic findings discovered by AI must be converted into machine-checkable regression tests when practical.",
+  "findings": []
+}
