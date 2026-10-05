@@ -4,22 +4,22 @@
   "display_name": "AI司令室 / Gate Q",
   "as_of": "2026-10-05",
   "risk_tier": "HIGH",
-  "current_stage": "Stage 0B / Gate Q qualification",
-  "status": "HOLD_FOR_QUALIFICATION",
-  "canonical": "Architecture / Implementation Design / approved plan artifacts remain authoritative; operational efficiency layer is additive only.",
+  "current_stage": "Gate Q v1.44 — post-static-pass Runtime preparation",
+  "status": "STATIC_PASS_AWAITING_RUNTIME_READINESS_AND_HUMAN_GATES",
+  "canonical": "Latest Gate Q qualification state: v1.44 Fresh Independent Static Audit PASS — STATIC ONLY. Candidate SHA-256 8AC30EB6D1F280FCC8AE7AFC159A12833B45655F3809F5AEB97A6644434EF3BD; Controller SHA-256 C5B06C5DAD120D65DAD5A933DF122B015DF1646369FCA31542BE56B3D7BA37B5; Manifest SHA-256 A273792F549F76596568AA0A38C3D4C19117F9B11AFBACEAE1D3A47B5F958A14. Frozen Runtime paths remain C:\\GateQ\\v1.42\\ExecutionRoot and C:\\GateQ\\v1.42\\Replay\\gateq-v1.42.ledger. Historical architecture/design approvals remain authoritative; this state update does not LOCK Gate Q.",
   "locked": true,
-  "lock_ref": "Existing Human Owner approved/LOCKed architecture and design artifacts; do not rewrite historical evidence.",
-  "last_pass": "Plan-level approvals remain valid; Gate Q overall is not yet approved.",
-  "open_findings": [
-    "Gate Q qualification remains incomplete; current branch-specific qualification/audit must finish before Gate A or Runtime."
-  ],
+  "lock_ref": "Existing Human Owner approved/LOCKed architecture and design artifacts only. Gate Q v1.44 itself is NOT LOCKED.",
+  "last_pass": "Gate Q v1.44 Fresh Independent Static Audit: PASS — STATIC ONLY; CRITICAL 0 / MAJOR 0 / MINOR 0 / NOTE 0; 14/14 static fixtures independently acceptable; MAJOR-RT-PATH-PIN-01 CLOSED; MAJOR-RT-JSON-NULL-SENTINEL-01 CLOSED; audit input access and artifact transfer integrity PASS.",
+  "open_findings": [],
   "next_action": [
-    "Run machine preflight before every new Fresh Audit package.",
-    "Convert every deterministic repeat finding into a regression check.",
-    "Stop only at a defined Human Gate or unresolved major unknown."
+    "Do not re-audit the already-passed v1.44 candidate solely because the operating policy changed; preserve the frozen v1.44 identities.",
+    "Run one completion-contract Runtime-readiness pass: machine-check exact v1.44 hashes, public trust anchor, frozen provisioned paths/ACL/ancestry, and absence of ledger/lock/tmp/qualification child. Read-only only; no private-key access, signing, live authorization, or Runtime.",
+    "If readiness passes, keep the five-minute live authorization unmaterialized until signing and Runtime can proceed immediately.",
+    "STOP at the Human Owner signing gate before private-key use/detached CMS creation. After signing verification, STOP again at the separate Human Owner Runtime Qualification execution gate.",
+    "A Runtime PASS still does not authorize Gate Q LOCK, Gate A, Stage 0B, WSL changes, or Production."
   ],
   "human_approval_required": true,
-  "audit_mode": "MACHINE_PREFLIGHT_THEN_AI_SEMANTIC_THEN_FRESH_AUDIT_THEN_HUMAN_GATE",
+  "audit_mode": "MACHINE_PREFLIGHT_THEN_AI_SEMANTIC_THEN_FRESH_AUDIT_FOR_NEW_HIGH_RISK_CANDIDATES_THEN_HUMAN_GATE; DO_NOT_REAUDIT_EXISTING_PASS_WITHOUT_NEW_EVIDENCE_OR_CHANGE",
   "model_route": {
     "routine": "Instant/Low",
     "analysis": "Medium",
@@ -27,7 +27,9 @@
   },
   "source_of_truth": [
     "GitHub:Tsuchimaru0403/tsuchimaru-ai-command-center",
+    "GitHub:ops/states/ai-command-center.json",
+    "Gate Q v1.44 Fresh Independent Static Audit PASS reported 2026-10-05",
     "Notion:01｜AI司令室・自動化基盤"
   ],
-  "migration_note": "Apply from the next touched task. Do not reopen historical PASS/LOCK solely for this migration."
+  "migration_note": "AI OPERATING EFFICIENCY POLICY v1 applies from the next touched task. v1.44 PASS is accepted as current evidence and is not reopened solely for migration. Continue low-risk/read-only preparation automatically and stop only at a true Human Gate, permission boundary, specification conflict, or major unresolved unknown."
 }
