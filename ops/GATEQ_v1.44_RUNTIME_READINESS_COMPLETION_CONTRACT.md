@@ -76,14 +76,47 @@ Public trust anchor:
 - Stage 0B Runtime.
 - Production.
 
+## Artifact staging sources
+
+The repository is not required to contain the v1.44 Candidate ZIP. Reuse the already-produced frozen local artifacts when still present.
+
+Primary known source:
+
+- `C:\Users\Hirok\Documents\Codex\2026-10-05\files-pasted-by-the-user-tsuchimaru-3\outputs\GateQ-WindowsHostRuntimeController-v1.44-candidate.zip`
+- `C:\Users\Hirok\Documents\Codex\2026-10-05\files-pasted-by-the-user-tsuchimaru-3\outputs\GateQ-v1.44-FRESH-INDEPENDENT-STATIC-AUDIT-PACKET.zip`
+- `C:\Users\Hirok\Documents\Codex\2026-10-05\files-pasted-by-the-user-tsuchimaru-3\outputs\GateQ-v1.44-COMPLETE-AUDIT-BUNDLE.zip`
+
+If the primary source files exist, copy them byte-for-byte into the current preparation workspace only. Recompute SHA-256 after the copy and require exact equality with the frozen identities. Do not rebuild or repackage them.
+
+The Controller and Manifest may be read/extracted from the verified Candidate ZIP into the current non-Runtime preparation workspace for CLI staging. Their bytes must match the frozen Controller/Manifest hashes.
+
+If these exact source paths are absent, search only existing prior Codex output workspaces for the exact filenames and accept a located artifact only after the frozen SHA-256 matches. Do not substitute another version.
+
+## Windows filesystem query method
+
+For the C: filesystem/drive readiness check, use the same method as the frozen controller semantics:
+
+`System.IO.DriveInfo`
+
+Do **not** use `Get-Volume` as a required gate. A `Get-Volume` access-denied result is not a controller-equivalent failure.
+
+Require `DriveInfo` to report:
+
+- IsReady = true
+- DriveType = Fixed
+- DriveFormat = NTFS
+
+Then continue the existing read-only path/ACL/reparse/ancestry checks.
+
 ## Required execution order
 
-1. **Machine preflight** — frozen hash/package/public-cert checks.
-2. **Live read-only Windows preflight** — exact frozen paths, filesystem, owner/ACL, ancestry, no Runtime artifacts.
-3. **Invocation staging** — resolve exact v1.44 controller/Candidate inputs and frozen CLI paths.
-4. **Authorization staging** — prepare schema-shaped non-live material only; do not generate timestamps/nonce/record_id intended for live use.
-5. **Final readiness check** — confirm the next operation requiring Human Owner approval is private-key use / exact-byte signing.
-6. **STOP** with `READY FOR HUMAN OWNER SIGNING GATE`.
+1. **Artifact restaging** — locate/copy the exact frozen v1.44 Candidate/audit artifacts from the known prior workspace or another exact-hash-matching prior Codex output workspace.
+2. **Machine preflight** — frozen hash/package/public-cert checks, including extracted Controller/Manifest identity.
+3. **Live read-only Windows preflight** — exact frozen paths, `System.IO.DriveInfo` filesystem semantics, owner/ACL, ancestry, no Runtime artifacts.
+4. **Invocation staging** — resolve exact current-workspace v1.44 controller/Candidate inputs and frozen CLI paths.
+5. **Authorization staging** — prepare schema-shaped non-live material only; do not generate timestamps/nonce/record_id intended for live use.
+6. **Final readiness check** — confirm the next operation requiring Human Owner approval is private-key use / exact-byte signing.
+7. **STOP** with `READY FOR HUMAN OWNER SIGNING GATE`.
 
 The five-minute authorization must be generated only after the Human Owner is ready to approve signing and Runtime can follow immediately. This avoids consuming the validity window during preparation.
 
