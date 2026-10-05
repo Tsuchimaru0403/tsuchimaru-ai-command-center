@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-10-05",
+  "updated_at": "2026-10-06",
   "policy": "Deterministic findings discovered by AI must be converted into machine-checkable regression tests when practical.",
   "findings": [
     {
@@ -37,12 +37,22 @@
       "id": "MAJOR-RT-CHILD-CREATE-ACCESS-01",
       "project_id": "ai-command-center",
       "classification": "runtime-only-environment",
-      "status": "ROOT_CAUSE_PROVEN_AWAITING_HUMAN_REMEDIATION",
+      "status": "CLOSED_OPERATIONALLY",
       "first_seen": "Gate Q v1.44 Runtime Qualification",
-      "closed_in": null,
-      "machine_check": "Before any future Gate Q Runtime attempt, machine-check executor/token context and require effective child-create access to the exact frozen ExecutionRoot while preserving the frozen DACL. Do not satisfy this by ACL repair.",
+      "closed_in": "Normal non-admin PowerShell execution path before v1.45",
+      "machine_check": "Before each future Runtime attempt, require IsTokenRestricted=False and read-only effective child-create access to frozen ExecutionRoot plus required Replay access; prohibit Gate Q workspace-write Codex profile for Runtime.",
       "invariant": "Runtime executor must have effective child-create access to C:\\GateQ\\v1.42\\ExecutionRoot and controller-required write access to C:\\GateQ\\v1.42\\Replay without broadening the frozen ACL contract.",
-      "root_cause": "WINDOWS_EFFECTIVE_ACCESS_BLOCKER caused by Codex workspace-write restricted token; C:\\GateQ is outside writable roots. Static DACL policy passes but actual restricted-token access check for FILE_ADD_SUBDIRECTORY returns Win32 5."
+      "root_cause": "Codex workspace-write restricted token / sandbox writable-root mechanism. Dedicated writable-root profile added sandbox ACEs and was rejected for Runtime because it changed the frozen DACL. Normal non-admin PowerShell restored 3-ACE DACL and read-only effective access ALLOW."
+    },
+    {
+      "id": "MAJOR-RT-FILESTREAM-NET-COMPAT-01",
+      "project_id": "ai-command-center",
+      "classification": "deterministic-runtime-compatibility",
+      "status": "CLOSED_PENDING_FRESH_AUDIT_CONFIRMATION",
+      "first_seen": "Gate Q v1.44 Runtime Qualification under PowerShell 7.6.6 / current .NET",
+      "closed_in": "Gate Q v1.45 candidate",
+      "machine_check": "AST must reject legacy seven-argument [IO.FileStream]::new(... FileSystemRights ... FileSecurity) in production code; reflection must resolve the replacement create-time ACL API; actual production helper must pass PowerShell 7.6.6 temp-only CreateNew/FileSecurity/WriteThrough/duplicate-fail/cleanup validation.",
+      "invariant": "Current supported PowerShell/.NET runtime must create the Replay artifact atomically with create-time FileSecurity, CreateNew and WriteThrough semantics; no transient post-create ACL window."
     }
   ]
 }
