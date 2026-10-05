@@ -4,24 +4,21 @@
   "display_name": "AI司令室 / Gate Q",
   "as_of": "2026-10-06",
   "risk_tier": "HIGH",
-  "current_stage": "Gate Q v1.45 — ready for Fresh Independent Static Audit",
-  "status": "V145_READY_FOR_FRESH_INDEPENDENT_STATIC_AUDIT",
-  "canonical": "Gate Q v1.45 candidate is frozen and READY FOR FRESH INDEPENDENT STATIC AUDIT. v1.44 Fresh Static PASS remains historical, but v1.44 Runtime Qualification is FAIL-CLOSED due to a proven current-.NET compatibility defect in the legacy seven-argument FileStream constructor. v1.45 minimally remediates that defect while preserving frozen Runtime paths and security semantics. Candidate SHA-256 7F618AC23500B8D6618C80188575D7D872F70A713E046C0D2A3016804FD16178; Controller SHA-256 33B42F4ABC5F4FC331070ADE36D4E87E54222CCF4686889D5830CDB9A069B57D; Manifest SHA-256 5584B6D3193C3BCB3A3B929E065A01392CB7B87C3545A13EA21EC51620D299EB; Fresh Audit Packet SHA-256 9FDC9D6BB41C7C7CA2350BAA8573B2285C32F94CD42D8519CA62BAC2103E4BC7; Complete Audit Bundle SHA-256 75ACE37C1A231EB5D7650F1276CDD11DDFA91460865554C94A6AB03EAD0B0F68. PowerShell 7.6.6 / .NET 10.0.12 Human Owner machine preflight PASS with 17/17 checks; packaged fixtures 15/15 PASS. Gate Q remains NOT LOCKED.",
+  "current_stage": "Gate Q v1.45 — READY FOR HUMAN OWNER SIGNING GATE",
+  "status": "V145_READY_FOR_HUMAN_OWNER_SIGNING_GATE",
+  "canonical": "Gate Q v1.45 Fresh Independent Static Audit PASS — STATIC ONLY; read-only Runtime readiness PASS. The Human Owner explicitly approved generation and detached CMS signing of a new v1.45 Runtime Qualification authorization. Runtime Qualification has NOT been executed. Candidate SHA-256 7F618AC23500B8D6618C80188575D7D872F70A713E046C0D2A3016804FD16178; Controller SHA-256 33B42F4ABC5F4FC331070ADE36D4E87E54222CCF4686889D5830CDB9A069B57D; Manifest SHA-256 5584B6D3193C3BCB3A3B929E065A01392CB7B87C3545A13EA21EC51620D299EB. v1.44 Runtime Qualification remains historical FAIL-CLOSED and its authorization must not be reused. Gate Q remains NOT LOCKED.",
   "locked": true,
-  "lock_ref": "Existing Human Owner approved/LOCKed architecture and design artifacts only. Gate Q v1.44 itself is NOT LOCKED.",
-  "last_pass": "Gate Q v1.45 author/machine qualification: 15/15 fixtures PASS; Human Owner PowerShell 7.6.6 / .NET 10.0.12 machine preflight 17/17 PASS using the actual production helper in OS temp; Candidate/Controller/Manifest frozen hashes matched; no Runtime, signing, authorization generation, Gate Q LOCK, Gate A, Stage 0B, Production, or WSL change.",
-  "open_findings": [
-    "Gate Q v1.45 requires Fresh Independent Static Audit before any Runtime preparation or signing. No open author-side deterministic blocker is currently reported."
-  ],
+  "lock_ref": "Existing Human Owner approved/LOCKed architecture and design artifacts only. Gate Q v1.45 itself is NOT LOCKED.",
+  "last_pass": "Fresh Independent Static Audit v1.45: PASS — STATIC ONLY. Read-only Runtime readiness: PASS. Previously completed Human Owner PowerShell 7.6.6 / .NET 10.0.12 machine preflight: 17/17 checks PASS; packaged fixtures 15/15 PASS. No Runtime Qualification execution, Gate Q LOCK, Gate A, Stage 0B, Production, or WSL change.",
+  "open_findings": [],
   "next_action": [
-    "Run one Fresh Independent Static Audit of the frozen v1.45 artifacts. Do not rebuild, repackage, or modify Candidate/Controller/Manifest.",
-    "Verify MAJOR-RT-FILESTREAM-NET-COMPAT-01 is closed in actual v1.45 production code: no legacy seven-argument FileStream constructor; replacement API exists and preserves create-time FileSecurity, CreateNew, WriteThrough, and fail-closed semantics.",
-    "Independently verify Human Owner PowerShell 7.6.6 evidence, 15/15 fixtures, v1.44→v1.45 minimal diff, existing null-sentinel/path-pin/auth/trust/replay/filesystem/ACL invariants, and package/hash bindings.",
-    "If Fresh Audit PASS — STATIC ONLY, preserve the frozen v1.45 identities and continue automatically through read-only Runtime readiness using the normal non-admin PowerShell execution path. Do not use the Gate Q workspace-write Codex profile for Runtime.",
-    "Stop at the next true Human Gate before live authorization/private-key signing. Runtime execution remains a separate later Human Gate."
+    "Generate a fresh v1.45 Runtime Qualification authorization with a new record_id and nonce and a lifetime no longer than five minutes; freeze the exact JSON bytes.",
+    "Compute and record the JSON byte count and SHA-256, create a detached CMS signature over only those exact bytes, recheck byte identity, and verify with the pinned Human Owner trust anchor.",
+    "Stop at READY FOR HUMAN OWNER RUNTIME QUALIFICATION EXECUTION GATE. A separate Human Owner approval is required before Runtime Qualification; use normal non-admin PowerShell 7.6.6.",
+    "Do not execute Runtime Qualification, lock Gate Q, execute Gate A or Stage 0B, change WSL/.wslconfig, activate a custom kernel, or enter Production."
   ],
-  "human_approval_required": false,
-  "audit_mode": "FRESH_INDEPENDENT_STATIC_AUDIT_REQUIRED_FOR_NEW_V145_CANDIDATE; NO_RUNTIME_NO_SIGNING_NO_LOCK",
+  "human_approval_required": true,
+  "audit_mode": "FRESH_INDEPENDENT_STATIC_AUDIT_PASS_STATIC_ONLY; READ_ONLY_RUNTIME_READINESS_PASS; SIGNING_APPROVAL_RECEIVED; NO_RUNTIME",
   "model_route": {
     "routine": "Instant/Low",
     "analysis": "Medium",
@@ -31,8 +28,9 @@
     "GitHub:Tsuchimaru0403/tsuchimaru-ai-command-center",
     "GitHub:ops/states/ai-command-center.json",
     "Gate Q v1.45 frozen Candidate/Controller/Manifest identities reported 2026-10-06",
-    "Gate Q v1.45 PowerShell 7.6.6 Human Owner machine preflight PASS reported 2026-10-06",
+    "Gate Q v1.45 Fresh Independent Static Audit PASS and read-only Runtime readiness PASS reported 2026-10-06",
+    "Gate Q v1.45 signing approval explicitly received 2026-10-06",
     "Notion:01｜AI司令室・自動化基盤"
   ],
-  "migration_note": "AI OPERATING EFFICIENCY POLICY v1 is active. v1.45 is a new high-risk candidate, so one Fresh Independent Static Audit is required. Do not re-audit v1.44 and do not repeat PS7.6.6 machine preflight unless new evidence or bytes change."
+  "migration_note": "AI OPERATING EFFICIENCY POLICY v1 is active. The v1.45 Fresh Independent Static Audit, PS7.6.6 machine preflight, and read-only Runtime readiness are already complete. Do not repeat them without changed bytes or environment evidence."
 }
