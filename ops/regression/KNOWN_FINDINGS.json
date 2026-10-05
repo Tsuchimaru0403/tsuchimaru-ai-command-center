@@ -2,5 +2,36 @@
   "version": 1,
   "updated_at": "2026-10-05",
   "policy": "Deterministic findings discovered by AI must be converted into machine-checkable regression tests when practical.",
-  "findings": []
+  "findings": [
+    {
+      "id": "MAJOR-RT-JSON-NULL-SENTINEL-01",
+      "project_id": "ai-command-center",
+      "classification": "deterministic",
+      "status": "CLOSED",
+      "first_seen": "Gate Q v1.42 Runtime Qualification",
+      "closed_in": "Gate Q v1.43 and retained in v1.44",
+      "machine_check": "STATIC_JSON_STRING_AND_ASSERT_MANIFEST_REGRESSION_v1.44.ps1 plus actual Assert-Manifest regression",
+      "invariant": "Arbitrary Manifest path/sha256 reads must not use a typed null sentinel; fixed-value JSON fields must retain exact comparison."
+    },
+    {
+      "id": "MAJOR-RT-PATH-PIN-01",
+      "project_id": "ai-command-center",
+      "classification": "deterministic",
+      "status": "CLOSED",
+      "first_seen": "Gate Q v1.43 Fresh Independent Static Audit",
+      "closed_in": "Gate Q v1.44",
+      "machine_check": "STATIC_RUNTIME_PATH_PIN_FIXTURES_v1.44.ps1 plus schema negative tests and Runtime-prefix dry validation",
+      "invariant": "Schema, controller, signed runtime_inputs and CLI must all bind exactly to C:\\GateQ\\v1.42\\ExecutionRoot and C:\\GateQ\\v1.42\\Replay\\gateq-v1.42.ledger."
+    },
+    {
+      "id": "AUDIT-EVIDENCE-MISSING-01",
+      "project_id": "ai-command-center",
+      "classification": "deterministic-process",
+      "status": "CLOSED",
+      "first_seen": "Gate Q v1.44 Fresh Independent Static Audit first attempt",
+      "closed_in": "Gate Q v1.44 restaged Fresh Independent Static Audit",
+      "machine_check": "Before semantic Fresh Audit, require readable Candidate, Fresh Audit Packet and Complete Audit Bundle plus exact frozen hash equality.",
+      "invariant": "Do not start or score a Fresh Audit until audit input access and artifact transfer integrity both PASS."
+    }
+  ]
 }
