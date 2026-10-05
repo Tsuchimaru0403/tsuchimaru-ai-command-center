@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "project_id": "note-ai-editorial",
+  "display_name": "NOTE AI EDITORIAL",
+  "as_of": "2026-10-05",
+  "risk_tier": "MEDIUM",
+  "current_stage": "甲子園連載 EP07 公開済み / 次記事は既存Editorial Systemで継続",
+  "status": "ACTIVE",
+  "canonical": "NOTE AI EDITORIAL SYSTEM v1.1 + Human Publish Gate.",
+  "locked": true,
+  "lock_ref": "NOTE AI EDITORIAL SYSTEM v1.1 Human Owner Canonical LOCK.",
+  "last_pass": "Published articles through EP07; editorial constitution remains active.",
+  "open_findings": [],
+  "next_action": [
+    "Source Packの数値・固有名詞・時系列はMachine Preflightへ寄せる。",
+    "AI reviewは構成・読みやすさ・意味矛盾へ集中する。",
+    "公開直前だけHuman Publish Gateを要求する。"
+  ],
+  "human_approval_required": true,
+  "audit_mode": "MACHINE_FACT_PREFLIGHT_THEN_AI_EDITORIAL_REVIEW_THEN_HUMAN_PUBLISH_GATE",
+  "model_route": {
+    "routine": "Instant/Low",
+    "analysis": "Medium",
+    "final_gate": "High only when fact conflict or policy ambiguity exists"
+  },
+  "source_of_truth": [
+    "Notion:04｜note・AI編集部",
+    "NOTE AI EDITORIAL SYSTEM v1.1"
+  ],
+  "migration_note": "Published articles are not reopened. Apply to the next article/source pack."
+}
