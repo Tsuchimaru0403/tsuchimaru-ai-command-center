@@ -4,21 +4,22 @@
   "display_name": "AI司令室 / Gate Q",
   "as_of": "2026-10-05",
   "risk_tier": "HIGH",
-  "current_stage": "Gate Q v1.44 — executor-context remediation Human Gate",
-  "status": "RUNTIME_ROOT_CAUSE_PROVEN_AWAITING_EXECUTOR_CONTEXT_HUMAN_GATE",
-  "canonical": "Gate Q v1.44 Fresh Independent Static Audit remains PASS — STATIC ONLY. The single authorized Runtime Qualification attempt failed closed only because the Codex executor ran with a restricted workspace-write token that could not obtain FILE_ADD_SUBDIRECTORY access to C:\\GateQ\\v1.42\\ExecutionRoot. Static ACL policy passed; effective access for the actual restricted token was DENY. v1.44 Candidate/Controller/Manifest remain frozen and unchanged. No Replay Ledger commit occurred. Gate Q remains NOT LOCKED.",
+  "current_stage": "Gate Q v1.44 — dedicated workspace-write executor profile Human Gate",
+  "status": "RUNTIME_EXECUTOR_PROFILE_NOT_APPLIED_AWAITING_NEW_EXECUTOR_READINESS",
+  "canonical": "Gate Q v1.44 Fresh Independent Static Audit remains PASS — STATIC ONLY. The single authorized Runtime Qualification attempt failed closed at child creation because the Codex workspace-write restricted token lacked effective access to C:\\GateQ\\v1.42\\ExecutionRoot; root cause is proven. The current desktop executor cannot change its writable roots or relaunch itself, so the narrowly scoped executor-context change is not applied. Candidate/Controller/Manifest and existing ACLs/owners remain frozen and unchanged. Runtime is FAIL-CLOSED; no Replay Ledger commit occurred. Gate Q is NOT LOCKED. Next Human action: create/use a dedicated workspace-write profile whose only additional writable roots are exactly C:\\GateQ\\v1.42\\ExecutionRoot and C:\\GateQ\\v1.42\\Replay, then launch a new Codex executor with that profile. No full-access/elevated mode or ACL changes. In that new executor, perform read-only readiness only and stop before authorization/signing/runtime.",
   "locked": true,
   "lock_ref": "Existing Human Owner approved/LOCKed architecture and design artifacts only. Gate Q v1.44 itself is NOT LOCKED.",
-  "last_pass": "Read-only runtime child-create diagnostic: ROOT CAUSE PROVEN. Classification WINDOWS_EFFECTIVE_ACCESS_BLOCKER. Current Codex executor token is restricted, medium-integrity, non-AppContainer, with workspace-write roots excluding C:\\GateQ; effective access to create a child in ExecutionRoot returns Win32 5 / HRESULT 0x80070005. No controller defect proven.",
+  "last_pass": "Gate Q v1.44 Fresh Independent Static Audit PASS remains unchanged. Read-only child-create diagnostic proved WINDOWS_EFFECTIVE_ACCESS_BLOCKER: current Codex workspace-write restricted token excludes C:\\GateQ writable roots and receives Win32 5 / HRESULT 0x80070005 for FILE_ADD_SUBDIRECTORY on the frozen ExecutionRoot. Current executor cannot apply writable-root changes or relaunch itself. No controller defect proven; no ACL/owner mutation.",
   "open_findings": [
-    "MAJOR-RT-CHILD-CREATE-ACCESS-01 — ROOT CAUSE PROVEN: current restricted Codex executor context cannot write to the frozen Gate Q Runtime paths. Requires Human Owner approval for a narrowly scoped executor-context/sandbox change before any new readiness/signing/runtime attempt."
+    "MAJOR-RT-CHILD-CREATE-ACCESS-01 — ROOT CAUSE PROVEN / FAIL-CLOSED. Executor writable-root remediation is not applied; waiting for a new Codex executor launched with the exact two-root workspace-write profile, then read-only readiness."
   ],
   "next_action": [
-    "Do not modify v1.44 Candidate, Controller, Manifest, frozen Runtime paths, or existing ACLs/owners.",
-    "Human Owner must decide whether to permit a narrowly scoped executor context whose additional writable roots are exactly C:\\GateQ\\v1.42\\ExecutionRoot and C:\\GateQ\\v1.42\\Replay, with no broader filesystem permission expansion and no elevation unless independently required and explicitly approved.",
-    "If approved, change only the executor/sandbox context, then run read-only readiness checks first; do not immediately generate authorization or sign.",
-    "After readiness PASS in the new executor context, generate a fresh live authorization and stop at the separate signing Human Gate; the consumed/expired GQv144-c50877e336da4668ad9dcf1f078b5c35 record must never be reused.",
-    "After signing verification, stop again at the separate Runtime Qualification execution Human Gate. Runtime PASS would still not authorize Gate Q LOCK, Gate A, Stage 0B, WSL changes, or Production."
+    "Human action: create/use a dedicated workspace-write profile with exactly two additional writable roots: C:\\GateQ\\v1.42\\ExecutionRoot and C:\\GateQ\\v1.42\\Replay; launch a new Codex executor using that profile.",
+    "Do not use danger-full-access, elevated/Administrator mode, broad C:\\ or C:\\GateQ roots, or change ACLs/owners.",
+    "The current executor cannot alter its own writable roots or relaunch into a new profile. No executor-context change has been applied.",
+    "In the new executor, run read-only readiness only: verify mode and exact writable roots, user SID/token/integrity, effective child-create and required Replay write access, unchanged owner/DACL/reparse/ancestry, and absence of ledger/lock/tmp/qualification child. Stop at EXECUTOR CONTEXT READY — RETURN TO READINESS / SIGNING FLOW.",
+    "Do not generate authorization, access the private key, sign, or execute Runtime until separate Human Gates. Never reuse expired/consumed record GQv144-c50877e336da4668ad9dcf1f078b5c35.",
+    "Keep v1.44 Candidate/Controller/Manifest frozen; do not re-audit the existing Static PASS. No Gate Q LOCK, Gate A, Stage 0B, WSL change, or Production."
   ],
   "human_approval_required": true,
   "audit_mode": "MACHINE_PREFLIGHT_THEN_AI_SEMANTIC_THEN_FRESH_AUDIT_FOR_NEW_HIGH_RISK_CANDIDATES_THEN_HUMAN_GATE; DO_NOT_REAUDIT_EXISTING_PASS_WITHOUT_NEW_EVIDENCE_OR_CHANGE",
@@ -33,5 +34,5 @@
     "Gate Q v1.44 Fresh Independent Static Audit PASS reported 2026-10-05",
     "Notion:01｜AI司令室・自動化基盤"
   ],
-  "migration_note": "AI OPERATING EFFICIENCY POLICY v1 remains active. Runtime-only root cause is proven, so no new Fresh Static Audit is required unless controller/candidate bytes or security semantics change. The next boundary is a Human Owner permission decision for executor writable-root scope."
+  "migration_note": "AI OPERATING EFFICIENCY POLICY v1 remains active. Runtime-only root cause is proven; the existing v1.44 Static PASS is preserved and is not reopened. The executor-profile Human Gate is pending because this desktop executor cannot apply its own writable-root configuration or relaunch. Next action is a dedicated workspace-write profile with exactly C:\\GateQ\\v1.42\\ExecutionRoot and C:\\GateQ\\v1.42\\Replay as additional writable roots, followed by a new executor launch and read-only readiness only."
 }
