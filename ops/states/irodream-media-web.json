@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "project_id": "irodream-media-web",
+  "display_name": "色彩夢・YouTube・Web制作",
+  "as_of": "2026-10-05",
+  "risk_tier": "MEDIUM",
+  "current_stage": "色彩夢HP / ふくしナビ / 歌ってみた編集サイト / YouTube制作を並行",
+  "status": "ACTIVE",
+  "canonical": "Per-deliverable source must be declared before edit or publish.",
+  "locked": false,
+  "lock_ref": null,
+  "last_pass": "Slack / Notion collaboration base is active.",
+  "open_findings": [
+    "色彩夢HPは正本候補の不一致を解消してから本番変更する。"
+  ],
+  "next_action": [
+    "各成果物にsource_of_truthとdone_whenを付ける。",
+    "公開前以外はFresh Auditを使わずMachine Preflight + AI reviewにする。",
+    "3往復を超える定型作業はDELEGATION CONTRACT化する。"
+  ],
+  "human_approval_required": true,
+  "audit_mode": "MACHINE_PREFLIGHT_THEN_AI_REVIEW; HUMAN_GATE_FOR_PUBLISH_OR_EXTERNAL_ACTION",
+  "model_route": {
+    "routine": "Instant/Low",
+    "analysis": "Medium",
+    "final_gate": "High only for canonical conflict or major release"
+  },
+  "source_of_truth": [
+    "Notion:05｜色彩夢・YouTube・Web制作",
+    "Slack:色彩夢 workspace"
+  ],
+  "migration_note": "Do not halt ongoing work. Apply contract/state rules when each deliverable is next touched."
+}
