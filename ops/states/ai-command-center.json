@@ -4,21 +4,21 @@
   "display_name": "AI司令室 / Gate Q",
   "as_of": "2026-10-06",
   "risk_tier": "HIGH",
-  "current_stage": "Gate Q v1.45 — READY FOR HUMAN OWNER SIGNING GATE",
-  "status": "V145_READY_FOR_HUMAN_OWNER_SIGNING_GATE",
-  "canonical": "Gate Q v1.45 Fresh Independent Static Audit PASS — STATIC ONLY; read-only Runtime readiness PASS. The Human Owner explicitly approved generation and detached CMS signing of a new v1.45 Runtime Qualification authorization. Runtime Qualification has NOT been executed. Candidate SHA-256 7F618AC23500B8D6618C80188575D7D872F70A713E046C0D2A3016804FD16178; Controller SHA-256 33B42F4ABC5F4FC331070ADE36D4E87E54222CCF4686889D5830CDB9A069B57D; Manifest SHA-256 5584B6D3193C3BCB3A3B929E065A01392CB7B87C3545A13EA21EC51620D299EB. v1.44 Runtime Qualification remains historical FAIL-CLOSED and its authorization must not be reused. Gate Q remains NOT LOCKED.",
+  "current_stage": "Gate Q v1.45 — READY FOR HUMAN OWNER RUNTIME QUALIFICATION EXECUTION GATE",
+  "status": "V145_READY_FOR_HUMAN_OWNER_RUNTIME_QUALIFICATION_EXECUTION_GATE",
+  "canonical": "Gate Q v1.45 Fresh Independent Static Audit PASS — STATIC ONLY; read-only Runtime readiness PASS; a new v1.45 Runtime Qualification authorization was generated and its exact JSON bytes were signed as detached CMS and verified with the pinned Human Owner trust anchor. The authorization is short-lived. Runtime Qualification has NOT been executed. Candidate SHA-256 7F618AC23500B8D6618C80188575D7D872F70A713E046C0D2A3016804FD16178; Controller SHA-256 33B42F4ABC5F4FC331070ADE36D4E87E54222CCF4686889D5830CDB9A069B57D; Manifest SHA-256 5584B6D3193C3BCB3A3B929E065A01392CB7B87C3545A13EA21EC51620D299EB. v1.44 Runtime Qualification remains historical FAIL-CLOSED and its authorization must not be reused. Gate Q remains NOT LOCKED.",
   "locked": true,
   "lock_ref": "Existing Human Owner approved/LOCKed architecture and design artifacts only. Gate Q v1.45 itself is NOT LOCKED.",
-  "last_pass": "Fresh Independent Static Audit v1.45: PASS — STATIC ONLY. Read-only Runtime readiness: PASS. Previously completed Human Owner PowerShell 7.6.6 / .NET 10.0.12 machine preflight: 17/17 checks PASS; packaged fixtures 15/15 PASS. No Runtime Qualification execution, Gate Q LOCK, Gate A, Stage 0B, Production, or WSL change.",
+  "last_pass": "Fresh Independent Static Audit v1.45: PASS — STATIC ONLY. Read-only Runtime readiness: PASS. Previously completed Human Owner PowerShell 7.6.6 / .NET 10.0.12 machine preflight: 17/17 checks PASS; packaged fixtures 15/15 PASS. New v1.45 authorization exact JSON byte identity preserved; detached CMS has one signer and SHA-256/RSA signature; signature verified and signer DER matched pinned public trust anchor. No Runtime Qualification execution, Gate Q LOCK, Gate A, Stage 0B, Production, or WSL change.",
   "open_findings": [],
   "next_action": [
-    "Generate a fresh v1.45 Runtime Qualification authorization with a new record_id and nonce and a lifetime no longer than five minutes; freeze the exact JSON bytes.",
-    "Compute and record the JSON byte count and SHA-256, create a detached CMS signature over only those exact bytes, recheck byte identity, and verify with the pinned Human Owner trust anchor.",
-    "Stop at READY FOR HUMAN OWNER RUNTIME QUALIFICATION EXECUTION GATE. A separate Human Owner approval is required before Runtime Qualification; use normal non-admin PowerShell 7.6.6.",
-    "Do not execute Runtime Qualification, lock Gate Q, execute Gate A or Stage 0B, change WSL/.wslconfig, activate a custom kernel, or enter Production."
+    "Stop at READY FOR HUMAN OWNER RUNTIME QUALIFICATION EXECUTION GATE. Obtain a separate explicit Human Owner approval before Runtime Qualification.",
+    "The newly generated authorization expires at 2026-10-05T16:21:11Z. If it expires or is consumed before Runtime execution, never reuse it; a fresh authorization and signing approval are required.",
+    "If separately approved while authorization remains valid, run only in normal non-admin PowerShell 7.6.6 using the exact frozen runtime paths.",
+    "Do not lock Gate Q, execute Gate A or Stage 0B, change WSL/.wslconfig, activate a custom kernel, or enter Production."
   ],
   "human_approval_required": true,
-  "audit_mode": "FRESH_INDEPENDENT_STATIC_AUDIT_PASS_STATIC_ONLY; READ_ONLY_RUNTIME_READINESS_PASS; SIGNING_APPROVAL_RECEIVED; NO_RUNTIME",
+  "audit_mode": "FRESH_INDEPENDENT_STATIC_AUDIT_PASS_STATIC_ONLY; READ_ONLY_RUNTIME_READINESS_PASS; V145_AUTHORIZATION_SIGNED_AND_PIN_VERIFIED; RUNTIME_NOT_EXECUTED",
   "model_route": {
     "routine": "Instant/Low",
     "analysis": "Medium",
@@ -29,7 +29,8 @@
     "GitHub:ops/states/ai-command-center.json",
     "Gate Q v1.45 frozen Candidate/Controller/Manifest identities reported 2026-10-06",
     "Gate Q v1.45 Fresh Independent Static Audit PASS and read-only Runtime readiness PASS reported 2026-10-06",
-    "Gate Q v1.45 signing approval explicitly received 2026-10-06",
+    "Gate Q v1.45 Human Owner signing approval explicitly received 2026-10-06",
+    "Gate Q v1.45 new Runtime Qualification authorization signed and verified 2026-10-06",
     "Notion:01｜AI司令室・自動化基盤"
   ],
   "migration_note": "AI OPERATING EFFICIENCY POLICY v1 is active. The v1.45 Fresh Independent Static Audit, PS7.6.6 machine preflight, and read-only Runtime readiness are already complete. Do not repeat them without changed bytes or environment evidence."
